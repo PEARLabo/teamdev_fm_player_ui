@@ -1,10 +1,10 @@
 # Preview (2024/7/9現在)
 
 ## Top Page
-![TopPage](/Miqs_music_prot/src/assets/toppage.png)
+![TopPage](./src/assets/toppage.png)
 
 ## Player Page
-![PlayerPage](/Miqs_music_prot/src/assets/playerpage.png)
+![PlayerPage](./src/assets/playerpage.png)
 
 # Tauri + Vanilla
 
