@@ -149,43 +149,6 @@ async fn send_file_size(contents: Vec<u8>, port_name: String) -> Result<(), Stri
     Ok(())
 }
 
-// //再生している曲に関するイベントを扱うtauriコマンド
-// #[tauri::command]
-// async fn update_music_status(port_name: String) -> Result<String, String> {
-//     //シリアルポートの設定
-//     let settings = SerialPortSettings {
-//         baud_rate: 9600,
-//         data_bits: DataBits::Eight,
-//         flow_control: FlowControl::None,
-//         parity: Parity::None,
-//         stop_bits: StopBits::One,
-//         timeout: Duration::from_millis(1500),
-//     };
-
-//     //シリアルポートを開く
-//     let mut port = serialport::open_with_settings(&port_name, &settings)
-//         .map_err(|e| format!("Failed to open serial port: {}", e))?;
-
-//     //音楽再生状況を受信するためのバッファ
-//     let mut buffer = [0; 128];
-
-//     // データを読み込む
-//     match port.read(&mut buffer) {
-//         Ok(bytes) => {
-//             // ここでバッファのデータを処理します
-//             // 例: バッファから読み取ったバイト数をログに記録
-//             println!("Read {} bytes: {:?}", bytes, &buffer[..bytes]);
-
-//             // 成功した場合、適切なメッセージを返します
-//             Ok(format!("Successfully read {} bytes from serial port.", bytes))
-//         },
-//         Err(e) => {
-//             // エラーが発生した場合、エラーメッセージを返します
-//             Err(format!("Failed to read from serial port: {}", e))
-//         }
-//     }
-// }
-
 // アプリケーションのエントリーポイント
 fn main() {
     tauri::Builder::default()
@@ -193,5 +156,6 @@ fn main() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 
-    process_event();
+    let port_name = "COM3".to_string();
+    process_event(port_name);
 }

@@ -89,7 +89,10 @@ pub mod playback_info {
                     //flag_aの判定
                     match flag_a {
                         //key event
-                        0 => {
+                        0 => {/*[IttF]
+                             key情報とchanel、velocityの情報は逐次更新せずに
+                             蓄積していくスタイルに
+                             */
                             // Little Endianであるため、bufferからkeyとvelocityを取り出す
                             let key = u8::from_le(buffer[3]);
                             let velocity = u8::from_le(buffer[4]);
@@ -147,33 +150,15 @@ pub mod playback_info {
                             let param_data = u8::from_be(buffer[3]);
 
                             match event {
-                                0 => {
-                                    println!("Slot: {:6}, change param: {:11}", slot, param_data);
-                                },
-                                1 => {
-                                    println!("Detune/Multiple: {:6}, change param: {:11}", slot, param_data);
-                                },
-                                2 =>{
-                                    println!("TotalLevel: {:6}, change param: {:11}", slot, param_data);
-                                },
-                                3 => {
-                                    println!("KeyScale/AttackRate: {:6}, change param: {:11}", slot, param_data);
-                                },
-                                4 => {
-                                    println!("DecayRate: {:6}, change param: {:11}", slot, param_data);
-                                },
-                                5 => {
-                                    println!("SustainRate: {:6}, change param: {:11}", slot, param_data);
-                                },
-                                6 => {
-                                    println!("SustainLevel/ReleaseRate: {:6}, change param: {:11}", slot, param_data);
-                                },
-                                7 => {
-                                    println!("FeedBack/Connection: {:6}, change param: {:11}", slot, param_data);
-                                },
-                                _ => {
-                                    println!("Invalid event: {}", event);
-                                },
+                                0 => println!("Slot: {:6}, change param: {:11}", slot, param_data),
+                                1 => println!("Detune/Multiple: {:6}, change param: {:11}", slot, param_data),
+                                2 =>println!("TotalLevel: {:6}, change param: {:11}", slot, param_data),
+                                3 => println!("KeyScale/AttackRate: {:6}, change param: {:11}", slot, param_data),
+                                4 => println!("DecayRate: {:6}, change param: {:11}", slot, param_data),
+                                5 => println!("SustainRate: {:6}, change param: {:11}", slot, param_data),
+                                6 => println!("SustainLevel/ReleaseRate: {:6}, change param: {:11}", slot, param_data),
+                                7 => println!("FeedBack/Connection: {:6}, change param: {:11}", slot, param_data),
+                                _ => println!("Invalid event: {}", event),
                             }
                         },
                         5 => println!("FlagA is 5: Skip to next track."),
