@@ -193,5 +193,6 @@ fn main() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 
-    process_event();
+    let port_name = "COM3".to_string();
+    process_event(port_name);
 }
