@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tauri File Selector</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <h1>ファイルを選択してください</h1>
+    <input type="file" id="fileInput">
+    <button onclick="openFile()">ファイルを開く</button>
+    <p id="fileSize">ファイルサイズ: N/A</p>
+    <button id="sendButton" style="display: none;">送信</button>
+    <p id="warningMessage" style="display: none; color:red;">MIDI形式のファイルを選択してください</p>
+    <div id="console"></div>
+
+    <a href="player.html">Player画面</a>
+
+    <script src="main.js"></script>
+</body>
+
+</html>
