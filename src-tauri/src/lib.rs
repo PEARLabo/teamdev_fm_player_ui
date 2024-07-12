@@ -62,18 +62,21 @@ pub mod playback_info {
         // 音楽再生情報を受信するためのバッファ
         let mut buffer = [0; 5]; // 最大5バイトのバッファ
         
-        // keyとvelocity初期表示を設定
-        let mut stdout = stdout();
-        stdout.execute(terminal::Clear(terminal::ClearType::All)).unwrap();
-        stdout.execute(cursor::MoveTo(0, 0)).unwrap();
-        println!("Tempo: ");
-        stdout.execute(cursor::MoveTo(0, 1)).unwrap();
-        println!("Chanel: ");
-        stdout.execute(cursor::MoveTo(0, 2)).unwrap();
-        println!("Key: ");
-        stdout.execute(cursor::MoveTo(0, 3)).unwrap();
-        println!("Velocity: ");
-        stdout.flush().unwrap();
+        /*
+        フラッシュ表示用の機能[flash]
+         */
+        // // keyとvelocity初期表示を設定
+        // let mut stdout = stdout();
+        // stdout.execute(terminal::Clear(terminal::ClearType::All)).unwrap();
+        // stdout.execute(cursor::MoveTo(0, 0)).unwrap();
+        // println!("Tempo: ");
+        // stdout.execute(cursor::MoveTo(0, 1)).unwrap();
+        // println!("Chanel: ");
+        // stdout.execute(cursor::MoveTo(0, 2)).unwrap();
+        // println!("Key: ");
+        // stdout.execute(cursor::MoveTo(0, 3)).unwrap();
+        // println!("Velocity: ");
+        // stdout.flush().unwrap();
         
         loop {
             // データを読み込む
@@ -89,54 +92,60 @@ pub mod playback_info {
                     //flag_aの判定
                     match flag_a {
                         //key event
-                        0 => {/*[IttF]
-                             key情報とchanel、velocityの情報は逐次更新せずに
-                             蓄積していくスタイルに
-                             */
+                        0 => {
                             // Little Endianであるため、bufferからkeyとvelocityを取り出す
                             let key = u8::from_le(buffer[3]);
                             let velocity = u8::from_le(buffer[4]);
                             if velocity == 0{
-                                // カーソルを移動して値を上書き
-                                stdout.execute(cursor::MoveTo(8, 1)).unwrap(); // "Key: "の後に移動
-                                print!("off");
-                                stdout.execute(cursor::MoveTo(5, 2)).unwrap(); // "Key: "の後に移動
-                                print!("{:6}", key); // 5桁の幅を確保して上書き
-                                stdout.execute(cursor::MoveTo(10, 3)).unwrap(); // "Velocity:"の後に移動
-                                print!("{:11}", velocity); // 10桁の幅を確保して上書き
-                                // バッファをフラッシュして表示を更新
-                                stdout.flush().unwrap();
+                                //[flash]
+                                // // カーソルを移動して値を上書き
+                                // stdout.execute(cursor::MoveTo(8, 1)).unwrap(); // "Key: "の後に移動
+                                // print!("{:2}, chanel");
+                                // stdout.execute(cursor::MoveTo(5, 2)).unwrap(); // "Key: "の後に移動
+                                // print!("{:6}", key); // 5桁の幅を確保して上書き
+                                // stdout.execute(cursor::MoveTo(10, 3)).unwrap(); // "Velocity:"の後に移動
+                                // print!("Noteoff"); // 10桁の幅を確保して上書き
+                                // // バッファをフラッシュして表示を更新
+                                // stdout.flush().unwrap();
+                                println!("chanel: {}({:2}), key: {}({:6}), velocity: noteoff",
+                                    chanel, chanel, key, key);
                             }else if velocity != 0{
-                                // カーソルを移動して値を上書き
-                                stdout.execute(cursor::MoveTo(8, 1)).unwrap(); // "Key: "の後に移動
-                                print!("{:2}", chanel);
-                                stdout.execute(cursor::MoveTo(5, 2)).unwrap(); // "Key: "の後に移動
-                                print!("{:6}", key); // 5桁の幅を確保して上書き
-                                stdout.execute(cursor::MoveTo(10, 3)).unwrap(); // "Velocity:"の後に移動
-                                print!("{:11}", velocity); // 3桁の幅を確保して上書き
-                                // バッファをフラッシュして表示を更新
-                                stdout.flush().unwrap();
+                                //[flash]
+                                // // カーソルを移動して値を上書き
+                                // stdout.execute(cursor::MoveTo(8, 1)).unwrap(); // "Key: "の後に移動
+                                // print!("{:2}", chanel);
+                                // stdout.execute(cursor::MoveTo(5, 2)).unwrap(); // "Key: "の後に移動
+                                // print!("{:6}", key); // 5桁の幅を確保して上書き
+                                // stdout.execute(cursor::MoveTo(10, 3)).unwrap(); // "Velocity:"の後に移動
+                                // print!("{:11}", velocity); // 3桁の幅を確保して上書き
+                                // // バッファをフラッシュして表示を更新
+                                // stdout.flush().unwrap();
+                                println!("chanel: {}({:2}), key: {}({:6}), velocity: {}({:11})",
+                                    chanel, chanel, key, key, velocity, velocity);
                             }
                         },
                         //tempo event
                         1 => {
                             let tempo = U24::from_be_bytes(buffer[2], buffer[3], buffer[4]);
+                            let bpm = 1000000 / tempo.value();
+
                             //tempo情報を表示
-                            stdout.execute(cursor::MoveTo(7, 0)).unwrap(); // "Tempo: "の後に移動
-                            print!("{:?}", tempo);
-                            stdout.flush().unwrap();
+                            // stdout.execute(cursor::MoveTo(7, 0)).unwrap(); // "Tempo: "の後に移動
+                            // print!("{:?}", tempo);
+                            // stdout.flush().unwrap();
+                            println!("tempo: {:?}({:?})[μsec/四分音符], BPM: {}", tempo.value(), tempo, bpm);
                         },
                         //end event
                         2 => {
                             // 既存のchanel, key, velocity情報をクリア
-                            stdout.execute(cursor::MoveTo(7, 0)).unwrap(); // "Tempo: "の後に移動
-                            print!("   ");
-                            stdout.execute(cursor::MoveTo(8, 1)).unwrap(); // "Chanel: "の後に移動
-                            print!("   ");
-                            stdout.execute(cursor::MoveTo(5, 2)).unwrap(); // "Key: "の後に移動
-                            print!("   ");
-                            stdout.execute(cursor::MoveTo(10, 3)).unwrap(); // "Velocity:"の後に移動
-                            print!("   ");
+                            // stdout.execute(cursor::MoveTo(7, 0)).unwrap(); // "Tempo: "の後に移動
+                            // print!("   ");
+                            // stdout.execute(cursor::MoveTo(8, 1)).unwrap(); // "Chanel: "の後に移動
+                            // print!("   ");
+                            // stdout.execute(cursor::MoveTo(5, 2)).unwrap(); // "Key: "の後に移動
+                            // print!("   ");
+                            // stdout.execute(cursor::MoveTo(10, 3)).unwrap(); // "Velocity:"の後に移動
+                            // print!("   ");
                             println!("End");
                         },
                         //nop event
