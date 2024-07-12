@@ -22,8 +22,8 @@
     "windows": [
       {
         "title": "miqs_music_prot",
-        "width": 800,
-        "height": 600
+        "width": 960,
+        "height": 720
       }
     ],
     "security": {
