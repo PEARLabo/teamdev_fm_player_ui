@@ -6,18 +6,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tauri File Selector</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tauri-apps/api/dist/bundle.js"></script>
+
 </head>
 
 <body>
-    <h1>ファイルを選択してください</h1>
-    <input type="file" id="fileInput">
-    <!--<button onclick="openFile()">ファイルを開く</button>-->
-    <p id="fileSize">ファイルサイズ: N/A</p>
-    <button id="sendButton" disabled>送信</button>
-    <textarea readonly id="console"></textarea>
+    <div id="main">
+        <h1>ファイルを選択してください</h1>
+        <input type="file" id="fileInput">
+        <!--<button onclick="openFile()">ファイルを開く</button>-->
+        <p id="fileSize">ファイルサイズ: N/A</p>
+        <button id="sendButton" disabled>送信</button>
+        <textarea readonly id="console"></textarea>
 
-    <a href="player.html">Player画面</a>
+        <button onclick="switchPlayer()">Player画面</button>
+    </div>
 
+    <div id="player" style="display: none;">
+        <h1>Player</h1>
+        <div>
+            <button onclick="switchMain()">ファイル読み込み画面に戻る</button>
+        </div>
+
+        <!-- Consoleを実装 -->
+        <textarea readonly id="playerConsole"></textarea>
+
+        <canvas id="pianoRoll" width="900" height="400" style="border: 1px solid black;"></canvas>
+    </div>
+
+    <script src="player.js"></script>
     <script src="main.js"></script>
 </body>
 

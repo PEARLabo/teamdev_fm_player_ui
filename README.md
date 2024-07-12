@@ -1,10 +1,10 @@
 # Preview (2024/7/12現在)
 
-## Top Page
-![TopPage](./src/assets/top-page.png)
+## FileSelector
+![FileSelector](./src/assets/FileSelector.png)
 
-## Player Page
-![PlayerPage](./src/assets/player-page.png)
+## Player
+![Player](./src/assets/Player.png)
 
 # Tauri + Vanilla
 

@@ -2,7 +2,7 @@ use tauri::Manager;
 use std::io::{self, Write, Read};
 use serialport::{SerialPortSettings, DataBits, FlowControl, Parity, StopBits};
 use std::time::Duration;
-use ymodem::{recv, send};
+//use ymodem::{recv, send};
 //イベント表示をライブラリとして使用できるようにする場合
 //use Playback_Information::playback_info::process_event; //[Check!](ライブラリのパスの設定)
 
@@ -12,6 +12,12 @@ use ymodem::{recv, send};
 struct FileInfo {
     size: usize,
     is_midi: bool,
+}
+
+// エラーメッセージを格納する構造体
+#[derive(serde::Serialize)]
+struct ErrorMessage {
+    error: String,
 }
 
 #[derive(Debug)]
@@ -137,7 +143,7 @@ async fn send_file_size(contents: Vec<u8>, port_name: String) -> Result<(), Stri
 
 // //イベント情報をシリアル通信でやり取りするコマンド
 #[tauri::command]
-async fn process_event(port_name: String) -> Result<(), String> {
+async fn process_event(window: tauri::Window, port_name: String) -> Result<(), String> {
     // シリアルポートの設定
     let settings = SerialPortSettings {
         baud_rate: 115200,
@@ -151,10 +157,13 @@ async fn process_event(port_name: String) -> Result<(), String> {
     // シリアルポートを開く
     let mut port = serialport::open_with_settings(&port_name, &settings)
         .map_err(|e| format!("Failed to open serial port: {}", e))?;
-    
+
     // 音楽再生情報を受信するためのバッファ
     let mut buffer = [0; 5]; // 最大5バイトのバッファ
-    
+
+    // フロントへのメッセージ送信デモ
+    window.emit("playback_info", &"Starting playback info").unwrap();
+
     /*
     フラッシュ表示用の機能[flash]
      */
@@ -177,7 +186,14 @@ async fn process_event(port_name: String) -> Result<(), String> {
             Ok(_) => {
                 // 受信したデータを16進数でログに表示
                 println!("Received playback info (hex): {:02x?}", buffer);
-    
+
+                // JSON形式での送信を想定してデータを変換
+                let data_to_send = serde_json::to_string(&buffer)
+                    .map_err(|e| e.to_string())?;
+
+                // フロントエンドにメッセージを送信
+                window.emit("playback_info", &data_to_send).unwrap();
+
                 //let data_width = u8::from_le(buffer[0] & 0x0F);
                 let flag_a = u8::from_le((buffer[1] >> 4) & 0x0F);
                 let chanel = u8::from_le(buffer[1] & 0x0F);
@@ -271,6 +287,13 @@ async fn process_event(port_name: String) -> Result<(), String> {
             },
             Err(e) => {
                 println!("Failed to read from serial port: {}", e);
+                // エラーメッセージを作成
+                let error_message = ErrorMessage {
+                    error: format!("Failed to read from serial port: {}", e),
+                };
+
+                // JSON形式でフロントエンドにメッセージ送信
+                window.emit("playback_info", &error_message).unwrap();
             }
         }
     }

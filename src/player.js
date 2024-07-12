@@ -1,4 +1,5 @@
-document.addEventListener('DOMContentLoaded', () => {
+// ピアノロールの描画(switchPlayer関数内で呼び出し)
+function drawPianoRoll() {
   const canvas = document.getElementById('pianoRoll');
   canvas.height = 400; // Canvasの高さを設定
   canvas.width = 900; // Canvasの幅を設定、適切に鍵盤が収まるように調整
@@ -86,4 +87,4 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   requestAnimationFrame(animate);
-});
+}

@@ -16,7 +16,7 @@ input[type="file"] {
 }
 
 button {
-  background-color: #007bff;
+  background-color: #222;
   color: #fff;
   border: none;
   padding: 10px 20px;
@@ -44,7 +44,8 @@ a:hover {
   opacity: 0.8;
 }
 
-#console {
+#console,
+#playerConsole {
   display: block;
   max-width: 800px;
   width: 100%;
