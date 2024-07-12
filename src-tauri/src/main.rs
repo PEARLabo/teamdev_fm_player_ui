@@ -2,6 +2,7 @@ use tauri::Manager;
 use std::io::{self, Write, Read};
 use serialport::{SerialPortSettings, DataBits, FlowControl, Parity, StopBits};
 use std::time::Duration;
+use ymodem::{recv, send};
 //イベント表示をライブラリとして使用できるようにする場合
 //use Playback_Information::playback_info::process_event; //[Check!](ライブラリのパスの設定)
 
@@ -49,7 +50,7 @@ async fn send_file_size(contents: Vec<u8>, port_name: String) -> Result<(), Stri
 
     // シリアルポートの設定
     let settings = SerialPortSettings {
-        baud_rate: 9600,
+        baud_rate: 115200,
         data_bits: DataBits::Eight,
         flow_control: FlowControl::None,
         parity: Parity::None,
@@ -139,7 +140,7 @@ async fn send_file_size(contents: Vec<u8>, port_name: String) -> Result<(), Stri
 async fn process_event(port_name: String) -> Result<(), String> {
     // シリアルポートの設定
     let settings = SerialPortSettings {
-        baud_rate: 9600,
+        baud_rate: 115200,
         data_bits: DataBits::Eight,
         flow_control: FlowControl::None,
         parity: Parity::None,
@@ -180,6 +181,7 @@ async fn process_event(port_name: String) -> Result<(), String> {
                 //let data_width = u8::from_le(buffer[0] & 0x0F);
                 let flag_a = u8::from_le((buffer[1] >> 4) & 0x0F);
                 let chanel = u8::from_le(buffer[1] & 0x0F);
+                let event_data = buffer;
 
                 //flag_aの判定
                 match flag_a {
