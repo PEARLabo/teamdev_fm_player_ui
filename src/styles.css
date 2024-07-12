@@ -37,3 +37,19 @@ a {
 a:hover {
   opacity: 0.8;
 }
+
+#console {
+  display: block;
+  max-width: 800px;
+  width: 100%;
+  height: 60px;
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #f4f4f4;
+  border: 1px solid #ddd;
+  overflow-y: auto; /* Enable vertical scrolling */
+  font-family: monospace;
+  // Textarea内編集不可能にする
+  resize: none;
+  cursor: text;
+}

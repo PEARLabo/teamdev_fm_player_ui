@@ -87,19 +87,11 @@ document.getElementById('sendButton').addEventListener('click', async () => {
         window.location.href = "player.html";
     } catch (error) {
         console.error(`Error sending file size: ${error}`);  // エラーログ
-        //#console div 内に送信失敗メッセージを表示
-        const consoleDiv = document.getElementById('console');
-        // consoleDiv 内に p タグが存在するか確認
-        const existingPTag = consoleDiv.querySelector('p');
-
-        // p タグが存在しない場合、新しい p タグを作成
-        if (!existingPTag) {
-            const message = document.createElement('p');
-            message.textContent = 'Error sending file size';
-            consoleDiv.appendChild(message);
-        } else {
-            // 既存の p タグがある場合、そのテキストを更新
-            existingPTag.textContent = 'Error sending file size';
-        }
+        // #console textarea 内に送信失敗メッセージを表示
+        const consoleArea = document.getElementById('console');
+        // 自動で一番下までスクロール
+        consoleArea.scrollTop = consoleArea.scrollHeight;
+        // consoleArea 内にエラーメッセージを追加
+        consoleArea.value += 'Error sending file size\n';
     }
 });
