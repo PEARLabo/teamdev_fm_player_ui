@@ -11,10 +11,9 @@
 <body>
     <h1>ファイルを選択してください</h1>
     <input type="file" id="fileInput">
-    <button onclick="openFile()">ファイルを開く</button>
+    <!--<button onclick="openFile()">ファイルを開く</button>-->
     <p id="fileSize">ファイルサイズ: N/A</p>
-    <button id="sendButton" style="display: none;">送信</button>
-    <p id="warningMessage" style="display: none; color:red;">MIDI形式のファイルを選択してください</p>
+    <button id="sendButton" disabled>送信</button>
     <textarea readonly id="console"></textarea>
 
     <a href="player.html">Player画面</a>
