@@ -1,10 +1,10 @@
-# Preview (2024/7/9現在)
+# Preview (2024/7/12現在)
 
 ## Top Page
-![TopPage](./src/assets/toppage.png)
+![TopPage](./src/assets/top-page.png)
 
 ## Player Page
-![PlayerPage](./src/assets/playerpage.png)
+![PlayerPage](./src/assets/player-page.png)
 
 # Tauri + Vanilla
 
