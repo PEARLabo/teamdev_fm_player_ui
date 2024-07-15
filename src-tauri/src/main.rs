@@ -2,7 +2,6 @@ use tauri::Manager;
 use std::io::{self, Write, Read};
 use serialport::{SerialPortSettings, DataBits, FlowControl, Parity, StopBits};
 use std::time::Duration;
-use ymodem::{recv, send};
 //イベント表示をライブラリとして使用できるようにする場合
 //use Playback_Information::playback_info::process_event; //[Check!](ライブラリのパスの設定)
 
@@ -280,7 +279,7 @@ async fn process_event(port_name: String) -> Result<(), String> {
 // アプリケーションのエントリーポイント
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![read_file, send_file_size])
+        .invoke_handler(tauri::generate_handler![read_file, send_file_size, process_event])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 
