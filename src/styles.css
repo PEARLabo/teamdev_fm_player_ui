@@ -16,13 +16,19 @@ input[type="file"] {
 }
 
 button {
-  background-color: #007bff;
+  background-color: #222;
   color: #fff;
   border: none;
   padding: 10px 20px;
   cursor: pointer;
   border-radius: 4px;
   margin-top: 10px;
+}
+
+button#sendButton { // デフォルトは押せないようにする
+  background-color: #333333 !important;
+  /*color: black;*/
+  cursor: not-allowed;
 }
 
 button:hover {
@@ -38,7 +44,8 @@ a:hover {
   opacity: 0.8;
 }
 
-#console {
+#console,
+#playerConsole {
   display: block;
   max-width: 800px;
   width: 100%;
