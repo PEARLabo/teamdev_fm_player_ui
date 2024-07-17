@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use serialport::{DataBits, FlowControl, Parity, SerialPortSettings, StopBits};
+use serialport::{DataBits, FlowControl, Parity, SerialPort, SerialPortSettings, StopBits};
 use std::io::{self, Read, Write};
 use std::time::Duration;
 use tauri::Manager;
@@ -30,10 +30,10 @@ const C: u8 = 0x43; // 'C' for CRC mode
 fn ymodem_file_send(
     contents: &[u8],
     settings: &SerialPortSettings,
-    port_name: &String,
+    port: &mut Box<dyn SerialPort> ,
 ) -> io::Result<()> {
     // シリアルポートを開く
-    let mut port = serialport::open_with_settings(port_name, settings)?;
+    // let mut port = serialport::open_with_settings(port_name, settings)?;
 
     // 受信側からの 'C' 信号を待つ
     let mut response = [0; 1];
@@ -135,7 +135,7 @@ fn create_data_block(chunk: &[u8], block_number: u8) -> io::Result<Vec<u8>> {
 /// # Returns
 ///
 /// `io::Result<()>` - ACKを受信した場合はOk(()), エラーが発生した場合はエラーを返す。
-fn wait_for_ack(port: &mut dyn serialport::SerialPort) -> io::Result<()> {
+fn wait_for_ack(port:&mut Box<dyn SerialPort>) -> io::Result<()> {
     let mut response = [0; 1];
     loop {
         port.read_exact(&mut response)?;
@@ -252,7 +252,7 @@ fn send_file_size(contents: Vec<u8>, port_name: String) -> Result<(), String> {
                 // port.write_all(&contents)
                 //     .map_err(|e| format!("Failed to send file data: {}", e))?;
                 //ymodem形式でファイル送信
-                ymodem_file_send(&contents, &settings, &port_name)
+                ymodem_file_send(&contents, &settings, &mut port)
                     .map_err(|e| format!("Failed to send file using Ymodem: {}", e))?;
 
                 // シーケンサからの受信完了メッセージを待機
