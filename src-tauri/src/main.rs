@@ -382,8 +382,14 @@ async fn process_event(window: tauri::Window, port_name: String) -> Result<(), S
                             // print!("Noteoff"); // 10桁の幅を確保して上書き
                             // // バッファをフラッシュして表示を更新
                             // stdout.flush().unwrap();
-                            println!("chanel: {}({:2}), key: {}({:6}), velocity: noteoff",
+
+                            // println!("chanel: {}({:2}), key: {}({:6}), velocity: noteoff",
+                            //     chanel, chanel, key, key);
+
+                            let flaga_msg = format!("chanel: {}({:2}), key: {}({:6}), velocity: noteoff",
                                 chanel, chanel, key, key);
+                            println!("{}", flaga_msg);
+                            window.emit("playback_info", &flaga_msg).unwrap();
                         }else if velocity != 0{
                             //[flash]
                             // // カーソルを移動して値を上書き
@@ -395,20 +401,29 @@ async fn process_event(window: tauri::Window, port_name: String) -> Result<(), S
                             // print!("{:11}", velocity); // 3桁の幅を確保して上書き
                             // // バッファをフラッシュして表示を更新
                             // stdout.flush().unwrap();
-                            println!("chanel: {}({:2}), key: {}({:6}), velocity: {}({:11})",
+
+                            // println!("chanel: {}({:2}), key: {}({:6}), velocity: {}({:11})",
+                            //     chanel, chanel, key, key, velocity, velocity);
+                            let flaga_msg = format!("chanel: {}({:2}), key: {}({:6}), velocity: {}({:11})",
                                 chanel, chanel, key, key, velocity, velocity);
+                            println!("{}", flaga_msg);
+                            window.emit("playback_info", &flaga_msg).unwrap();
                         }
                     },
                     //tempo event
                     1 => {
                         let tempo = U24::from_be_bytes(buffer[2], buffer[3], buffer[4]);
                         let bpm = 1000000 / tempo.value();
-
+                        
+                        //[flash]
                         //tempo情報を表示
                         // stdout.execute(cursor::MoveTo(7, 0)).unwrap(); // "Tempo: "の後に移動
                         // print!("{:?}", tempo);
                         // stdout.flush().unwrap();
-                        println!("tempo: {:?}({:?})[μsec/四分音符], BPM: {}", tempo.value(), tempo, bpm);
+
+                        let flaga_msg = format!("tempo: {:?}({:?})[μsec/四分音符], BPM: {}", tempo.value(), tempo, bpm);
+                        println!("{}", flaga_msg);
+                        window.emit("playback_info", &flaga_msg).unwrap();
                     },
                     //end event
                     2 => {
@@ -421,7 +436,10 @@ async fn process_event(window: tauri::Window, port_name: String) -> Result<(), S
                         // print!("   ");
                         // stdout.execute(cursor::MoveTo(10, 3)).unwrap(); // "Velocity:"の後に移動
                         // print!("   ");
-                        println!("End");
+
+                        let flaga_msg = "End".to_string(); 
+                        println!("{}", flaga_msg);
+                        window.emit("playback_info", &flaga_msg).unwrap();
                     },
                     //nop event
                     3 => {
@@ -433,20 +451,31 @@ async fn process_event(window: tauri::Window, port_name: String) -> Result<(), S
                         let slot = u8::from_le(buffer[2] & 0x0F);
                         let param_data = u8::from_be(buffer[3]);
 
-                        match event {
-                            0 => println!("Slot: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
-                            1 => println!("Detune/Multiple: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
-                            2 => println!("TotalLevel: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
-                            3 => println!("KeyScale/AttackRate: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
-                            4 => println!("DecayRate: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
-                            5 => println!("SustainRate: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
-                            6 => println!("SustainLevel/ReleaseRate: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
-                            7 => println!("FeedBack/Connection: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
-                            _ => println!("Invalid event: {}", event),
-                        }
+                        let flaga_msg = match event {
+                            0 => format!("Slot: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
+                            1 => format!("Detune/Multiple: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
+                            2 => format!("TotalLevel: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
+                            3 => format!("KeyScale/AttackRate: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
+                            4 => format!("DecayRate: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
+                            5 => format!("SustainRate: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
+                            6 => format!("SustainLevel/ReleaseRate: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
+                            7 => format!("FeedBack/Connection: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
+                            _ => format!("Invalid event: {}", event),
+                        };
+
+                        println!("{}", flaga_msg);
+                        window.emit("playback_info", &flaga_msg).unwrap();
                     },
-                    5 => println!("FlagA is 5: Skip to next track."),
-                    _ => println!("FlagA is invalid: {}", flag_a),
+                    5 => {
+                        let flaga_msg = "FlagA is 5: Skip to next track.".to_string();
+                        println!("{}", flaga_msg);
+                        window.emit("playback_info", &flaga_msg).unwrap();
+                    }
+                    _ => {
+                        let flaga_msg = format!("FlagA is invalid: {}", flag_a);
+                        println!("{}", flaga_msg);
+                        window.emit("playback_info", &flaga_msg).unwrap();
+                    }
                 }
             },
             Err(e) => {
