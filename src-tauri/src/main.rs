@@ -53,8 +53,8 @@ fn ymodem_file_send(
 
     // ファイルデータの送信
     let mut block_number = 0; // ブロック番号は0から開始
-    for chunk in contents.chunks(1024) {
-        let data_block = create_data_block(chunk, block_number)?;
+    for chunk in contents.chunks(128) {
+        let data_block = create_data_block(chunk, block_number +1)?;
         port.write_all(&data_block)?;
 
         // ACKを待つ
@@ -65,10 +65,12 @@ fn ymodem_file_send(
 
     // EOTの送信
     port.write_all(&[EOT])?;
-
+    wait_for_ack(&mut *port)?;
+    let data_block = create_data_block(&vec![0;128], 0)?;
+    port.write_all(&data_block)?;
     // 最後のACKを待つ
     wait_for_ack(&mut *port)?;
-
+    println!("YMODEM PASS!");
     Ok(())
 }
 
@@ -111,8 +113,8 @@ fn create_file_header(filename: &str, filesize: u64) -> io::Result<Vec<u8>> {
 ///
 /// `io::Result<Vec<u8>>` - データブロックのバイト列を含む結果。エラーが発生した場合はエラーを返す。
 fn create_data_block(chunk: &[u8], block_number: u8) -> io::Result<Vec<u8>> {
-    let mut block = vec![STX, block_number, !block_number];
-    let mut data = vec![0u8; 1024];
+    let mut block = vec![ SOH/*STX*/, dbg!(block_number), !block_number];
+    let mut data = vec![0u8; 128];
     data[..chunk.len()].copy_from_slice(chunk);
     block.extend_from_slice(&data);
 
