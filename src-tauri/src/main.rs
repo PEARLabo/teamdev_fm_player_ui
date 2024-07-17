@@ -182,7 +182,7 @@ struct U24(u32);
 
 // ファイルの内容を受け取り、情報を返すTauriコマンド
 #[tauri::command]
-async fn read_file(contents: Vec<u8>) -> Result<FileInfo, String> {
+fn read_file(contents: Vec<u8>) -> Result<FileInfo, String> {
     println!("Reading file with contents of length: {}", contents.len()); // デバッグ用ログ
 
     // MIDIファイルかどうかを確認
@@ -207,9 +207,9 @@ impl U24 {
 
 // ファイルサイズをシリアル通信で送信するTauriコマンド
 #[tauri::command]
-async fn send_file_size(contents: Vec<u8>, port_name: String) -> Result<(), String> {
+fn send_file_size(contents: Vec<u8>, port_name: String) -> Result<(), String> {
     // ファイル情報を取得
-    let file_info = read_file(contents.clone()).await?;
+    let file_info = read_file(contents.clone())?;
 
     // シリアルポートの設定
     let settings = SerialPortSettings {
@@ -218,7 +218,7 @@ async fn send_file_size(contents: Vec<u8>, port_name: String) -> Result<(), Stri
         flow_control: FlowControl::None,
         parity: Parity::None,
         stop_bits: StopBits::One,
-        timeout: Duration::from_millis(1500),
+        timeout: Duration::from_millis(1500000),
     };
 
     // シリアルポートを開く
@@ -230,7 +230,7 @@ async fn send_file_size(contents: Vec<u8>, port_name: String) -> Result<(), Stri
     println!("file byte size: {:?}", size_bytes);
 
     //let bit4_header = Bitfield::new(0x0F, 0x02);
-    let bit4_header = 0xF2; //リトルエンディアンに対応させる
+    let bit4_header = 0x2F; //リトルエンディアンに対応させる
     let all_data: [u8; 3] = [bit4_header, size_bytes[0], size_bytes[1]];
 
     // シリアルポートにデータを書き込む
@@ -247,7 +247,7 @@ async fn send_file_size(contents: Vec<u8>, port_name: String) -> Result<(), Stri
             let low_resp = response[0] & 0x0F;
             println!("High nibble: {:x}, Low nibble: {:x}", high_resp, low_resp);
 
-            if high_resp == 0xE && low_resp == 0x0 {
+            if high_resp == 0x0 && low_resp == 0xE {
                 // ファイルデータをシリアルポートに書き込む
                 // port.write_all(&contents)
                 //     .map_err(|e| format!("Failed to send file data: {}", e))?;
@@ -269,7 +269,7 @@ async fn send_file_size(contents: Vec<u8>, port_name: String) -> Result<(), Stri
                         //受信完了メッセージのヘッダ情報かつチェックサムの内容が一致しているか
                         if ack_high_nibble == 0xD && ack_low_nibble == 0x0 {
                             //データ転送終了メッセ
-                            println!("File transfer successful, checksum: {:?}", ack[1]);
+                            println!("File transfer successful, checksum: {:?}", ack[0]);
                             port.write_all(&ack_OK)
                                 .map_err(|e| format!("Failed to write to serial port: {}", e))?;
                         } else if ack_low_nibble == 0xC {
@@ -303,7 +303,7 @@ async fn send_file_size(contents: Vec<u8>, port_name: String) -> Result<(), Stri
 
 // //イベント情報をシリアル通信でやり取りするコマンド
 #[tauri::command]
-async fn process_event(port_name: String) -> Result<(), String> {
+fn process_event(port_name: String) -> Result<(), String> {
     // シリアルポートの設定
     let settings = SerialPortSettings {
         baud_rate: 115200,

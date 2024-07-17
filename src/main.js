@@ -106,9 +106,10 @@ document.getElementById('sendButton').addEventListener('click', async () => {
     const fileInput = document.getElementById('fileInput');
     const file = fileInput.files[0];
     const contents = await readFileAsArrayBuffer(file);
-    const portName = "COM3"; // シリアルポート名を指定（適宜変更）
+    const portName = "/dev/pts/2"; // シリアルポート名を指定（適宜変更）
+    console.log('Data send clicked');
     try {
-        await invoke('send_file_size', { contents: Array.from(new Uint8Array(contents)), port_name: portName }); // Rust側のsend_file_sizeコマンドを呼び出し
+        await invoke('send_file_size', { contents: Array.from(new Uint8Array(contents)), portName: portName }); // Rust側のsend_file_sizeコマンドを呼び出し
         console.log('Data sent successfully');  // デバッグ用ログ
         //div.mainを非表示にし、div.playerを表示
         switchPlayer();
