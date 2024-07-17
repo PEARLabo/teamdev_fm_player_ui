@@ -298,26 +298,6 @@ fn send_file_size(contents: Vec<u8>, port_name: String) -> Result<(), String> {
         }
     }
 
-    Ok(())
-}
-
-// //イベント情報をシリアル通信でやり取りするコマンド
-#[tauri::command]
-fn process_event(port_name: String) -> Result<(), String> {
-    // シリアルポートの設定
-    let settings = SerialPortSettings {
-        baud_rate: 115200,
-        data_bits: DataBits::Eight,
-        flow_control: FlowControl::None,
-        parity: Parity::None,
-        stop_bits: StopBits::One,
-        timeout: Duration::from_millis(1500),
-    };
-
-    // シリアルポートを開く
-    let mut port = serialport::open_with_settings(&port_name, &settings)
-        .map_err(|e| format!("Failed to open serial port: {}", e))?;
-
     // 音楽再生情報を受信するためのバッファ
     let mut buffer = [0; 5]; // 最大5バイトのバッファ
 
@@ -473,7 +453,29 @@ fn process_event(port_name: String) -> Result<(), String> {
             }
         }
     }
+
+    Ok(())
 }
+
+// // //イベント情報をシリアル通信でやり取りするコマンド
+// #[tauri::command]
+// fn process_event(port_name: String) -> Result<(), String> {
+//     // シリアルポートの設定
+//     let settings = SerialPortSettings {
+//         baud_rate: 115200,
+//         data_bits: DataBits::Eight,
+//         flow_control: FlowControl::None,
+//         parity: Parity::None,
+//         stop_bits: StopBits::One,
+//         timeout: Duration::from_millis(1500),
+//     };
+
+//     // シリアルポートを開く
+//     let mut port = serialport::open_with_settings(&port_name, &settings)
+//         .map_err(|e| format!("Failed to open serial port: {}", e))?;
+
+    
+// }
 
 // アプリケーションのエントリーポイント
 fn main() {
@@ -490,8 +492,7 @@ fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             read_file,
-            send_file_size,
-            process_event
+            send_file_size
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
