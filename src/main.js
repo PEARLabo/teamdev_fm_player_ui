@@ -1,6 +1,10 @@
 const { invoke } = window.__TAURI__.tauri;
 let playbackListenerId = null;
 
+// Tauri関数名を指定
+let tauriFunctionName = 'send_file_size'; // 本番用
+//let tauriFunctionName = 'send_file_test'; // テスト用
+
 // div.playerを表示し、div.mainを非表示にする関数
 function switchPlayer() {
     const main = document.getElementById('main');
@@ -59,7 +63,7 @@ document.getElementById('fileInput').addEventListener('change', async (event) =>
     if (fileList.length > 0) {
         const file = fileList[0];
         const contents = await readFileAsArrayBuffer(file);
-        
+
 
         try {
             //const contents = await readFileAsArrayBuffer(file); // ファイルの内容を読み込み
@@ -111,12 +115,16 @@ function displaySendButton() {
     sendButton.disabled = false;
     // cursor not-allowed を auto に
     sendButton.style.cursor = 'default';
+    // 背景色を青に
+    sendButton.style.backgroundColor = '#333';
 }
+
 // 送信ボタンを無効にする関数
 function disableSendButton() {
     const sendButton = document.getElementById('sendButton');
     sendButton.disabled = true;
     sendButton.style.cursor = 'not-allowed';
+    sendButton.style.backgroundColor = '#aaa';
 }
 
 // 警告メッセージを表示する関数
@@ -137,7 +145,7 @@ document.getElementById('sendButton').addEventListener('click', async () => {
     const portName = "/dev/pts/2"; // シリアルポート名を指定（適宜変更）
     console.log('Data send clicked');
     try {
-        await invoke('send_file_size', { contents: Array.from(new Uint8Array(contents)), portName: portName }); // Rust側のsend_file_sizeコマンドを呼び出し
+        await invoke(tauriFunctionName, { contents: Array.from(new Uint8Array(contents)), portName: portName }); // Rust側のsend_file_sizeコマンドを呼び出し
         console.log('Data sent successfully');  // デバッグ用ログ
         //div.mainを非表示にし、div.playerを表示
         switchPlayer();
