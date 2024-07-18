@@ -282,6 +282,9 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
     port.write_all(&all_data)
         .map_err(|e| format!("Failed to write to serial port: {}", e))?;
 
+    //データ送信が始まったことを知らせるイベント
+    window.emit("playback_info", &"Starting send file!").unwrap();
+
     // シーケンサからの受信可能メッセージを待機
     let mut response = [0; 1];
     match port.read_exact(&mut response) {
@@ -315,12 +318,14 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
                         if ack_high_nibble == 0xD && ack_low_nibble == 0x0 {
                             //データ転送終了メッセ
                             println!("File transfer successful, checksum: {:?}", ack[0]);
+                            window.emit("playback_info", &"Finished file send").unwrap();
                             port.write_all(&ack_ok)
                                 .map_err(|e| format!("Failed to write to serial port: {}", e))?;
                         } else if ack_low_nibble == 0xC {
                             //異常終了メッセ
                             port.write_all(&ack_err)
                                 .map_err(|e| format!("Failed to write to serial port: {}", e))?;
+                            window.emit("playback_info", &"Failed to write to serial port").unwrap();
                             return Err("Incomplete file transfer".into());
                         }
                     }
