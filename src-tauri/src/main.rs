@@ -290,6 +290,7 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
     match port.read_exact(&mut response) {
         Ok(_) => {
             println!("Received response byte: {:02x}", response[0]);
+            window.emit("playback_info", &("Received response byte: {:02x}", response[0])).unwrap();
 
             let high_resp = (response[0] >> 4) & 0x0F;
             let low_resp = response[0] & 0x0F;
@@ -303,11 +304,13 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
                 ymodem_file_send(&contents, &settings, &mut port)
                     .map_err(|e| format!("Failed to send file using Ymodem: {}", e))?;
 
+
                 // シーケンサからの受信完了メッセージを待機
                 let mut ack = [0; 1];
                 match port.read_exact(&mut ack) {
                     Ok(_) => {
                         println!("Received ack byte: {:02x}", ack[0]);
+                        window.emit("playback_info", &("Received ack byte: {:02x}", ack[0])).unwrap();
 
                         let ack_high_nibble = (ack[0] >> 4) & 0x0F;
                         let ack_low_nibble = ack[0] & 0x0F;
@@ -318,14 +321,14 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
                         if ack_high_nibble == 0xD && ack_low_nibble == 0x0 {
                             //データ転送終了メッセ
                             println!("File transfer successful, checksum: {:?}", ack[0]);
-                            window.emit("playback_info", &"Finished file send").unwrap();
                             port.write_all(&ack_ok)
                                 .map_err(|e| format!("Failed to write to serial port: {}", e))?;
+                            window.emit("playback_info", &("File transfer successful, checksum: {:?}", ack[0])).unwrap();
                         } else if ack_low_nibble == 0xC {
                             //異常終了メッセ
                             port.write_all(&ack_err)
                                 .map_err(|e| format!("Failed to write to serial port: {}", e))?;
-                            window.emit("playback_info", &"Failed to write to serial port").unwrap();
+                            window.emit("playback_info", &"Failed to write to serial port: {}").unwrap();
                             return Err("Incomplete file transfer".into());
                         }
                     }
@@ -334,6 +337,7 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
                         // タイムアウト後の処理として未完了メッセージを送信する
                         port.write_all(&[0xC0])
                             .map_err(|e| format!("Failed to send incomplete message: {}", e))?;
+                        window.emit("playback_info", &"Failed to read ack from serial port").unwrap();
                     }
                 }
             } else {
@@ -345,6 +349,7 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
             // タイムアウト後の処理として未完了メッセージを送信する
             port.write_all(&[0xC0])
                 .map_err(|e| format!("Failed to send incomplete message: {}", e))?;
+            window.emit("playback_info", &"Failed to read from serial port").unwrap();
         }
     }
 
