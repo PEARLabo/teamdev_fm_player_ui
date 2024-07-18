@@ -5,6 +5,7 @@ use serialport::{DataBits, FlowControl, Parity, SerialPort, SerialPortSettings, 
 use std::io::{self, Read, Write};
 use std::time::Duration;
 use tauri::Manager;
+use tauri::Window;
 //イベント表示をライブラリとして使用できるようにする場合
 //use Playback_Information::playback_info::process_event; //[Check!](ライブラリのパスの設定)
 
@@ -216,7 +217,7 @@ impl U24 {
 
 // ファイルサイズをシリアル通信で送信するTauriコマンド
 #[tauri::command]
-fn send_file_size(contents: Vec<u8>, port_name: String) -> Result<(), String> {
+fn send_file_size(window: Window, contents: Vec<u8>, port_name: String) -> Result<(), String> {
     // ファイル情報を取得
     let file_info = read_file(contents.clone())?;
 
