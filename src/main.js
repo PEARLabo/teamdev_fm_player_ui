@@ -1,4 +1,5 @@
 const { invoke } = window.__TAURI__.tauri;
+let playbackListenerId = null;
 
 // div.playerを表示し、div.mainを非表示にする関数
 function switchPlayer() {
@@ -11,6 +12,18 @@ function switchPlayer() {
     // #console をクリア
     document.getElementById('console').value = null;
     document.getElementById('playerConsole').value = null;
+
+    // イベントリスナを設定
+    if (!playbackListenerId) {
+        window.__TAURI__.event.listen('playback_info', (event) => {
+            const data = event.payload;
+            console.log(data);
+            // ピアノロールアップデート
+            updatePianoRoll(data);
+        }).then((unlisten) => {
+            playbackListenerId = unlisten;
+        });
+    }
 }
 
 // div.mainを表示し、div.playerを非表示にする関数
@@ -22,6 +35,12 @@ function switchMain() {
     // #console をクリア
     document.getElementById('console').value = null;
     document.getElementById('playerConsole').value = null;
+
+    // イベントリスナを解除
+    if (playbackListenerId) {
+        playbackListenerId();
+        playbackListenerId = null;
+    }
 }
 
 // ファイル選択ダイアログを開く関数
@@ -117,20 +136,7 @@ document.getElementById('sendButton').addEventListener('click', async () => {
         // #playerConsole textarea デモ
         const playerConsoleArea = document.getElementById('playerConsole');
         playerConsoleArea.scrollTop = playerConsoleArea.scrollHeight;
-        playerConsoleArea.value += 'これはさすがにひょうじされるよね\n';
-
-        /* player.html での挙動 */
-        // Rust側のprocess_eventコマンド呼び出し
-        //await invoke('process_event', { port_name: portName });
-        // Tauriのイベントリスニングを設定
-        window.__TAURI__.event.listen('playback_info', (event) => {
-            const data = JSON.parse(event.payload);  // 受信したデータをパース
-            const playerConsoleArea = document.getElementById('console');
-            playerConsoleArea.value += `Playback Data: ${data.error}\n`;  // エラーメッセージを追加
-            // 自動で一番下までスクロール
-            playerConsoleArea.scrollTop = consoleArea.scrollHeight;
-        });
-
+        playerConsoleArea.value += '==Switched Player==\n';
     } catch (error) {
         console.error(`Error sending file size: ${error}`);  // エラーログ
         // #console textarea 内に送信失敗メッセージを表示
@@ -139,33 +145,5 @@ document.getElementById('sendButton').addEventListener('click', async () => {
         consoleArea.scrollTop = consoleArea.scrollHeight;
         // consoleArea 内にエラーメッセージを追加
         consoleArea.value += 'Error sending file size\n';
-
-        /*
-            以下開発用
-        */
-        //div.mainを非表示にし、div.playerを表示
-        switchPlayer();
-
-        // #console textarea 内に送信失敗メッセージを表示
-        const playerConsoleArea = document.getElementById('playerConsole');
-        // 自動で一番下までスクロール
-        playerConsoleArea.scrollTop = playerConsoleArea.scrollHeight;
-        // playerConsoleArea 内にエラーメッセージを追加
-        playerConsoleArea.value += '[MIDI送信完了(仮)]これはさすがにひょうじされるよね\n';
-
-        // Rust側のprocess_eventコマンド呼び出し
-        //await invoke('process_event', { port_name: portName });
-        // Tauriのイベントリスニングを設定
-        window.__TAURI__.event.listen('playback_info', (event) => {
-            const data = JSON.parse(event.payload);  // 受信したデータをパース
-            const playerConsoleArea = document.getElementById('console');
-            playerConsoleArea.value += `Playback Data: ${data.error}\n`;  // エラーメッセージを追加
-            // 自動で一番下までスクロール
-            playerConsoleArea.scrollTop = consoleArea.scrollHeight;
-        });
-
-        /*
-            開発用ここまで
-        */
     }
 });

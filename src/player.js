@@ -2,60 +2,65 @@
 function drawPianoRoll() {
   const canvas = document.getElementById('pianoRoll');
   canvas.height = 400; // Canvasの高さを設定
-  canvas.width = 900; // Canvasの幅を設定、適切に鍵盤が収まるように調整
+  canvas.width = 900; // Canvasの幅を設定
 
   const ctx = canvas.getContext('2d');
 
   const timeDisplayHeight = 20; // 経過時間表示のための高さ
-  const pianoHeight = canvas.height - timeDisplayHeight; // 鍵盤のための高さ
+  const pianoHeight = (canvas.height - timeDisplayHeight) / 2; // 鍵盤のための高さを2段に分ける
 
-  const whiteKeyWidth = 50;
+  const whiteKeyWidth = canvas.width / 21; // 3オクターブ分の白鍵を横に収める
   const whiteKeyHeight = pianoHeight; // 白鍵の高さを全体に合わせて調整
   const blackKeyWidth = whiteKeyWidth * 0.6;
   const blackKeyHeight = whiteKeyHeight * 0.6;
-  const numOctaves = 3; // 3オクターブ表示に調整
+  const numOctaves = 6; // 6オクターブ表示に調整
 
-  // サンプルノート情報
-  const notes = [
-    { start: 0, end: 5000, pitch: 60 },  // C4
-    { start: 0, end: 5000, pitch: 61 },  // C#4
-    { start: 1000, end: 6000, pitch: 62 }, // D4
-    { start: 2000, end: 7000, pitch: 63 }, // D#4
-    { start: 3000, end: 8000, pitch: 64 }, // E4
-  ];
+  const whiteKeys = [0, 2, 4, 5, 7, 9, 11];
+  const blackKeys = [1, 3, 6, 8, 10];
 
   let startTime = null;
+  let activeNotes = new Set();
 
   // ピアノの描画
-  function drawPiano(activeKeys) {
+  function drawPiano() {
     // 先に全ての白鍵を描画
     for (let octave = 0; octave < numOctaves; octave++) {
-      const octaveOffsetX = octave * 7 * whiteKeyWidth;
+      const octaveOffsetX = (octave % 3) * 7 * whiteKeyWidth;
+      const yOffset = Math.floor(octave / 3) * pianoHeight;
 
-      for (let i = 0; i < 7; i++) {
-        const pitch = octave * 12 + i + 48;
+      whiteKeys.forEach((key, i) => {
+        const pitch = octave * 12 + key + 24; // C1から開始するように24を追加
         const x = octaveOffsetX + i * whiteKeyWidth;
-        const y = 0;
-        ctx.fillStyle = activeKeys.has(pitch) ? '#D3D3D3' : 'white';  // 薄い灰色でアクティブな白鍵を表示
+        const y = yOffset;
+        ctx.fillStyle = activeNotes.has(pitch) ? '#D3D3D3' : 'white';  // 薄い灰色でアクティブな白鍵を表示
         ctx.fillRect(x, y, whiteKeyWidth, whiteKeyHeight);
         ctx.strokeStyle = 'black';
         ctx.strokeRect(x, y, whiteKeyWidth, whiteKeyHeight);
-      }
+
+        // Cのラベルを表示
+        if (key === 0) {
+          ctx.fillStyle = 'black';
+          ctx.font = '14px Arial';
+          ctx.fillText(`C${Math.floor(pitch / 12)}`, x + 5, y + whiteKeyHeight - 5);
+        }
+      });
     }
 
     // 黒鍵を描画し、その上にアクティブな色を適用
     for (let octave = 0; octave < numOctaves; octave++) {
-      const octaveOffsetX = octave * 7 * whiteKeyWidth;
+      const octaveOffsetX = (octave % 3) * 7 * whiteKeyWidth;
+      const yOffset = Math.floor(octave / 3) * pianoHeight;
 
-      const blackKeyPositions = [1, 2, 4, 5, 6];
-      blackKeyPositions.forEach(pos => {
-        const pitch = octave * 12 + Math.floor(pos) + 48;
-        const x = octaveOffsetX + pos * whiteKeyWidth - blackKeyWidth / 2;
-        const y = 0;
+      blackKeys.forEach((key) => {
+        const pitch = octave * 12 + key + 24; // C#1から開始するように24を追加
+        const x = octaveOffsetX + whiteKeys.indexOf(key - 1) * whiteKeyWidth + whiteKeyWidth - blackKeyWidth / 2;
+        const y = yOffset;
 
         // 黒鍵の基本描画
-        ctx.fillStyle = activeKeys.has(pitch) ? '#A9A9A9' : 'black';  // 濃い灰色でアクティブな黒鍵を表示
+        ctx.fillStyle = activeNotes.has(pitch) ? '#A9A9A9' : 'black';  // 濃い灰色でアクティブな黒鍵を表示
         ctx.fillRect(x, y, blackKeyWidth, blackKeyHeight);
+        ctx.strokeStyle = 'black';
+        ctx.strokeRect(x, y, blackKeyWidth, blackKeyHeight);
       });
     }
   }
@@ -72,19 +77,102 @@ function drawPianoRoll() {
     if (!startTime) startTime = time;
     const elapsedTime = time - startTime;
 
-    const activeKeys = new Set();
-    notes.forEach(note => {
-      if (elapsedTime >= note.start && elapsedTime <= note.end) {
-        activeKeys.add(note.pitch);
-      }
-    });
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawPiano(activeKeys);
+    drawPiano();
     displayTime(elapsedTime);
 
     requestAnimationFrame(animate);
   }
 
   requestAnimationFrame(animate);
+
+  // ノートオンイベントを処理
+  function noteOn(pitch) {
+    activeNotes.add(pitch);
+  }
+
+  // ノートオフイベントを処理
+  function noteOff(pitch) {
+    activeNotes.delete(pitch);
+  }
+
+  // 外部からノートオン、ノートオフをトリガーできるようにする
+  window.noteOn = noteOn;
+  window.noteOff = noteOff;
+}
+
+
+// サンプルデータの処理関数
+function processSampleData(data) {
+  let eventString = '';
+  if (data.type === 'noteOn' || data.type === 'noteOff') {
+    const eventType = data.type === 'noteOn' ? 'NoteOn' : 'NoteOff';
+    eventString = `${eventType}: ${data.pitch}, Velocity: ${data.velocity}`;
+  } else if (data.type === 'tempo') {
+    eventString = `tempo: ${data.value}`;
+  } else if (data.type === 'end') {
+    eventString = 'End';
+  }
+  updatePianoRoll(eventString);
+}
+
+function updatePianoRoll(data) {
+  const playerConsoleArea = document.getElementById('playerConsole');
+  if (playerConsoleArea) {
+    playerConsoleArea.value += `Playback Data: ${data}\n`;
+    playerConsoleArea.scrollTop = playerConsoleArea.scrollHeight;
+  }
+
+  // イベントタイプに応じて処理を分ける
+  if (data.startsWith("tempo:")) {
+    // テンポ情報を更新
+    updateTempo(data);
+  } else if (data.startsWith("NoteOn") || data.startsWith("NoteOff")) {
+    // ノートオン/オフイベントを処理
+    const noteMatch = data.match(/(NoteOn|NoteOff): (\d+), Velocity: (\d+)/);
+    if (noteMatch) {
+      const pitch = parseInt(noteMatch[2], 10);
+      const velocity = parseInt(noteMatch[3], 10);
+      if (data.startsWith("NoteOff") || velocity === 0) {
+        window.noteOff(pitch);
+      } else {
+        window.noteOn(pitch);
+      }
+    }
+  } else if (data === "End") {
+    // 終了イベントを処理
+    handleEndEvent();
+    playerConsoleArea.value += '==Playback Ended==\n';
+  } else {
+    // その他のイベントを処理
+    console.warn("Unknown event type:", data);
+  }
+}
+
+function updateTempo(data) {
+  // テンポ情報をパースして更新
+  const tempoMatch = data.match(/tempo: (\d+)/);
+  if (tempoMatch) {
+    const tempo = parseInt(tempoMatch[1], 10);
+    const tempoDisplay = document.getElementById('tempoDisplay');
+    if (tempoDisplay) {
+      tempoDisplay.textContent = `Tempo: ${tempo}`;
+    }
+  }
+}
+
+function updateParameterChange(data) {
+  // パラメータ変更イベントをピアノロールに反映
+  // ここでは簡略化してログを出力する
+  console.log("Parameter Change Event:", data);
+}
+
+function handleEndEvent() {
+  // 終了イベントの処理
+  console.log("End Event received.");
+}
+
+function handleFlagAEvent(data) {
+  // フラグA関連のイベントの処理
+  console.log("FlagA Event:", data);
 }
