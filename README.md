@@ -1,10 +1,17 @@
-# Preview (2024/7/12現在)
+# 開発の際に確認すること
+必要に応じて本番用とテスト用を切り替える
+テスト用はフロントエンド開発用。
+## src-tauri/src/main.rs
+```rust
+637 | //send_file_size, // 本番用
+638 | send_file_test  // テスト用
+```
 
-## FileSelector
-![FileSelector](./src/assets/FileSelector.png)
-
-## Player
-![Player](./src/assets/Player.png)
+## src/main.js
+```js
+6 | //let tauriFunctionName = tauriFunctionName; // 本番用
+7 | let tauriFunctionName = 'send_file_test'; // テスト用
+```
 
 # Tauri + Vanilla
 
