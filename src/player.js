@@ -41,7 +41,7 @@ function drawPianoRoll() {
         if (key === 0) {
           ctx.fillStyle = 'black';
           ctx.font = '14px Arial';
-          ctx.fillText(`C${Math.floor(pitch / 12)}`, x + 5, y + whiteKeyHeight - 5);
+          ctx.fillText(`C${Math.floor(pitch / 12) - 1}`, x + 5, y + whiteKeyHeight - 5);
         }
       });
     }
