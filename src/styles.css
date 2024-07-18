@@ -136,7 +136,7 @@ button {
 }
 
 button#sendButton {
-    background-color: #ccc !important;
+    background-color: #ccc ;
     cursor: not-allowed;
 }
 

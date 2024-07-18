@@ -17,13 +17,6 @@
             </div>
         </header>
 
-        <nav>
-            <ul>
-                <li><a href="#" onclick="switchMain()">ホーム</a></li>
-                <li><a href="#" onclick="switchPlayer()">Player</a></li>
-            </ul>
-        </nav>
-
         <div id="main">
             <h1>Welcome to Fm_Sequencer by MIQS!</h1>
             <h2>ファイルを選択してください</h2>
@@ -45,26 +38,6 @@
 
     <script src="player.js"></script>
     <script src="main.js"></script>
-    <script>
-        function switchPlayer() {
-            const main = document.getElementById('main');
-            const player = document.getElementById('player');
-            main.style.display = 'none';
-            player.style.display = 'block';
-            drawPianoRoll();
-            document.getElementById('console').value = null;
-            document.getElementById('playerConsole').value = null;
-        }
-
-        function switchMain() {
-            const main = document.getElementById('main');
-            const player = document.getElementById('player');
-            main.style.display = 'block';
-            player.style.display = 'none';
-            document.getElementById('console').value = null;
-            document.getElementById('playerConsole').value = null;
-        }
-    </script>
 </body>
 
 </html>

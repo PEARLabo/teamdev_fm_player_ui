@@ -115,6 +115,8 @@ function displaySendButton() {
     sendButton.disabled = false;
     // cursor not-allowed を auto に
     sendButton.style.cursor = 'default';
+    // 背景色を青に
+    sendButton.style.backgroundColor = '#007bff';
 }
 // 送信ボタンを無効にする関数
 function disableSendButton() {
