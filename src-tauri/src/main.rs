@@ -634,8 +634,8 @@ fn main() {
         .manage(app_state)
         .invoke_handler(tauri::generate_handler![
             read_file,
-            //send_file_size, // 本番用
-            send_file_test  // テスト用
+            send_file_size, // 本番用
+            //send_file_test  // テスト用
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

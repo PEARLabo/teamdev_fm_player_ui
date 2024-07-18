@@ -2,8 +2,8 @@ const { invoke } = window.__TAURI__.tauri;
 let playbackListenerId = null;
 
 // Tauri関数名を指定
-//let tauriFunctionName = tauriFunctionName; // 本番用
-let tauriFunctionName = 'send_file_test'; // テスト用
+let tauriFunctionName = tauriFunctionName; // 本番用
+//let tauriFunctionName = 'send_file_test'; // テスト用
 
 // div.playerを表示し、div.mainを非表示にする関数
 function switchPlayer() {
