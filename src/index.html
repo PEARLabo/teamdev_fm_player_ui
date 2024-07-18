@@ -7,36 +7,64 @@
     <title>Tauri File Selector</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@tauri-apps/api/dist/bundle.js"></script>
-
 </head>
 
 <body>
-    <div id="main">
-        <h1>Welcome to Fm_Sequencer by MIQS!</h1>
-        <h2>ファイルを選択してください</h2>
-        <input type="file" id="fileInput">
-        <!--<button onclick="openFile()">ファイルを開く</button>-->
-        <p id="fileSize">ファイルサイズ: N/A</p>
-        <button id="sendButton" disabled>送信</button>
-        <textarea readonly id="console"></textarea>
+    <div class="container">
+        <header>
+            <div class="header-container">
+                PearLab, Utsunomiya Univ.
+            </div>
+        </header>
 
-        <button onclick="switchPlayer()">Player画面</button>
-    </div>
+        <nav>
+            <ul>
+                <li><a href="#" onclick="switchMain()">ホーム</a></li>
+                <li><a href="#" onclick="switchPlayer()">Player</a></li>
+            </ul>
+        </nav>
 
-    <div id="player" style="display: none;">
-        <h1>Player</h1>
-        <div>
-            <button onclick="switchMain()">ファイル読み込み画面に戻る</button>
+        <div id="main">
+            <h1>Welcome to Fm_Sequencer by MIQS!</h1>
+            <h2>ファイルを選択してください</h2>
+            <input type="file" id="fileInput">
+            <p id="fileSize">ファイルサイズ: N/A</p>
+            <button id="sendButton" disabled>送信</button>
+            <textarea readonly id="console"></textarea>
         </div>
 
-        <!-- Consoleを実装 -->
-        <textarea readonly id="playerConsole"></textarea>
-
-        <canvas id="pianoRoll" width="900" height="400" style="border: 1px solid black;"></canvas>
+        <div id="player" style="display: none;">
+            <h1>Player</h1>
+            <div>
+                <button onclick="switchMain()">ファイル読み込み画面に戻る</button>
+            </div>
+            <textarea readonly id="playerConsole"></textarea>
+            <canvas id="pianoRoll" width="900" height="400" style="border: 1px solid black;"></canvas>
+        </div>
     </div>
 
     <script src="player.js"></script>
     <script src="main.js"></script>
+    <script>
+        function switchPlayer() {
+            const main = document.getElementById('main');
+            const player = document.getElementById('player');
+            main.style.display = 'none';
+            player.style.display = 'block';
+            drawPianoRoll();
+            document.getElementById('console').value = null;
+            document.getElementById('playerConsole').value = null;
+        }
+
+        function switchMain() {
+            const main = document.getElementById('main');
+            const player = document.getElementById('player');
+            main.style.display = 'block';
+            player.style.display = 'none';
+            document.getElementById('console').value = null;
+            document.getElementById('playerConsole').value = null;
+        }
+    </script>
 </body>
 
 </html>
