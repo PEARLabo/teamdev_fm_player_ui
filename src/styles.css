@@ -122,7 +122,7 @@ input[type="file"] {
 }
 
 button {
-    background-color: #3a7bd5;
+    background-color: #333;
     color: #fff;
     border: none;
     padding: 10px 20px;
@@ -136,7 +136,7 @@ button {
 }
 
 button#sendButton {
-    background-color: #ccc ;
+    background-color: #aaa ;
     cursor: not-allowed;
 }
 
@@ -157,6 +157,10 @@ textarea {
     overflow-y: auto;
     font-family: monospace;
     resize: none;
+}
+
+#fileSize {
+  text-align: center;
 }
 
 #pianoRoll {

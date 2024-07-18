@@ -116,13 +116,15 @@ function displaySendButton() {
     // cursor not-allowed を auto に
     sendButton.style.cursor = 'default';
     // 背景色を青に
-    sendButton.style.backgroundColor = '#007bff';
+    sendButton.style.backgroundColor = '#333';
 }
+
 // 送信ボタンを無効にする関数
 function disableSendButton() {
     const sendButton = document.getElementById('sendButton');
     sendButton.disabled = true;
     sendButton.style.cursor = 'not-allowed';
+    sendButton.style.backgroundColor = '#aaa';
 }
 
 // 警告メッセージを表示する関数
