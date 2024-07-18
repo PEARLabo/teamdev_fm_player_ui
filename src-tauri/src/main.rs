@@ -172,6 +172,13 @@ fn crc16_ccitt(data: &[u8]) -> u16 {
     crc
 }
 
+
+// エラーメッセージを格納する構造体
+#[derive(serde::Serialize)]
+struct ErrorMessage {
+    error: String,
+}
+
 // ファイル情報を格納する構造体
 #[derive(serde::Serialize)]
 struct FileInfo {
@@ -305,7 +312,8 @@ fn send_file_size(contents: Vec<u8>, port_name: String) -> Result<(), String> {
 
 // //イベント情報をシリアル通信でやり取りするコマンド
 #[tauri::command]
-fn process_event(port_name: String) -> Result<(), String> {
+fn process_event(window: tauri::Window, port_name: String) -> Result<(), String> {
+
     // シリアルポートの設定
     let settings = SerialPortSettings {
         baud_rate: 115200,
@@ -322,6 +330,10 @@ fn process_event(port_name: String) -> Result<(), String> {
 
     // 音楽再生情報を受信するためのバッファ
     let mut buffer = [0; 5]; // 最大5バイトのバッファ
+    
+    // フロントへのメッセージ送信デモ
+    window.emit("playback_info", &"Starting playback info").unwrap();
+
 
     /*
     フラッシュ表示用の機能[flash]
@@ -345,6 +357,13 @@ fn process_event(port_name: String) -> Result<(), String> {
             Ok(_) => {
                 // 受信したデータを16進数でログに表示
                 println!("Received playback info (hex): {:02x?}", buffer);
+
+                // JSON形式での送信を想定してデータを変換
+                let data_to_send = serde_json::to_string(&buffer)
+                    .map_err(|e| e.to_string())?;
+
+                // フロントエンドにメッセージを送信
+                window.emit("playback_info", &data_to_send).unwrap();
 
                 //let data_width = u8::from_le(buffer[0] & 0x0F);
                 let flag_a = u8::from_le((buffer[1] >> 4) & 0x0F);
@@ -370,11 +389,16 @@ fn process_event(port_name: String) -> Result<(), String> {
                             // print!("Noteoff"); // 10桁の幅を確保して上書き
                             // // バッファをフラッシュして表示を更新
                             // stdout.flush().unwrap();
-                            println!(
-                                "chanel: {}({:2}), key: {}({:6}), velocity: noteoff",
-                                chanel, chanel, key, key
-                            );
-                        } else if velocity != 0 {
+
+                            // println!("chanel: {}({:2}), key: {}({:6}), velocity: noteoff",
+                            //     chanel, chanel, key, key);
+
+                            let flaga_msg = format!("chanel: {}({:2}), key: {}({:6}), velocity: noteoff",
+                                chanel, chanel, key, key);
+                            println!("{}", flaga_msg);
+                            window.emit("playback_info", &flaga_msg).unwrap();
+                        }else if velocity != 0{
+
                             //[flash]
                             // // カーソルを移動して値を上書き
                             // stdout.execute(cursor::MoveTo(8, 1)).unwrap(); // "Key: "の後に移動
@@ -385,28 +409,30 @@ fn process_event(port_name: String) -> Result<(), String> {
                             // print!("{:11}", velocity); // 3桁の幅を確保して上書き
                             // // バッファをフラッシュして表示を更新
                             // stdout.flush().unwrap();
-                            println!(
-                                "chanel: {}({:2}), key: {}({:6}), velocity: {}({:11})",
-                                chanel, chanel, key, key, velocity, velocity
-                            );
+
+                            // println!("chanel: {}({:2}), key: {}({:6}), velocity: {}({:11})",
+                            //     chanel, chanel, key, key, velocity, velocity);
+                            let flaga_msg = format!("chanel: {}({:2}), key: {}({:6}), velocity: {}({:11})",
+                                chanel, chanel, key, key, velocity, velocity);
+                            println!("{}", flaga_msg);
+                            window.emit("playback_info", &flaga_msg).unwrap();
                         }
                     }
                     //tempo event
                     1 => {
                         let tempo = U24::from_be_bytes(buffer[2], buffer[3], buffer[4]);
                         let bpm = 1000000 / tempo.value();
-
+                        
+                        //[flash]
                         //tempo情報を表示
                         // stdout.execute(cursor::MoveTo(7, 0)).unwrap(); // "Tempo: "の後に移動
                         // print!("{:?}", tempo);
                         // stdout.flush().unwrap();
-                        println!(
-                            "tempo: {:?}({:?})[μsec/四分音符], BPM: {}",
-                            tempo.value(),
-                            tempo,
-                            bpm
-                        );
-                    }
+
+                        let flaga_msg = format!("tempo: {:?}({:?})[μsec/四分音符], BPM: {}", tempo.value(), tempo, bpm);
+                        println!("{}", flaga_msg);
+                        window.emit("playback_info", &flaga_msg).unwrap();
+                    },
                     //end event
                     2 => {
                         // 既存のchanel, key, velocity情報をクリア
@@ -418,8 +444,11 @@ fn process_event(port_name: String) -> Result<(), String> {
                         // print!("   ");
                         // stdout.execute(cursor::MoveTo(10, 3)).unwrap(); // "Velocity:"の後に移動
                         // print!("   ");
-                        println!("End");
-                    }
+
+                        let flaga_msg = "End".to_string(); 
+                        println!("{}", flaga_msg);
+                        window.emit("playback_info", &flaga_msg).unwrap();
+                    },
                     //nop event
                     3 => {
                         // No operation
@@ -430,48 +459,42 @@ fn process_event(port_name: String) -> Result<(), String> {
                         let slot = u8::from_le(buffer[2] & 0x0F);
                         let param_data = u8::from_be(buffer[3]);
 
-                        match event {
-                            0 => println!(
-                                "Slot: {}({:6}), change param: {}({:11})",
-                                slot, slot, param_data, param_data
-                            ),
-                            1 => println!(
-                                "Detune/Multiple: {}({:6}), change param: {}({:11})",
-                                slot, slot, param_data, param_data
-                            ),
-                            2 => println!(
-                                "TotalLevel: {}({:6}), change param: {}({:11})",
-                                slot, slot, param_data, param_data
-                            ),
-                            3 => println!(
-                                "KeyScale/AttackRate: {}({:6}), change param: {}({:11})",
-                                slot, slot, param_data, param_data
-                            ),
-                            4 => println!(
-                                "DecayRate: {}({:6}), change param: {}({:11})",
-                                slot, slot, param_data, param_data
-                            ),
-                            5 => println!(
-                                "SustainRate: {}({:6}), change param: {}({:11})",
-                                slot, slot, param_data, param_data
-                            ),
-                            6 => println!(
-                                "SustainLevel/ReleaseRate: {}({:6}), change param: {}({:11})",
-                                slot, slot, param_data, param_data
-                            ),
-                            7 => println!(
-                                "FeedBack/Connection: {}({:6}), change param: {}({:11})",
-                                slot, slot, param_data, param_data
-                            ),
-                            _ => println!("Invalid event: {}", event),
-                        }
+                        let flaga_msg = match event {
+                            0 => format!("Slot: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
+                            1 => format!("Detune/Multiple: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
+                            2 => format!("TotalLevel: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
+                            3 => format!("KeyScale/AttackRate: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
+                            4 => format!("DecayRate: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
+                            5 => format!("SustainRate: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
+                            6 => format!("SustainLevel/ReleaseRate: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
+                            7 => format!("FeedBack/Connection: {}({:6}), change param: {}({:11})", slot, slot, param_data, param_data),
+                            _ => format!("Invalid event: {}", event),
+                        };
+
+                        println!("{}", flaga_msg);
+                        window.emit("playback_info", &flaga_msg).unwrap();
+                    },
+                    5 => {
+                        let flaga_msg = "FlagA is 5: Skip to next track.".to_string();
+                        println!("{}", flaga_msg);
+                        window.emit("playback_info", &flaga_msg).unwrap();
                     }
-                    5 => println!("FlagA is 5: Skip to next track."),
-                    _ => println!("FlagA is invalid: {}", flag_a),
+                    _ => {
+                        let flaga_msg = format!("FlagA is invalid: {}", flag_a);
+                        println!("{}", flaga_msg);
+                        window.emit("playback_info", &flaga_msg).unwrap();
+                    }
                 }
             }
             Err(e) => {
                 println!("Failed to read from serial port: {}", e);
+                // エラーメッセージを作成
+                let error_message = ErrorMessage {
+                    error: format!("Failed to read from serial port: {}", e),
+                };
+
+                // JSON形式でフロントエンドにメッセージ送信
+                window.emit("playback_info", &error_message).unwrap();
             }
         }
     }

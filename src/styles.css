@@ -4,7 +4,12 @@ body {
 }
 
 h1 {
-  color: #333;
+  font-size:5em;
+	text-align:center;
+	line-height:0.95em;
+	font-weight:bold;
+	color: #FFAB91;
+	text-shadow: 0.02em 0.02em 0.02em rgba(0,0,0,1);
 }
 
 input[type="file"] {
