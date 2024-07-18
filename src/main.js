@@ -39,9 +39,11 @@ document.getElementById('fileInput').addEventListener('change', async (event) =>
     const fileList = event.target.files; // 選択されたファイルリストを取得
     if (fileList.length > 0) {
         const file = fileList[0];
-        const contents = await readFileAsArrayBuffer(file); // ファイルの内容を読み込み
+        const contents = await readFileAsArrayBuffer(file);
+        
 
         try {
+            //const contents = await readFileAsArrayBuffer(file); // ファイルの内容を読み込み
             const fileInfo = await invoke('read_file', { contents: Array.from(new Uint8Array(contents)) }); // Rust側のread_fileコマンドを呼び出し
             console.log(`File info: ${JSON.stringify(fileInfo)}`);  // デバッグ用ログ
 
@@ -52,6 +54,7 @@ document.getElementById('fileInput').addEventListener('change', async (event) =>
             if (fileInfo.is_midi) {
                 displaySendButton();
             } else {
+                disableSendButton();
                 showWarningMessage();
             }
         } catch (error) {
@@ -89,6 +92,12 @@ function displaySendButton() {
     sendButton.disabled = false;
     // cursor not-allowed を auto に
     sendButton.style.cursor = 'default';
+}
+// 送信ボタンを無効にする関数
+function disableSendButton() {
+    const sendButton = document.getElementById('sendButton');
+    sendButton.disabled = true;
+    sendButton.style.cursor = 'not-allowed';
 }
 
 // 警告メッセージを表示する関数
