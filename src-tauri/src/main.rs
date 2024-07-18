@@ -6,6 +6,8 @@ use std::io::{self, Read, Write};
 use std::time::Duration;
 use tauri::Manager;
 use tauri::Window;
+use tauri::State;
+use std::sync::{Arc, Mutex};
 //イベント表示をライブラリとして使用できるようにする場合
 //use Playback_Information::playback_info::process_event; //[Check!](ライブラリのパスの設定)
 
@@ -30,7 +32,7 @@ const C: u8 = 0x43; // 'C' for CRC mode
 /// `io::Result<()>` - 送信が成功した場合はOk(()), エラーが発生した場合はエラーを返す。
 fn ymodem_file_send(
     contents: &[u8],
-    settings: &SerialPortSettings,
+    _settings: &SerialPortSettings,
     port: &mut Box<dyn SerialPort> ,
 ) -> io::Result<()> {
     // シリアルポートを開く
@@ -173,6 +175,11 @@ fn crc16_ccitt(data: &[u8]) -> u16 {
     crc
 }
 
+//MISI形式のファイルか判定する関数
+fn check_midi_format(contents: &[u8]) -> bool {
+    contents.starts_with(b"MThd")
+}
+
 
 // エラーメッセージを格納する構造体
 #[derive(serde::Serialize)]
@@ -187,22 +194,12 @@ struct FileInfo {
     is_midi: bool,
 }
 
+//アプリケーションの状態を保持するための構造体
+#[derive(serde::Serialize)]
+struct AppState;
+
 #[derive(Debug)]
 struct U24(u32);
-
-// ファイルの内容を受け取り、情報を返すTauriコマンド
-#[tauri::command]
-fn read_file(contents: Vec<u8>) -> Result<FileInfo, String> {
-    println!("Reading file with contents of length: {}", contents.len()); // デバッグ用ログ
-
-    // MIDIファイルかどうかを確認
-    let is_midi = contents.len() >= 4 && &contents[..4] == b"MThd";
-    println!("File size: {}, Is MIDI: {}", contents.len(), is_midi); // デバッグ用ログ
-    Ok(FileInfo {
-        size: contents.len(),
-        is_midi,
-    })
-}
 
 //24bit整数を扱うための
 impl U24 {
@@ -215,11 +212,49 @@ impl U24 {
     }
 }
 
+
+// ファイルの内容を受け取り、情報を返すTauriコマンド
+// #[tauri::command]
+// fn read_file(contents: Vec<u8>, state: State<'_, Arc<Mutex<AppState>>>) -> Result<FileInfo, String> {
+//     println!("Reading file with contents of length: {}", contents.len()); // デバッグ用ログ
+
+//     // MIDIファイルかどうかを確認
+//     let is_midi = contents.len() >= 4 && &contents[..4] == b"MThd";
+//     println!("File size: {}, Is MIDI: {}", contents.len(), is_midi); // デバッグ用ログ
+//     Ok(FileInfo {
+//         size: contents.len(),
+//         is_midi,
+//     })
+// }
+
+//ファイルサイズと形式を判定するtauriコマンド
+#[tauri::command]
+fn read_file(contents: Vec<u8>, state: State<'_, Arc<Mutex<AppState>>>) -> Result<FileInfo, String> {
+    println!("Reading file with contents of length: {}", contents.len()); // デバッグ用ログ
+
+    let size = contents.len();
+    let is_midi = check_midi_format(&contents);
+
+    // if is_midi {
+    //     //stateをロックしてmidi_file_sentを更新
+    //     let mut app_state = state.lock().unwrap();
+    //     app_state.midi_file_sent = true;
+    // }   
+
+    Ok(FileInfo { size, is_midi})
+}
+
 // ファイルサイズをシリアル通信で送信するTauriコマンド
 #[tauri::command]
-fn send_file_size(window: Window, contents: Vec<u8>, port_name: String) -> Result<(), String> {
+async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String, state: State<'_, Arc<Mutex<AppState>>>) -> Result<(), String> {
+    //ファイルがMIDI形式かどうかを確認
+    if !check_midi_format(&contents) {
+        //MIDI形式でない場合returnエラー
+        return Err("You choosed not MIDI file".into());
+    }
+
     // ファイル情報を取得
-    let file_info = read_file(contents.clone())?;
+    let file_info = read_file(contents.clone(), state)?;
 
     // シリアルポートの設定
     let settings = SerialPortSettings {
@@ -241,7 +276,7 @@ fn send_file_size(window: Window, contents: Vec<u8>, port_name: String) -> Resul
 
     //let bit4_header = Bitfield::new(0x0F, 0x02);
     let bit4_header = 0x2F; //リトルエンディアンに対応させる
-    let all_data: [u8; 3] = [bit4_header, size_bytes[0], size_bytes[1]];
+    let all_data: [u8; 4] = [bit4_header, size_bytes[0], size_bytes[1], size_bytes[2]];
 
     // シリアルポートにデータを書き込む
     port.write_all(&all_data)
@@ -273,18 +308,18 @@ fn send_file_size(window: Window, contents: Vec<u8>, port_name: String) -> Resul
 
                         let ack_high_nibble = (ack[0] >> 4) & 0x0F;
                         let ack_low_nibble = ack[0] & 0x0F;
-                        let ack_OK: [u8; 1] = [0xB0];
-                        let ack_ERR: [u8; 1] = [0xA0];
+                        let ack_ok: [u8; 1] = [0xB0];
+                        let ack_err: [u8; 1] = [0xA0];
 
                         //受信完了メッセージのヘッダ情報かつチェックサムの内容が一致しているか
                         if ack_high_nibble == 0xD && ack_low_nibble == 0x0 {
                             //データ転送終了メッセ
                             println!("File transfer successful, checksum: {:?}", ack[0]);
-                            port.write_all(&ack_OK)
+                            port.write_all(&ack_ok)
                                 .map_err(|e| format!("Failed to write to serial port: {}", e))?;
                         } else if ack_low_nibble == 0xC {
                             //異常終了メッセ
-                            port.write_all(&ack_ERR)
+                            port.write_all(&ack_err)
                                 .map_err(|e| format!("Failed to write to serial port: {}", e))?;
                             return Err("Incomplete file transfer".into());
                         }
@@ -347,7 +382,7 @@ fn send_file_size(window: Window, contents: Vec<u8>, port_name: String) -> Resul
                 //let data_width = u8::from_le(buffer[0] & 0x0F);
                 let flag_a = u8::from_le((buffer[1] >> 4) & 0x0F);
                 let chanel = u8::from_le(buffer[1] & 0x0F);
-                let event_data = buffer;
+                //let event_data = buffer;
 
                 //flag_aの判定
                 match flag_a {
@@ -582,6 +617,9 @@ fn send_file_size(window: Window, contents: Vec<u8>, port_name: String) -> Resul
 
 // アプリケーションのエントリーポイント
 fn main() {
+    //MIDI判定の状態管理
+    let app_state = Arc::new(Mutex::new(AppState));
+
     // ignore proxy
     let proxy_env_value = match std::env::var("http_proxy") {
         Ok(val) => {
@@ -589,10 +627,11 @@ fn main() {
             std::env::set_var("https_proxy", "");
             val
         }
-        Err(e) => String::from(""),
+        Err(e) => String::from("proxy setting error"),
     };
 
     tauri::Builder::default()
+        .manage(app_state)
         .invoke_handler(tauri::generate_handler![
             read_file,
             send_file_size
