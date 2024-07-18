@@ -16,18 +16,6 @@ function switchPlayer() {
     // #console をクリア
     document.getElementById('console').value = null;
     document.getElementById('playerConsole').value = null;
-
-    // イベントリスナを設定
-    if (!playbackListenerId) {
-        window.__TAURI__.event.listen('playback_info', (event) => {
-            const data = event.payload;
-            console.log(data);
-            // ピアノロールアップデート
-            updatePianoRoll(data);
-        }).then((unlisten) => {
-            playbackListenerId = unlisten;
-        });
-    }
 }
 
 // div.mainを表示し、div.playerを非表示にする関数
@@ -144,16 +132,28 @@ document.getElementById('sendButton').addEventListener('click', async () => {
     const contents = await readFileAsArrayBuffer(file);
     const portName = "/dev/pts/2"; // シリアルポート名を指定（適宜変更）
     console.log('Data send clicked');
+
+    // イベントリスナーを設定
+    if (!playbackListenerId) {
+        window.__TAURI__.event.listen('playback_info', (event) => {
+            const data = event.payload;
+            if (data === 'Finished file send') {
+                console.log('Data sent successfully');  // デバッグ用ログ
+                switchPlayer();
+                // #playerConsole textarea デモ
+                const playerConsoleArea = document.getElementById('playerConsole');
+                playerConsoleArea.scrollTop = playerConsoleArea.scrollHeight;
+                playerConsoleArea.value += '==Switched Player==\n';
+            }
+            // ピアノロールアップデート
+            updatePianoRoll(data);
+        }).then((unlisten) => {
+            playbackListenerId = unlisten;
+        });
+    }
+
     try {
         await invoke(tauriFunctionName, { contents: Array.from(new Uint8Array(contents)), portName: portName }); // Rust側のsend_file_sizeコマンドを呼び出し
-        console.log('Data sent successfully');  // デバッグ用ログ
-        //div.mainを非表示にし、div.playerを表示
-        switchPlayer();
-
-        // #playerConsole textarea デモ
-        const playerConsoleArea = document.getElementById('playerConsole');
-        playerConsoleArea.scrollTop = playerConsoleArea.scrollHeight;
-        playerConsoleArea.value += '==Switched Player==\n';
     } catch (error) {
         console.error(`Error sending file size: ${error}`);  // エラーログ
         // #console textarea 内に送信失敗メッセージを表示
