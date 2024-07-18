@@ -517,85 +517,85 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
 }
 
 // サンプルデータ
-//#[tauri::command]
-//fn send_file_size(window: Window, contents: Vec<u8>, _port_name: String) -> Result<(), String> {
-//    // サンプルデータの送信
-//let sample_data = vec![
-//        "NoteOn: 24, Velocity: 127".to_string(), // C1
-//        "NoteOff: 24, Velocity: 0".to_string(),
-//        "NoteOn: 25, Velocity: 127".to_string(), // C#1
-//        "NoteOn: 28, Velocity: 127".to_string(), // E1
-//        "NoteOff: 25, Velocity: 0".to_string(),
-//        "NoteOff: 28, Velocity: 0".to_string(),
-//        "NoteOn: 30, Velocity: 127".to_string(), // F#1
-//        "NoteOff: 30, Velocity: 0".to_string(),
-//        "NoteOn: 36, Velocity: 127".to_string(), // C2
-//        "NoteOff: 36, Velocity: 0".to_string(),
-//        "tempo: 500000".to_string(),
+#[tauri::command]
+fn send_file_test(window: Window, contents: Vec<u8>, _port_name: String) -> Result<(), String> {
+    // サンプルデータの送信
+let sample_data = vec![
+        "NoteOn: 24, Velocity: 127".to_string(), // C1
+        "NoteOff: 24, Velocity: 0".to_string(),
+        "NoteOn: 25, Velocity: 127".to_string(), // C#1
+        "NoteOn: 28, Velocity: 127".to_string(), // E1
+        "NoteOff: 25, Velocity: 0".to_string(),
+        "NoteOff: 28, Velocity: 0".to_string(),
+        "NoteOn: 30, Velocity: 127".to_string(), // F#1
+        "NoteOff: 30, Velocity: 0".to_string(),
+        "NoteOn: 36, Velocity: 127".to_string(), // C2
+        "NoteOff: 36, Velocity: 0".to_string(),
+        "tempo: 500000".to_string(),
 
-//        "NoteOn: 40, Velocity: 127".to_string(), // E2
-//        "NoteOff: 40, Velocity: 0".to_string(),
-//        "NoteOn: 43, Velocity: 127".to_string(), // G2
-//        "NoteOn: 45, Velocity: 127".to_string(), // A2
-//        "NoteOff: 43, Velocity: 0".to_string(),
-//        "NoteOff: 45, Velocity: 0".to_string(),
-//        "NoteOn: 48, Velocity: 127".to_string(), // C3
-//        "NoteOff: 48, Velocity: 0".to_string(),
-//        "tempo: 600000".to_string(),
+        "NoteOn: 40, Velocity: 127".to_string(), // E2
+        "NoteOff: 40, Velocity: 0".to_string(),
+        "NoteOn: 43, Velocity: 127".to_string(), // G2
+        "NoteOn: 45, Velocity: 127".to_string(), // A2
+        "NoteOff: 43, Velocity: 0".to_string(),
+        "NoteOff: 45, Velocity: 0".to_string(),
+        "NoteOn: 48, Velocity: 127".to_string(), // C3
+        "NoteOff: 48, Velocity: 0".to_string(),
+        "tempo: 600000".to_string(),
 
-//        "NoteOn: 52, Velocity: 127".to_string(), // E3
-//        "NoteOff: 52, Velocity: 0".to_string(),
-//        "NoteOn: 55, Velocity: 127".to_string(), // G3
-//        "NoteOn: 57, Velocity: 127".to_string(), // A3
-//        "NoteOff: 55, Velocity: 0".to_string(),
-//        "NoteOff: 57, Velocity: 0".to_string(),
-//        "NoteOn: 60, Velocity: 127".to_string(), // C4
-//        "NoteOff: 60, Velocity: 0".to_string(),
-//        "tempo: 500000".to_string(),
+        "NoteOn: 52, Velocity: 127".to_string(), // E3
+        "NoteOff: 52, Velocity: 0".to_string(),
+        "NoteOn: 55, Velocity: 127".to_string(), // G3
+        "NoteOn: 57, Velocity: 127".to_string(), // A3
+        "NoteOff: 55, Velocity: 0".to_string(),
+        "NoteOff: 57, Velocity: 0".to_string(),
+        "NoteOn: 60, Velocity: 127".to_string(), // C4
+        "NoteOff: 60, Velocity: 0".to_string(),
+        "tempo: 500000".to_string(),
 
-//        "NoteOn: 64, Velocity: 127".to_string(), // E4
-//        "NoteOff: 64, Velocity: 0".to_string(),
-//        "NoteOn: 67, Velocity: 127".to_string(), // G4
-//        "NoteOn: 69, Velocity: 127".to_string(), // A4
-//        "NoteOff: 67, Velocity: 0".to_string(),
-//        "NoteOff: 69, Velocity: 0".to_string(),
-//        "NoteOn: 72, Velocity: 127".to_string(), // C5
-//        "NoteOff: 72, Velocity: 0".to_string(),
-//        "tempo: 600000".to_string(),
+        "NoteOn: 64, Velocity: 127".to_string(), // E4
+        "NoteOff: 64, Velocity: 0".to_string(),
+        "NoteOn: 67, Velocity: 127".to_string(), // G4
+        "NoteOn: 69, Velocity: 127".to_string(), // A4
+        "NoteOff: 67, Velocity: 0".to_string(),
+        "NoteOff: 69, Velocity: 0".to_string(),
+        "NoteOn: 72, Velocity: 127".to_string(), // C5
+        "NoteOff: 72, Velocity: 0".to_string(),
+        "tempo: 600000".to_string(),
 
-//        "NoteOn: 76, Velocity: 127".to_string(), // E5
-//        "NoteOff: 76, Velocity: 0".to_string(),
-//        "NoteOn: 79, Velocity: 127".to_string(), // G5
-//        "NoteOn: 81, Velocity: 127".to_string(), // A5
-//        "NoteOff: 79, Velocity: 0".to_string(),
-//        "NoteOff: 81, Velocity: 0".to_string(),
-//        "NoteOn: 84, Velocity: 127".to_string(), // C6
-//        "NoteOff: 84, Velocity: 0".to_string(),
-//        "tempo: 500000".to_string(),
+        "NoteOn: 76, Velocity: 127".to_string(), // E5
+        "NoteOff: 76, Velocity: 0".to_string(),
+        "NoteOn: 79, Velocity: 127".to_string(), // G5
+        "NoteOn: 81, Velocity: 127".to_string(), // A5
+        "NoteOff: 79, Velocity: 0".to_string(),
+        "NoteOff: 81, Velocity: 0".to_string(),
+        "NoteOn: 84, Velocity: 127".to_string(), // C6
+        "NoteOff: 84, Velocity: 0".to_string(),
+        "tempo: 500000".to_string(),
 
-//        "NoteOn: 88, Velocity: 127".to_string(), // E6
-//        "NoteOff: 88, Velocity: 0".to_string(),
-//        "NoteOn: 91, Velocity: 127".to_string(), // G6
-//        "NoteOn: 93, Velocity: 127".to_string(), // A6
-//        "NoteOff: 91, Velocity: 0".to_string(),
-//        "NoteOff: 93, Velocity: 0".to_string(),
+        "NoteOn: 88, Velocity: 127".to_string(), // E6
+        "NoteOff: 88, Velocity: 0".to_string(),
+        "NoteOn: 91, Velocity: 127".to_string(), // G6
+        "NoteOn: 93, Velocity: 127".to_string(), // A6
+        "NoteOff: 91, Velocity: 0".to_string(),
+        "NoteOff: 93, Velocity: 0".to_string(),
 
-//        "End".to_string(),
-//    ];
+        "End".to_string(),
+    ];
 
-//    for (i, data) in sample_data.iter().enumerate() {
-//        let window = window.clone();
-//        let data = data.clone();
-//        std::thread::spawn(move || {
-//            std::thread::sleep(std::time::Duration::from_secs(i as u64));
-//            window.emit("playback_info", data).unwrap();
-//        });
-//    }
+    for (i, data) in sample_data.iter().enumerate() {
+        let window = window.clone();
+        let data = data.clone();
+        std::thread::spawn(move || {
+            std::thread::sleep(std::time::Duration::from_secs(i as u64));
+            window.emit("playback_info", data).unwrap();
+        });
+    }
 
-//    Ok(())
-//}
+    Ok(())
+}
 
-// // //イベント情報をシリアル通信でやり取りするコマンド
+ // //イベント情報をシリアル通信でやり取りするコマンド
 // #[tauri::command]
 // fn process_event(port_name: String) -> Result<(), String> {
 //     // シリアルポートの設定
@@ -634,7 +634,8 @@ fn main() {
         .manage(app_state)
         .invoke_handler(tauri::generate_handler![
             read_file,
-            send_file_size
+            //send_file_size, // 本番用
+            send_file_test  // テスト用
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
