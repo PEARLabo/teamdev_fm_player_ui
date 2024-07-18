@@ -58,37 +58,7 @@ header h1 {
     font-size: 1.5em;
 }
 
-nav {
-    background-color: #f8f8f8;
-    padding: 10px 0;
-    margin-bottom: 20px;
-    text-align: center;
-    border-radius: 10px;
-}
 
-nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-}
-
-nav ul li {
-    margin: 0 15px;
-}
-
-nav ul li a {
-    color: #333;
-    text-decoration: none;
-    padding: 10px 15px;
-    border-radius: 4px;
-    transition: background-color 0.3s;
-}
-
-nav ul li a:hover {
-    background-color: #ddd;
-}
 
 .content-card {
     background: rgba(255, 255, 255, 0.9);
@@ -136,7 +106,7 @@ button {
 }
 
 button#sendButton {
-    background-color: #ccc ;
+    background-color: #2e46d1 ;
     cursor: not-allowed;
 }
 
