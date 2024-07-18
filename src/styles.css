@@ -106,14 +106,12 @@ button {
 }
 
 button#sendButton {
-
-    background-color: #2e46d1 ;
-
+    background-color: #aaa ;
     cursor: not-allowed;
 }
 
 button:hover {
-    background-color: #0056b3;
+    opacity: 0.8;
 }
 
 textarea {
