@@ -26,10 +26,14 @@
             <p id="fileSize">ファイルサイズ: N/A</p>
             <button id="sendButton" disabled>送信</button>
             <textarea readonly id="console"></textarea>
+            <div>
+                <button onclick="switchPlayer()">Player</button>
+            </div>
         </div>
 
         <div id="player" style="display: none;">
             <h1>Player</h1>
+            <p id="tempoDisplay">Tempo: </p>
             <div>
                 <button onclick="switchMain()">ファイル読み込み画面に戻る</button>
             </div>

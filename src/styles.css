@@ -49,7 +49,7 @@ header {
 
 .header-container .logo {
     width: 50px;
-    height: 50px;
+    height: 40px;
     margin-right: 10px;
 }
 
@@ -73,7 +73,7 @@ h1 {
     text-align: center;
     font-weight: bold;
     color: #333;
-    margin-bottom: 20px;
+    margin: 12px 0;
 }
 
 h2 {
@@ -118,7 +118,7 @@ textarea {
     display: block;
     max-width: 100%;
     width: 80%;
-    height: 60px;
+    height: 80px;
     margin: 10px auto;
     padding: 10px;
     background-color: #f4f4f4;
@@ -142,8 +142,16 @@ textarea {
 
 #player {
     display: flex;
+    position: relative;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: calc(100% - 60px); /* プレイヤーセクションの高さを調整 */
+}
+
+#tempoDisplay {
+    position: absolute;
+    top: 40px;
+    right: 120px;
+    width: 120px;
 }

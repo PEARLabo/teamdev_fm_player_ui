@@ -130,23 +130,48 @@ document.getElementById('sendButton').addEventListener('click', async () => {
     const fileInput = document.getElementById('fileInput');
     const file = fileInput.files[0];
     const contents = await readFileAsArrayBuffer(file);
-    const portName = "/dev/pts/2"; // シリアルポート名を指定（適宜変更）
+    const portName = "/dev/ttys009"; // シリアルポート名を指定（適宜変更）
     console.log('Data send clicked');
 
     // イベントリスナーを設定
     if (!playbackListenerId) {
         window.__TAURI__.event.listen('playback_info', (event) => {
             const data = event.payload;
-            if (data === 'Finished file send') {
-                console.log('Data sent successfully');  // デバッグ用ログ
-                switchPlayer();
-                // #playerConsole textarea デモ
-                const playerConsoleArea = document.getElementById('playerConsole');
-                playerConsoleArea.scrollTop = playerConsoleArea.scrollHeight;
-                playerConsoleArea.value += '==Switched Player==\n';
+            console.log(`Received event: ${data}`);
+
+            if (typeof data === 'string') {
+                console.log(`String event received: ${data}`);
+                if (data.startsWith('Starting playback info')) {
+                    console.log('Data sent successfully');  // デバッグ用ログ
+                    switchPlayer();
+                    updatePianoRoll(data);
+                    // #playerConsole textarea デモ
+                    const playerConsoleArea = document.getElementById('playerConsole');
+                    playerConsoleArea.scrollTop = playerConsoleArea.scrollHeight;
+                    playerConsoleArea.value += '==Switched Player==\n';
+                } else if (data.startsWith('Received response byte:')) {
+                    // 受信したレスポンスバイトの処理
+                    console.log(`Processing response: ${data}`);
+                } else if (data.startsWith('tempo:')) {
+                    console.log(`Tempo event received: ${data}`);
+                    // Tempoの処理
+                } else if (data.startsWith('chanel:')) {
+                    console.log(`Channel event received: ${data}`);
+                    // Channelイベントの処理
+                } else if (data.startsWith('FlagA is invalid:') || data.startsWith('FlagA is 5: Skip to next track.')) {
+                    console.log(`Flag event received: ${data}`);
+                    // Flagイベントの処理
+                } else {
+                    console.warn(`Unknown event type: ${data}`);
+                }
+                // ピアノロールアップデート
+                updatePianoRoll(data);
+            } else if (Array.isArray(data)) {
+                console.log(`Array event received: ${JSON.stringify(data)}`);
+                // Arrayの処理（必要に応じて）
+            } else {
+                console.warn(`Unexpected data type: ${typeof data}`);
             }
-            // ピアノロールアップデート
-            updatePianoRoll(data);
         }).then((unlisten) => {
             playbackListenerId = unlisten;
         });

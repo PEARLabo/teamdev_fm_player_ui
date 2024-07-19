@@ -1,0 +1,1138 @@
+==Switched Player==
+Playback Data: Starting playback info
+Playback Data: [1,1,1,1,65]
+Playback Data: chanel: 1( 1), key: 1(     1), velocity: 65(         65)
+Playback Data: [1,64,66,15,1]
+Playback Data: DecayRate: 2(     2), change param: 15(         15)
+Playback Data: [113,53,115,113,117]
+Playback Data: [97,114,101,113,85]
+Playback Data: FlagA is invalid: 7
+Playback Data: [115,97,119,32,32]
+Playback Data: FlagA is invalid: 6
+Playback Data: [32,1,65,1,141]
+Playback Data: chanel: 1( 1), key: 1(     1), velocity: 141(        141)
+Playback Data: [209,4,1,49,32]
+Playback Data: chanel: 4( 4), key: 49(    49), velocity: 32(         32)
+Playback Data: [80,48,49,48,100]
+Playback Data: [64,49,80,100,48]
+Playback Data: [49,4,0,240,49]
+Playback Data: chanel: 4( 4), key: 240(   240), velocity: 49(         49)
+Playback Data: [4,7,60,49,4]
+Playback Data: chanel: 7( 7), key: 49(    49), velocity: 4(          4)
+Playback Data: [1,50,49,4,17]
+Playback Data: [50,49,4,33,113]
+Playback Data: [49,4,49,66,49]
+Playback Data: chanel: 4( 4), key: 66(    66), velocity: 49(         49)
+Playback Data: [4,2,30,49,4]
+Playback Data: chanel: 2( 2), key: 49(    49), velocity: 4(          4)
+Playback Data: [18,16,49,4,34]
+Playback Data: tempo: 3212322(U24(3212322))[μsec/四分音符], BPM: 0
+Playback Data: [12,49,4,50,16]
+Playback Data: [49,4,4,7,49]
+Playback Data: chanel: 4( 4), key: 7(     7), velocity: 49(         49)
+Playback Data: [4,20,31,49,4]
+Playback Data: tempo: 2044164(U24(2044164))[μsec/四分音符], BPM: 0
+Playback Data: [36,7,49,4,52]
+Playback Data: chanel: 7( 7), key: 4(     4), velocity: 52(         52)
+Playback Data: [31,49,4,6,19]
+Playback Data: [49,4,22,6,49]
+Playback Data: chanel: 4( 4), key: 6(     6), velocity: 49(         49)
+Playback Data: [4,38,19,49,4]
+Playback Data: End
+==Playback Ended==
+Playback Data: [54,6,49,4,3]
+Playback Data: chanel: 6( 6), key: 4(     4), velocity: 3(          3)
+Playback Data: [31,49,4,19,24]
+Playback Data: [49,4,35,31,49]
+Playback Data: chanel: 4( 4), key: 31(    31), velocity: 49(         49)
+Playback Data: [4,51,30,49,4]
+Playback Data: [5,0,49,4,21]
+Playback Data: chanel: 0( 0), key: 4(     4), velocity: 21(         21)
+Playback Data: [0,49,4,37,0]
+Playback Data: [49,4,53,0,49]
+Playback Data: chanel: 4( 4), key: 0(     0), velocity: 49(         49)
+Playback Data: [20,0,241,49,20]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 20(         20)
+Playback Data: [7,60,49,20,1]
+Playback Data: [51,49,20,17,52]
+Playback Data: [49,20,33,50,49]
+Playback Data: tempo: 2175537(U24(2175537))[μsec/四分音符], BPM: 0
+Playback Data: [20,49,49,49,20]
+Playback Data: [2,0,49,20,18]
+Playback Data: chanel: 0( 0), key: 20(    20), velocity: 18(         18)
+Playback Data: [0,49,20,34,0]
+Playback Data: [49,20,50,0,49]
+Playback Data: tempo: 3276849(U24(3276849))[μsec/四分音符], BPM: 0
+Playback Data: [20,4,1,49,20]
+Playback Data: chanel: 4( 4), key: 49(    49), velocity: 20(         20)
+Playback Data: [20,26,49,20,36]
+Playback Data: tempo: 3216420(U24(3216420))[μsec/四分音符], BPM: 0
+Playback Data: [25,49,20,52,20]
+Playback Data: [49,20,6,7,49]
+Playback Data: tempo: 395057(U24(395057))[μsec/四分音符], BPM: 2
+Playback Data: [20,22,27,49,20]
+Playback Data: tempo: 1782036(U24(1782036))[μsec/四分音符], BPM: 0
+Playback Data: [38,200,49,20,54]
+Playback Data: FlagA is invalid: 12
+Playback Data: [252,49,20,3,30]
+Playback Data: [49,20,19,30,49]
+Playback Data: tempo: 1252913(U24(1252913))[μsec/四分音符], BPM: 0
+Playback Data: [20,35,30,49,20]
+Playback Data: End
+==Playback Ended==
+Playback Data: [51,30,49,20,5]
+Playback Data: tempo: 3216389(U24(3216389))[μsec/四分音符], BPM: 0
+Playback Data: [1,49,20,21,16]
+Playback Data: [49,20,37,10,49]
+Playback Data: tempo: 2427441(U24(2427441))[μsec/四分音符], BPM: 0
+Playback Data: [20,53,10,1,1]
+Playback Data: [113,37,56,48,56]
+Playback Data: End
+==Playback Ended==
+Playback Data: [107,105,107,49,32]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,48,49,48,0]
+Playback Data: [64,49,80,0,48]
+Playback Data: [49,32,80,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [48,100,64,49,80]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,48,49,32,0]
+Playback Data: [48,49,48,0,64]
+Playback Data: [49,80,0,48,49]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [32,80,48,49,48]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [100,62,49,80,100]
+Playback Data: [46,49,32,0,48]
+Playback Data: [49,48,0,62,49]
+Playback Data: [80,0,46,49,32]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 32(         32)
+Playback Data: [80,48,49,48,100]
+Playback Data: [50,113,69,115,113]
+Playback Data: FlagA is invalid: 7
+Playback Data: [117,97,114,101,49]
+Playback Data: FlagA is invalid: 6
+Playback Data: [64,100,62,49,32]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,48,49,48,0]
+Playback Data: [50,49,64,0,62]
+Playback Data: [49,48,100,50,49]
+Playback Data: [64,100,60,49,48]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,50,49,64,0]
+Playback Data: [60,49,16,100,50]
+Playback Data: [49,64,100,62,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 62(         62)
+Playback Data: [64,0,62,49,16]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 16(         16)
+Playback Data: [0,50,49,16,100]
+Playback Data: [50,49,48,100,52]
+Playback Data: [49,64,100,69,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 69(         69)
+Playback Data: [48,0,52,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [0,69,49,48,100]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 48(         48)
+Playback Data: [52,49,48,0,52]
+Playback Data: [49,16,0,50,49]
+Playback Data: tempo: 12849(U24(12849))[μsec/四分音符], BPM: 77
+Playback Data: [32,80,48,49,64]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [100,62,49,32,0]
+Playback Data: [48,49,64,0,62]
+Playback Data: [49,16,100,50,49]
+Playback Data: tempo: 6566449(U24(6566449))[μsec/四分音符], BPM: 0
+Playback Data: [48,100,53,49,48]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,53,49,48,100]
+Playback Data: [53,49,64,100,60]
+Playback Data: [49,48,0,53,49]
+Playback Data: [64,0,60,49,16]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 16(         16)
+Playback Data: [0,50,49,32,80]
+Playback Data: [48,49,32,0,48]
+Playback Data: [49,64,100,62,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 62(         62)
+Playback Data: [64,0,62,49,16]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 16(         16)
+Playback Data: [100,50,49,64,100]
+Playback Data: [64,49,64,0,64]
+Playback Data: [49,64,100,65,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 65(         65)
+Playback Data: [64,0,65,49,16]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 16(         16)
+Playback Data: [0,50,49,32,80]
+Playback Data: [48,49,64,100,64]
+Playback Data: [49,32,0,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [64,0,64,49,32]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 32(         32)
+Playback Data: [80,48,49,64,100]
+Playback Data: [62,49,32,0,48]
+Playback Data: [49,64,0,62,49]
+Playback Data: Slot: 0(     0), change param: 62(         62)
+Playback Data: [16,100,50,49,64]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,60,49,64,0]
+Playback Data: [60,49,64,100,57]
+Playback Data: [49,64,0,57,49]
+Playback Data: Slot: 0(     0), change param: 57(         57)
+Playback Data: [16,0,50,49,32]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 32(         32)
+Playback Data: [80,48,49,48,100]
+Playback Data: [50,49,64,100,62]
+Playback Data: [49,32,0,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [48,0,50,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [0,62,49,48,100]
+Playback Data: [50,49,64,100,60]
+Playback Data: [49,48,0,50,49]
+Playback Data: [64,0,60,49,16]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 16(         16)
+Playback Data: [100,50,49,64,100]
+Playback Data: [62,49,64,0,62]
+Playback Data: [49,16,0,50,49]
+Playback Data: tempo: 12849(U24(12849))[μsec/四分音符], BPM: 77
+Playback Data: [16,100,50,49,48]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,52,49,64,100]
+Playback Data: [69,49,48,0,52]
+Playback Data: [49,64,0,69,49]
+Playback Data: Slot: 0(     0), change param: 69(         69)
+Playback Data: [48,100,52,49,48]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,52,49,16,0]
+Playback Data: [50,49,32,80,48]
+Playback Data: [49,64,100,62,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 62(         62)
+Playback Data: [32,0,48,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [0,62,49,16,100]
+Playback Data: [50,49,48,100,48]
+Playback Data: [49,48,0,48,49]
+Playback Data: [48,100,48,49,64]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,60,49,48,0]
+Playback Data: [48,49,64,0,60]
+Playback Data: [49,16,0,50,49]
+Playback Data: tempo: 12849(U24(12849))[μsec/四分音符], BPM: 77
+Playback Data: [32,80,48,49,32]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [0,48,49,64,100]
+Playback Data: [62,49,64,0,62]
+Playback Data: [49,16,100,50,49]
+Playback Data: tempo: 6566449(U24(6566449))[μsec/四分音符], BPM: 0
+Playback Data: [32,80,60,49,64]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [100,64,49,32,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 32(         32)
+Playback Data: [60,49,64,0,64]
+Playback Data: [49,32,80,60,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [64,100,65,49,32]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,60,49,64,0]
+Playback Data: [65,49,16,0,50]
+Playback Data: [49,32,80,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [64,100,64,49,32]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,48,49,32,80]
+Playback Data: [48,49,32,0,48]
+Playback Data: [49,64,0,64,49]
+Playback Data: Slot: 0(     0), change param: 64(         64)
+Playback Data: [16,100,50,49,32]
+Playback Data: FlagA is invalid: 6
+Playback Data: [80,48,49,32,0]
+Playback Data: [48,49,16,0,50]
+Playback Data: [49,32,80,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [48,100,50,49,64]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,62,49,32,0]
+Playback Data: [48,49,48,0,50]
+Playback Data: [49,64,0,62,49]
+Playback Data: Slot: 0(     0), change param: 62(         62)
+Playback Data: [48,100,50,49,64]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,60,49,48,0]
+Playback Data: [50,49,64,0,60]
+Playback Data: [49,16,100,50,49]
+Playback Data: tempo: 6566449(U24(6566449))[μsec/四分音符], BPM: 0
+Playback Data: [64,100,62,49,64]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,62,49,16,0]
+Playback Data: [50,49,16,100,50]
+Playback Data: [49,48,100,52,49]
+Playback Data: [64,100,69,49,48]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,52,49,64,0]
+Playback Data: [69,49,48,100,52]
+Playback Data: [49,48,0,52,49]
+Playback Data: [16,0,50,49,32]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 32(         32)
+Playback Data: [80,48,49,64,100]
+Playback Data: [62,49,32,0,48]
+Playback Data: [49,64,0,62,49]
+Playback Data: Slot: 0(     0), change param: 62(         62)
+Playback Data: [16,100,50,49,48]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,53,49,48,0]
+Playback Data: [53,49,48,100,53]
+Playback Data: [49,64,100,60,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 60(         60)
+Playback Data: [48,0,53,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [0,60,49,16,0]
+Playback Data: [50,49,32,80,48]
+Playback Data: [49,32,0,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [64,100,62,49,64]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,62,49,16,100]
+Playback Data: [50,49,64,100,64]
+Playback Data: [49,64,0,64,49]
+Playback Data: Slot: 0(     0), change param: 64(         64)
+Playback Data: [64,100,65,49,64]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,65,49,16,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 16(         16)
+Playback Data: [50,49,32,80,48]
+Playback Data: [49,64,100,64,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 64(         64)
+Playback Data: [32,0,48,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [0,64,49,32,80]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 32(         32)
+Playback Data: [48,49,64,100,62]
+Playback Data: [49,32,0,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [64,0,62,49,16]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 16(         16)
+Playback Data: [100,50,49,64,100]
+Playback Data: [60,49,64,0,60]
+Playback Data: [49,64,100,57,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 57(         57)
+Playback Data: [64,0,57,49,16]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 16(         16)
+Playback Data: [0,50,49,32,80]
+Playback Data: [48,49,48,100,50]
+Playback Data: [49,64,100,62,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 62(         62)
+Playback Data: [32,0,48,49,48]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 48(         48)
+Playback Data: [0,50,49,64,0]
+Playback Data: [62,49,48,100,50]
+Playback Data: [49,64,100,60,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 60(         60)
+Playback Data: [48,0,50,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [0,60,49,16,100]
+Playback Data: [50,49,64,100,62]
+Playback Data: [49,64,0,62,49]
+Playback Data: Slot: 0(     0), change param: 62(         62)
+Playback Data: [16,0,50,49,16]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 16(         16)
+Playback Data: [100,50,49,48,100]
+Playback Data: [52,49,64,100,69]
+Playback Data: [49,48,0,52,49]
+Playback Data: [64,0,69,49,48]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 48(         48)
+Playback Data: [100,52,49,48,0]
+Playback Data: [52,49,16,0,50]
+Playback Data: [49,32,80,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [64,100,62,49,32]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,48,49,64,0]
+Playback Data: [62,49,16,100,50]
+Playback Data: [49,48,100,48,49]
+Playback Data: [48,0,48,49,48]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 48(         48)
+Playback Data: [100,48,49,64,100]
+Playback Data: [60,49,48,0,48]
+Playback Data: [49,64,0,60,49]
+Playback Data: Slot: 0(     0), change param: 60(         60)
+Playback Data: [16,0,50,49,32]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 32(         32)
+Playback Data: [80,48,49,32,0]
+Playback Data: [48,49,64,100,72]
+Playback Data: [49,64,0,72,49]
+Playback Data: Slot: 0(     0), change param: 72(         72)
+Playback Data: [16,100,50,49,64]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,74,49,64,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 64(         64)
+Playback Data: [74,49,32,80,60]
+Playback Data: [49,64,100,69,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 69(         69)
+Playback Data: [32,0,60,49,32]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 32(         32)
+Playback Data: [80,60,49,32,0]
+Playback Data: [60,49,64,0,69]
+Playback Data: [49,16,0,50,49]
+Playback Data: tempo: 12849(U24(12849))[μsec/四分音符], BPM: 77
+Playback Data: [32,80,48,49,64]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [100,67,49,32,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 32(         32)
+Playback Data: [48,49,64,0,67]
+Playback Data: [49,32,80,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [64,100,69,49,32]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,48,49,64,0]
+Playback Data: [69,49,64,100,67]
+Playback Data: [49,64,0,67,49]
+Playback Data: Slot: 0(     0), change param: 67(         67)
+Playback Data: [16,100,50,49,64]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,65,49,0,100]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 0(          0)
+Playback Data: [57,49,32,80,48]
+Playback Data: [49,32,0,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [64,0,65,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [0,57,49,0,100]
+Playback Data: [65,49,16,0,50]
+Playback Data: [49,32,80,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [48,100,50,49,64]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,62,49,32,0]
+Playback Data: [48,49,48,0,50]
+Playback Data: [49,64,0,62,49]
+Playback Data: Slot: 0(     0), change param: 62(         62)
+Playback Data: [0,0,65,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [100,65,49,48,100]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 48(         48)
+Playback Data: [50,49,64,100,60]
+Playback Data: [49,48,0,50,49]
+Playback Data: [64,0,60,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [0,65,49,0,100]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 0(          0)
+Playback Data: [65,49,16,100,50]
+Playback Data: [49,64,100,62,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 62(         62)
+Playback Data: [64,0,62,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [0,65,49,0,100]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 0(          0)
+Playback Data: [65,49,16,0,50]
+Playback Data: [49,16,100,50,49]
+Playback Data: tempo: 6566449(U24(6566449))[μsec/四分音符], BPM: 0
+Playback Data: [48,100,52,49,64]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,69,49,48,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 48(         48)
+Playback Data: [52,49,64,0,69]
+Playback Data: [49,0,0,65,49]
+Playback Data: chanel: 0( 0), key: 65(    65), velocity: 49(         49)
+Playback Data: [0,100,65,49,48]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,52,49,48,0]
+Playback Data: [52,49,0,0,65]
+Playback Data: [49,0,100,64,49]
+Playback Data: chanel: 0( 0), key: 64(    64), velocity: 49(         49)
+Playback Data: [16,0,50,49,32]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 32(         32)
+Playback Data: [80,48,49,64,100]
+Playback Data: [62,49,32,0,48]
+Playback Data: [49,64,0,62,49]
+Playback Data: Slot: 0(     0), change param: 62(         62)
+Playback Data: [0,0,64,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [100,62,49,16,100]
+Playback Data: [50,49,48,100,53]
+Playback Data: [49,48,0,53,49]
+Playback Data: [0,0,62,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [100,60,49,48,100]
+Playback Data: [53,49,64,100,60]
+Playback Data: [49,48,0,53,49]
+Playback Data: [64,0,60,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [0,60,49,0,100]
+Playback Data: [62,49,16,0,50]
+Playback Data: [49,32,80,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [32,0,48,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [100,62,49,64,0]
+Playback Data: [62,49,0,0,62]
+Playback Data: [49,0,100,60,49]
+Playback Data: chanel: 0( 0), key: 60(    60), velocity: 49(         49)
+Playback Data: [16,100,50,49,64]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,64,49,64,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 64(         64)
+Playback Data: [64,49,64,100,65]
+Playback Data: [49,64,0,65,49]
+Playback Data: Slot: 0(     0), change param: 65(         65)
+Playback Data: [0,0,60,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [100,57,49,16,0]
+Playback Data: [50,49,32,80,48]
+Playback Data: [49,64,100,64,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 64(         64)
+Playback Data: [32,0,48,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [0,64,49,32,80]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 32(         32)
+Playback Data: [48,49,64,100,62]
+Playback Data: [49,32,0,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [64,0,62,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [0,57,49,16,100]
+Playback Data: [50,49,64,100,60]
+Playback Data: [49,64,0,60,49]
+Playback Data: Slot: 0(     0), change param: 60(         60)
+Playback Data: [0,100,57,49,64]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,57,49,64,0]
+Playback Data: [57,49,0,0,57]
+Playback Data: [49,0,100,65,49]
+Playback Data: chanel: 0( 0), key: 65(    65), velocity: 49(         49)
+Playback Data: [16,0,50,49,32]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 32(         32)
+Playback Data: [80,48,49,48,100]
+Playback Data: [50,49,64,100,62]
+Playback Data: [49,32,0,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [48,0,50,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [0,62,49,0,0]
+Playback Data: [65,49,0,100,65]
+Playback Data: [49,48,100,50,49]
+Playback Data: [64,100,60,49,48]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,50,49,64,0]
+Playback Data: [60,49,0,0,65]
+Playback Data: [49,0,100,65,49]
+Playback Data: chanel: 0( 0), key: 65(    65), velocity: 49(         49)
+Playback Data: [16,100,50,49,64]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,62,49,64,0]
+Playback Data: [62,49,0,0,65]
+Playback Data: [49,0,100,65,49]
+Playback Data: chanel: 0( 0), key: 65(    65), velocity: 49(         49)
+Playback Data: [16,0,50,49,16]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 16(         16)
+Playback Data: [100,50,49,48,100]
+Playback Data: [52,49,64,100,69]
+Playback Data: [49,48,0,52,49]
+Playback Data: [64,0,69,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [0,65,49,0,100]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 0(          0)
+Playback Data: [65,49,48,100,52]
+Playback Data: [49,48,0,52,49]
+Playback Data: [0,0,65,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [100,64,49,16,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 16(         16)
+Playback Data: [50,49,32,80,48]
+Playback Data: [49,64,100,62,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 62(         62)
+Playback Data: [32,0,48,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [0,62,49,0,0]
+Playback Data: [64,49,0,100,62]
+Playback Data: [49,16,100,50,49]
+Playback Data: tempo: 6566449(U24(6566449))[μsec/四分音符], BPM: 0
+Playback Data: [48,100,48,49,48]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,48,49,0,0]
+Playback Data: [62,49,0,100,60]
+Playback Data: [49,48,100,48,49]
+Playback Data: [64,100,60,49,48]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,48,49,64,0]
+Playback Data: [60,49,0,0,60]
+Playback Data: [49,0,100,62,49]
+Playback Data: chanel: 0( 0), key: 62(    62), velocity: 49(         49)
+Playback Data: [16,0,50,49,32]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 32(         32)
+Playback Data: [80,48,49,32,0]
+Playback Data: [48,49,64,100,62]
+Playback Data: [49,64,0,62,49]
+Playback Data: Slot: 0(     0), change param: 62(         62)
+Playback Data: [0,0,62,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [100,60,49,16,100]
+Playback Data: [50,49,32,80,60]
+Playback Data: [49,64,100,64,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 64(         64)
+Playback Data: [32,0,60,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [0,64,49,32,80]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 32(         32)
+Playback Data: [60,49,64,100,65]
+Playback Data: [49,32,0,60,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [64,0,65,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [0,60,49,0,100]
+Playback Data: [62,49,16,0,50]
+Playback Data: [49,32,80,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [64,100,64,49,32]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,48,49,32,80]
+Playback Data: [48,49,32,0,48]
+Playback Data: [49,64,0,64,49]
+Playback Data: Slot: 0(     0), change param: 64(         64)
+Playback Data: [0,0,62,49,16]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 16(         16)
+Playback Data: [100,50,49,0,100]
+Playback Data: [57,49,32,80,48]
+Playback Data: [49,32,0,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [0,0,57,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [100,65,49,16,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 16(         16)
+Playback Data: [50,49,32,80,48]
+Playback Data: [49,48,100,50,49]
+Playback Data: [64,100,62,49,32]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,48,49,48,0]
+Playback Data: [50,49,64,0,62]
+Playback Data: [49,0,0,65,49]
+Playback Data: chanel: 0( 0), key: 65(    65), velocity: 49(         49)
+Playback Data: [0,100,65,49,48]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,50,49,64,100]
+Playback Data: [60,49,48,0,50]
+Playback Data: [49,64,0,60,49]
+Playback Data: Slot: 0(     0), change param: 60(         60)
+Playback Data: [0,0,65,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [100,65,49,16,100]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 16(         16)
+Playback Data: [50,49,64,100,62]
+Playback Data: [49,64,0,62,49]
+Playback Data: Slot: 0(     0), change param: 62(         62)
+Playback Data: [0,0,65,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [100,65,49,16,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 16(         16)
+Playback Data: [50,49,16,100,50]
+Playback Data: [49,48,100,52,49]
+Playback Data: [64,100,69,49,48]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,52,49,64,0]
+Playback Data: [69,49,0,0,65]
+Playback Data: [49,0,100,65,49]
+Playback Data: chanel: 0( 0), key: 65(    65), velocity: 49(         49)
+Playback Data: [48,100,52,49,48]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,52,49,0,0]
+Playback Data: [65,49,0,100,64]
+Playback Data: [49,16,0,50,49]
+Playback Data: tempo: 12849(U24(12849))[μsec/四分音符], BPM: 77
+Playback Data: [32,80,48,49,64]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [100,62,49,32,0]
+Playback Data: [48,49,64,0,62]
+Playback Data: [49,0,0,64,49]
+Playback Data: chanel: 0( 0), key: 64(    64), velocity: 49(         49)
+Playback Data: [0,100,62,49,16]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,50,49,48,100]
+Playback Data: [53,49,48,0,53]
+Playback Data: [49,0,0,62,49]
+Playback Data: chanel: 0( 0), key: 62(    62), velocity: 49(         49)
+Playback Data: [0,100,60,49,48]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,53,49,64,100]
+Playback Data: [60,49,48,0,53]
+Playback Data: [49,64,0,60,49]
+Playback Data: Slot: 0(     0), change param: 60(         60)
+Playback Data: [0,0,60,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [100,62,49,16,0]
+Playback Data: [50,49,32,80,48]
+Playback Data: [49,32,0,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [64,100,62,49,64]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,62,49,0,0]
+Playback Data: [62,49,0,100,60]
+Playback Data: [49,16,100,50,49]
+Playback Data: tempo: 6566449(U24(6566449))[μsec/四分音符], BPM: 0
+Playback Data: [0,0,60,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [100,60,49,64,100]
+Playback Data: [64,49,64,0,64]
+Playback Data: [49,64,100,65,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 65(         65)
+Playback Data: [16,0,50,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [0,65,49,0,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 0(          0)
+Playback Data: [60,49,0,100,57]
+Playback Data: [49,32,80,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [64,100,64,49,32]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,48,49,64,0]
+Playback Data: [64,49,32,80,48]
+Playback Data: [49,64,100,62,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 62(         62)
+Playback Data: [32,0,48,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [0,62,49,0,0]
+Playback Data: [57,49,16,100,50]
+Playback Data: [49,64,100,60,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 60(         60)
+Playback Data: [64,0,60,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [100,57,49,64,100]
+Playback Data: [57,49,64,0,57]
+Playback Data: [49,16,0,50,49]
+Playback Data: tempo: 12849(U24(12849))[μsec/四分音符], BPM: 77
+Playback Data: [0,0,57,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [100,65,49,32,80]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 32(         32)
+Playback Data: [48,49,48,100,50]
+Playback Data: [49,64,100,62,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 62(         62)
+Playback Data: [32,0,48,49,48]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 48(         48)
+Playback Data: [0,50,49,64,0]
+Playback Data: [62,49,0,0,65]
+Playback Data: [49,0,100,65,49]
+Playback Data: chanel: 0( 0), key: 65(    65), velocity: 49(         49)
+Playback Data: [48,100,50,49,64]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,60,49,48,0]
+Playback Data: [50,49,64,0,60]
+Playback Data: [49,0,0,65,49]
+Playback Data: chanel: 0( 0), key: 65(    65), velocity: 49(         49)
+Playback Data: [0,100,65,49,16]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,50,49,64,100]
+Playback Data: [62,49,64,0,62]
+Playback Data: [49,0,0,65,49]
+Playback Data: chanel: 0( 0), key: 65(    65), velocity: 49(         49)
+Playback Data: [0,100,65,49,16]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,50,49,16,100]
+Playback Data: [50,49,48,100,48]
+Playback Data: [49,64,100,69,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 69(         69)
+Playback Data: [48,0,48,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [0,69,49,0,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 0(          0)
+Playback Data: [65,49,0,100,65]
+Playback Data: [49,48,100,48,49]
+Playback Data: [48,0,48,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [0,65,49,0,100]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 0(          0)
+Playback Data: [65,49,16,0,50]
+Playback Data: [49,32,80,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [64,100,62,49,32]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,48,49,64,0]
+Playback Data: [62,49,0,0,65]
+Playback Data: [49,0,100,69,49]
+Playback Data: chanel: 0( 0), key: 69(    69), velocity: 49(         49)
+Playback Data: [16,100,50,49,48]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,48,49,48,0]
+Playback Data: [48,49,48,100,48]
+Playback Data: [49,64,100,60,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 60(         60)
+Playback Data: [16,0,50,49,48]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 48(         48)
+Playback Data: [0,48,49,64,0]
+Playback Data: [60,49,0,0,69]
+Playback Data: [49,0,100,67,49]
+Playback Data: chanel: 0( 0), key: 67(    67), velocity: 49(         49)
+Playback Data: [32,80,48,49,32]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [0,48,49,32,80]
+Playback Data: [48,49,64,100,62]
+Playback Data: [49,80,100,65,49]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [32,0,48,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [0,62,49,80,0]
+Playback Data: [65,49,0,0,67]
+Playback Data: [49,0,100,57,49]
+Playback Data: chanel: 0( 0), key: 57(    57), velocity: 49(         49)
+Playback Data: [16,100,50,49,80]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,67,49,80,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 80(         80)
+Playback Data: [67,49,0,0,57]
+Playback Data: [49,0,100,57,49]
+Playback Data: chanel: 0( 0), key: 57(    57), velocity: 49(         49)
+Playback Data: [32,80,48,49,64]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [100,69,49,80,100]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 80(         80)
+Playback Data: [60,49,32,0,48]
+Playback Data: [49,16,0,50,49]
+Playback Data: tempo: 12849(U24(12849))[μsec/四分音符], BPM: 77
+Playback Data: [80,0,60,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [0,57,49,0,100]
+Playback Data: [64,49,16,100,50]
+Playback Data: [49,48,100,69,49]
+Playback Data: [80,100,62,49,48]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,69,49,80,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 80(         80)
+Playback Data: [62,49,32,80,48]
+Playback Data: [49,48,100,69,49]
+Playback Data: [80,100,55,49,32]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,48,49,16,0]
+Playback Data: [50,49,48,0,69]
+Playback Data: [49,80,0,55,49]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [0,0,64,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [100,62,49,32,80]
+Playback Data: [60,49,48,100,69]
+Playback Data: [49,80,100,57,49]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [32,0,60,49,48]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 48(         48)
+Playback Data: [0,69,49,80,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 80(         80)
+Playback Data: [57,49,48,100,69]
+Playback Data: [49,80,100,60,49]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [48,0,69,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [0,69,49,80,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 80(         80)
+Playback Data: [60,49,32,80,48]
+Playback Data: [49,48,100,62,49]
+Playback Data: [64,100,77,49,80]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,46,49,32,0]
+Playback Data: End
+==Playback Ended==
+Playback Data: [48,49,48,0,62]
+Playback Data: [49,64,0,77,49]
+Playback Data: Slot: 0(     0), change param: 77(         77)
+Playback Data: [80,0,46,49,32]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 32(         32)
+Playback Data: [80,72,49,48,100]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 48(         48)
+Playback Data: [62,49,64,100,74]
+Playback Data: [49,80,100,46,49]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [32,0,72,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [0,74,49,64,100]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 64(         64)
+Playback Data: [77,49,32,80,72]
+Playback Data: [49,64,0,77,49]
+Playback Data: Slot: 0(     0), change param: 77(         77)
+Playback Data: [64,100,74,49,32]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,72,49,48,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 48(         48)
+Playback Data: [62,49,64,0,74]
+Playback Data: [49,80,0,46,49]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [32,80,60,49,64]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [100,72,49,32,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 32(         32)
+Playback Data: [60,49,64,0,72]
+Playback Data: [49,32,80,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [48,100,61,49,64]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,74,49,80,100]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 80(         80)
+Playback Data: [45,49,32,0,48]
+Playback Data: [49,0,0,62,49]
+Playback Data: chanel: 0( 0), key: 62(    62), velocity: 49(         49)
+Playback Data: [48,0,61,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [0,74,49,80,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 80(         80)
+Playback Data: [45,49,32,80,48]
+Playback Data: [49,48,100,61,49]
+Playback Data: [64,100,72,49,80]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,45,49,32,0]
+Playback Data: End
+==Playback Ended==
+Playback Data: [48,49,48,0,61]
+Playback Data: [49,64,0,72,49]
+Playback Data: Slot: 0(     0), change param: 72(         72)
+Playback Data: [80,0,45,49,16]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 16(         16)
+Playback Data: [100,50,49,48,100]
+Playback Data: [61,49,64,100,69]
+Playback Data: [49,48,0,61,49]
+Playback Data: [64,0,69,49,32]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 32(         32)
+Playback Data: [80,48,49,48,100]
+Playback Data: [60,49,64,100,68]
+Playback Data: [49,80,100,50,49]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [32,0,48,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [0,68,49,16,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 16(         16)
+Playback Data: [50,49,64,100,67]
+Playback Data: [49,48,0,60,49]
+Playback Data: [64,0,67,49,80]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 80(         80)
+Playback Data: [0,50,49,16,100]
+Playback Data: [50,49,48,100,60]
+Playback Data: [49,64,100,65,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 65(         65)
+Playback Data: [80,100,62,49,48]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,60,49,64,0]
+Playback Data: [65,49,80,0,62]
+Playback Data: [49,32,80,48,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [48,100,60,49,64]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,67,49,32,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 32(         32)
+Playback Data: [48,49,48,0,60]
+Playback Data: [49,64,0,67,49]
+Playback Data: Slot: 0(     0), change param: 67(         67)
+Playback Data: [16,0,50,49,16]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 16(         16)
+Playback Data: [100,50,49,48,100]
+Playback Data: [65,49,64,100,69]
+Playback Data: [49,80,100,55,49]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [48,0,65,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [0,69,49,80,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 80(         80)
+Playback Data: [55,49,32,80,48]
+Playback Data: [49,48,100,65,49]
+Playback Data: [64,100,67,49,80]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,57,49,32,0]
+Playback Data: [48,49,48,0,65]
+Playback Data: [49,64,0,67,49]
+Playback Data: Slot: 0(     0), change param: 67(         67)
+Playback Data: [80,0,57,49,16]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 16(         16)
+Playback Data: [0,50,49,32,80]
+Playback Data: [72,49,48,100,65]
+Playback Data: [49,64,100,65,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 65(         65)
+Playback Data: [80,100,60,49,32]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,72,49,48,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 48(         48)
+Playback Data: [65,49,64,0,65]
+Playback Data: [49,80,0,60,49]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [32,80,60,49,48]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [100,65,49,80,100]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 80(         80)
+Playback Data: [62,49,32,0,60]
+Playback Data: [49,48,0,65,49]
+Playback Data: [80,0,62,49,64]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 64(         64)
+Playback Data: [100,60,49,80,100]
+Playback Data: [65,49,64,0,60]
+Playback Data: [49,80,0,65,49]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [32,80,48,49,32]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [80,72,49,48,100]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 48(         48)
+Playback Data: [61,49,64,100,61]
+Playback Data: [49,80,100,56,49]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [32,0,48,49,32]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 32(         32)
+Playback Data: [0,72,49,16,100]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 16(         16)
+Playback Data: [50,49,16,0,50]
+Playback Data: [49,48,0,61,49]
+Playback Data: [64,0,61,49,80]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 80(         80)
+Playback Data: [0,56,49,16,100]
+Playback Data: [50,49,48,100,61]
+Playback Data: [49,64,100,65,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 65(         65)
+Playback Data: [80,100,62,49,16]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,50,49,16,100]
+Playback Data: [50,49,16,0,50]
+Playback Data: [49,48,0,61,49]
+Playback Data: [64,0,65,49,80]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 80(         80)
+Playback Data: [0,62,49,16,100]
+Playback Data: [50,49,64,100,70]
+Playback Data: [49,80,100,56,49]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [64,0,70,49,80]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 80(         80)
+Playback Data: [0,56,49,32,80]
+Playback Data: [48,49,48,100,58]
+Playback Data: [49,64,100,73,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 73(         73)
+Playback Data: [80,100,55,49,32]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,48,49,48,0]
+Playback Data: [58,49,80,0,55]
+Playback Data: [49,16,0,50,49]
+Playback Data: tempo: 12849(U24(12849))[μsec/四分音符], BPM: 77
+Playback Data: [64,0,73,49,32]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 32(         32)
+Playback Data: [80,48,49,48,100]
+Playback Data: [58,49,64,100,72]
+Playback Data: [49,80,100,55,49]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [32,0,48,49,48]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 48(         48)
+Playback Data: [0,58,49,64,0]
+Playback Data: [72,49,80,0,55]
+Playback Data: [49,16,100,50,49]
+Playback Data: tempo: 6566449(U24(6566449))[μsec/四分音符], BPM: 0
+Playback Data: [64,100,70,49,64]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,70,49,32,80]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 32(         32)
+Playback Data: [48,49,48,100,65]
+Playback Data: [49,64,100,69,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 69(         69)
+Playback Data: [80,100,53,49,32]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,48,49,16,0]
+Playback Data: [50,49,48,0,65]
+Playback Data: [49,80,0,53,49]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [16,100,50,49,32]
+Playback Data: FlagA is invalid: 6
+Playback Data: [80,60,49,48,100]
+Playback Data: [53,49,80,100,52]
+Playback Data: [49,32,0,60,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [48,0,53,49,80]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 80(         80)
+Playback Data: [0,52,49,16,0]
+Playback Data: [50,49,16,100,50]
+Playback Data: [49,32,80,60,49]
+Playback Data: End
+==Playback Ended==
+Playback Data: [48,100,65,49,32]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,60,49,48,0]
+Playback Data: [65,49,16,0,50]
+Playback Data: [49,16,100,50,49]
+Playback Data: tempo: 6566449(U24(6566449))[μsec/四分音符], BPM: 0
+Playback Data: [32,80,60,49,48]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [100,53,49,80,100]
+Playback Data: [50,49,32,0,60]
+Playback Data: [49,48,0,53,49]
+Playback Data: [80,0,50,49,32]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 32(         32)
+Playback Data: [80,72,49,48,100]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 48(         48)
+Playback Data: [65,49,32,0,72]
+Playback Data: [49,48,0,65,49]
+Playback Data: [16,0,50,49,16]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: 16(         16)
+Playback Data: [100,50,49,48,100]
+Playback Data: [53,49,80,100,48]
+Playback Data: [49,16,0,50,49]
+Playback Data: tempo: 12849(U24(12849))[μsec/四分音符], BPM: 77
+Playback Data: [16,100,50,49,48]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,53,49,80,0]
+Playback Data: [48,49,16,0,50]
+Playback Data: [49,16,100,50,49]
+Playback Data: tempo: 6566449(U24(6566449))[μsec/四分音符], BPM: 0
+Playback Data: [48,100,65,49,80]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,45,49,16,0]
+Playback Data: End
+==Playback Ended==
+Playback Data: [50,49,16,100,50]
+Playback Data: [49,0,100,57,49]
+Playback Data: chanel: 0( 0), key: 57(    57), velocity: 49(         49)
+Playback Data: [32,80,72,49,32]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [0,72,49,48,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 48(         48)
+Playback Data: [65,49,64,0,69]
+Playback Data: [49,80,0,45,49]
+Playback Data: FlagA is 5: Skip to next track.
+Playback Data: [0,0,57,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [100,65,49,16,0]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 16(         16)
+Playback Data: [50,49,32,80,48]
+Playback Data: [49,48,100,50,49]
+Playback Data: [64,100,62,49,80]
+Playback Data: FlagA is invalid: 6
+Playback Data: [100,46,49,32,0]
+Playback Data: End
+==Playback Ended==
+Playback Data: [48,49,48,0,50]
+Playback Data: [49,64,0,62,49]
+Playback Data: Slot: 0(     0), change param: 62(         62)
+Playback Data: [80,0,46,49,0]
+Playback Data: chanel: 0( 0), key: 49(    49), velocity: noteoff
+Playback Data: [0,65,49,0,100]
+Playback Data: KeyScale/AttackRate: 1(     1), change param: 0(          0)
+Playback Data: [65,49,48,100,57]
+Playback Data: [49,64,100,62,49]
+Playback Data: SustainLevel/ReleaseRate: 4(     4), change param: 62(         62)
+Playback Data: [80,100,46,49,48]
+Playback Data: FlagA is invalid: 6
+Playback Data: [0,57,49,64,0]
+Playback Data: [62,49,80,0,46]
+Playback Data: [49,0,0,65,49]
+Playback Data: chanel: 0( 0), key: 65(    65), velocity: 49(         49)
+Playback Data: [0,100,65,49,16]
+Playback Data: FlagA is invalid: 6
+

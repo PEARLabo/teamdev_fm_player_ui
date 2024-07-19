@@ -22,40 +22,48 @@ function drawPianoRoll() {
   let activeNotes = new Set();
 
   // ピアノの描画
-  function updatePianoRoll(data) {
-    const playerConsoleArea = document.getElementById('playerConsole');
-    if (playerConsoleArea) {
-      playerConsoleArea.value += `Playback Data: ${data}\n`;
-      playerConsoleArea.scrollTop = playerConsoleArea.scrollHeight;
+  function drawPiano() {
+    // 先に全ての白鍵を描画
+    for (let octave = 0; octave < numOctaves; octave++) {
+      const octaveOffsetX = (octave % 3) * 7 * whiteKeyWidth;
+      const yOffset = Math.floor(octave / 3) * pianoHeight;
+
+      whiteKeys.forEach((key, i) => {
+        const pitch = octave * 12 + key + 24; // C1から開始するように24を追加
+        const x = octaveOffsetX + i * whiteKeyWidth;
+        const y = yOffset;
+        ctx.fillStyle = activeNotes.has(pitch) ? '#D3D3D3' : 'white';  // 薄い灰色でアクティブな白鍵を表示
+        ctx.fillRect(x, y, whiteKeyWidth, whiteKeyHeight);
+        ctx.strokeStyle = 'black';
+        ctx.strokeRect(x, y, whiteKeyWidth, whiteKeyHeight);
+
+        // Cのラベルを表示
+        if (key === 0) {
+          ctx.fillStyle = 'black';
+          ctx.font = '14px Arial';
+          ctx.fillText(`C${Math.floor(pitch / 12) - 1}`, x + 5, y + whiteKeyHeight - 5);
+        }
+      });
     }
 
-    // イベントタイプに応じて処理を分ける
-    if (data.startsWith("tempo:")) {
-      // テンポ情報を更新
-      updateTempo(data);
-    } else if (data.startsWith("chanel:")) {
-      // ノートオン/オフイベントを処理
-      const noteMatch = data.match(/chanel: \d+\(\s*\d+\), key: (\d+)\(\s*\d+\), velocity: (\d+)\(\s*\d+\)/);
-      if (noteMatch) {
-        const pitch = parseInt(noteMatch[1], 10);
-        const velocity = parseInt(noteMatch[2], 10);
-        playerConsoleArea.value += `\nNote: ${pitch}, Velocity: ${velocity}\n`;
-        if (velocity === 0) {
-          window.noteOff(pitch);
-        } else {
-          window.noteOn(pitch);
-        }
-      }
-    } else if (data === "End") {
-      // 終了イベントを処理
-      handleEndEvent();
-      playerConsoleArea.value += '==Playback Ended==\n';
-    } else {
-      // その他のイベントを処理
-      console.warn("Unknown event type:", data);
+    // 黒鍵を描画し、その上にアクティブな色を適用
+    for (let octave = 0; octave < numOctaves; octave++) {
+      const octaveOffsetX = (octave % 3) * 7 * whiteKeyWidth;
+      const yOffset = Math.floor(octave / 3) * pianoHeight;
+
+      blackKeys.forEach((key) => {
+        const pitch = octave * 12 + key + 24; // C#1から開始するように24を追加
+        const x = octaveOffsetX + whiteKeys.indexOf(key - 1) * whiteKeyWidth + whiteKeyWidth - blackKeyWidth / 2;
+        const y = yOffset;
+
+        // 黒鍵の基本描画
+        ctx.fillStyle = activeNotes.has(pitch) ? '#A9A9A9' : 'black';  // 濃い灰色でアクティブな黒鍵を表示
+        ctx.fillRect(x, y, blackKeyWidth, blackKeyHeight);
+        ctx.strokeStyle = 'black';
+        ctx.strokeRect(x, y, blackKeyWidth, blackKeyHeight);
+      });
     }
   }
-
 
   // 経過時間の表示
   function displayTime(elapsedTime) {
@@ -80,12 +88,19 @@ function drawPianoRoll() {
 
   // ノートオンイベントを処理
   function noteOn(pitch) {
-    activeNotes.add(pitch);
+    // 存在しない場合追加する
+    if (!activeNotes.has(pitch)) {
+      activeNotes.add(pitch);
+    }
   }
 
   // ノートオフイベントを処理
   function noteOff(pitch) {
-    activeNotes.delete(pitch);
+    // 存在するすべてのノートを削除する
+    if (activeNotes.has(pitch)) {
+      activeNotes.delete(pitch);
+      noteOff(pitch);
+    }
   }
 
   // 外部からノートオン、ノートオフをトリガーできるようにする
@@ -117,7 +132,7 @@ function updatePianoRoll(data) {
         window.noteOn(pitch);
       }
     }
-  } else if (data === "End") {
+  } else if (data.startsWith("End")) {
     // 終了イベントを処理
     handleEndEvent();
     playerConsoleArea.value += '==Playback Ended==\n';
