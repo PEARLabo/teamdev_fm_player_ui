@@ -1,4 +1,5 @@
 let activeNotes = new Set();
+let eventQueue = [];
 
 // ピアノロールの描画(switchPlayer関数内で呼び出し)
 function drawPianoRoll() {
@@ -82,6 +83,8 @@ function drawPianoRoll() {
     drawPiano();
     displayTime(elapsedTime);
 
+    processEventQueue();
+
     requestAnimationFrame(animate);
   }
 
@@ -89,17 +92,14 @@ function drawPianoRoll() {
 
   // ノートオンイベントを処理
   function noteOn(pitch) {
-    // 存在しない場合追加する
-    if (!activeNotes.has(pitch)) {
-      activeNotes.add(pitch);
-    }
+    if (activeNotes.has(pitch)) return;
+    activeNotes.add(pitch);
   }
 
   // ノートオフイベントを処理
   function noteOff(pitch) {
-    // 存在するすべてのノートを削除する
+    activeNotes.delete(pitch);
     if (activeNotes.has(pitch)) {
-      activeNotes.delete(pitch);
       noteOff(pitch);
     }
   }
@@ -109,14 +109,26 @@ function drawPianoRoll() {
   window.noteOff = noteOff;
 }
 
+// イベントキューの処理
+function processEventQueue() {
+  while (eventQueue.length > 0) {
+    const data = eventQueue.shift();
+    handleEvent(data);
+  }
+}
+
+// イベントデータをキューに追加
 function updatePianoRoll(data) {
+  eventQueue.push(data);
   const playerConsoleArea = document.getElementById('playerConsole');
   if (playerConsoleArea) {
     playerConsoleArea.value += `Playback Data: ${data}\n`;
     playerConsoleArea.scrollTop = playerConsoleArea.scrollHeight;
   }
+}
 
-  // イベントタイプに応じて処理を分ける
+// イベントデータの処理
+function handleEvent(data) {
   if (data.startsWith("tempo:")) {
     // テンポ情報を更新
     updateTempo(data);
@@ -126,7 +138,6 @@ function updatePianoRoll(data) {
     if (noteMatch) {
       const pitch = parseInt(noteMatch[1], 10);
       const velocity = parseInt(noteMatch[2], 10);
-      //playerConsoleArea.value += `\nNote: ${pitch}, Velocity: ${velocity}\n`;
       if (velocity === 0) {
         window.noteOff(pitch);
       } else {
@@ -134,9 +145,11 @@ function updatePianoRoll(data) {
       }
     }
   } else if (data.startsWith("End")) {
-    // 終了イベントを処理
     handleEndEvent();
-    playerConsoleArea.value += '==Playback Ended==\n';
+    const playerConsoleArea = document.getElementById('playerConsole');
+    if (playerConsoleArea) {
+      playerConsoleArea.value += '==Playback Ended==\n';
+    }
   } else {
     // その他のイベントを処理
     console.warn("Unknown event type:", data);
@@ -155,19 +168,8 @@ function updateTempo(data) {
   }
 }
 
-function updateParameterChange(data) {
-  // パラメータ変更イベントをピアノロールに反映
-  // ここでは簡略化してログを出力する
-  console.log("Parameter Change Event:", data);
-}
-
 function handleEndEvent() {
-  // 終了イベントの処理
   activeNotes.clear();
   console.log("End Event received.");
 }
 
-function handleFlagAEvent(data) {
-  // フラグA関連のイベントの処理
-  console.log("FlagA Event:", data);
-}
