@@ -1,3 +1,5 @@
+let activeNotes = new Set();
+
 // ピアノロールの描画(switchPlayer関数内で呼び出し)
 function drawPianoRoll() {
   const canvas = document.getElementById('pianoRoll');
@@ -19,7 +21,6 @@ function drawPianoRoll() {
   const blackKeys = [1, 3, 6, 8, 10];
 
   let startTime = null;
-  let activeNotes = new Set();
 
   // ピアノの描画
   function drawPiano() {
@@ -125,7 +126,7 @@ function updatePianoRoll(data) {
     if (noteMatch) {
       const pitch = parseInt(noteMatch[1], 10);
       const velocity = parseInt(noteMatch[2], 10);
-      playerConsoleArea.value += `\nNote: ${pitch}, Velocity: ${velocity}\n`;
+      //playerConsoleArea.value += `\nNote: ${pitch}, Velocity: ${velocity}\n`;
       if (velocity === 0) {
         window.noteOff(pitch);
       } else {
@@ -162,6 +163,7 @@ function updateParameterChange(data) {
 
 function handleEndEvent() {
   // 終了イベントの処理
+  activeNotes.clear();
   console.log("End Event received.");
 }
 
