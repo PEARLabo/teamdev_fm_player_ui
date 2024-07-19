@@ -39,10 +39,12 @@ function parse_event_msg(lo, hi, print_log_func) {
   let flag_a = (lo & 0xf00) >>> 8;
   let ch = (lo & 0xf000) >>> 12;
   let msg_data = lo >>> 16;
+  // Note: 未使用時0を記入
   let dst = {
     ch: ch, //Channel
     key: 0, // Key
     vel: 0, // Velocity
+    tempo: 0, // Tempo
   };
   if (!print_log_func) {
     print_log_func = () => { };
@@ -52,12 +54,17 @@ function parse_event_msg(lo, hi, print_log_func) {
       {// KeyEvent
         let key = msg_data & 0xff;
         let vel = (msg_data & 0xff00) >>> 8;
+        dst.key = key;
+        dst.vel = vel;
         print_log_func(`Ch${ch}: Key${vel ? "ON" : "OFF"} Key: ${key}`);
       }
       break;
     case EventTempo:
-      print_log_func(`Tempo Change: ${convert_to_bpm(msg_data + (hi * 0x100))}`);
-      dst = null;
+      {
+        let tempo = convert_to_bpm(msg_data + (hi * 0x100))
+      print_log_func(`Tempo Change: ${tempo}`);
+      dst.tempo = tempo;
+    }
       break;
     case EventEnd:
       print_log_func("End of playing");
