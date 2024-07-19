@@ -26,7 +26,8 @@ const PARAM_SET_LUT = [
   "FeedbackLevel Connection",
 ];
 function convert_to_bpm(usec_per_beat) {
-
+  let minuit_per_beat = usec_per_beat / 1000_000 / 60;
+  return (1/minuit_per_beat + 0.5) | 0;
 }
 function parse_event_msg(lo, hi, print_log_func) {
   let len = (lo & 0xf0) >>> 4;
