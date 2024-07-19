@@ -1,5 +1,5 @@
 let activeNotes = new Set();
-let eventQueue = [];
+let eventQueue = new Queue(64);
 // const variables
 const CANVAS_WIDTH = 900;
 const CANVAS_HEIGHT = 400;
@@ -142,14 +142,14 @@ function drawPianoRoll() {
 // イベントキューの処理
 function processEventQueue() {
   while (eventQueue.length > 0) {
-    const data = eventQueue.shift();
+    const data = eventQueue.dequeue();
     handleEvent(data);
   }
 }
 
 // イベントデータをキューに追加
 function updatePianoRoll(data) {
-  eventQueue.push(data);
+  eventQueue.enqueue(data);
   const playerConsoleArea = document.getElementById('playerConsole');
   if (playerConsoleArea) {
     playerConsoleArea.value += `Playback Data: key: ${data.key}, vel: ${data.vel}\n`;
@@ -159,6 +159,15 @@ function updatePianoRoll(data) {
 
 // イベントデータの処理
 function handleEvent(data) {
+  const playerConsoleArea = document.getElementById('playerConsole');
+  // let playbackData = [];
+  // playbackData.push(`Playback Data: key: ${data.key}, vel: ${data.vel}`);
+  // if(playbackData.length >= 5) {
+  //   playerConsoleArea.value += playbackData.map(data => `${data}`).join('\n') + '\n'
+  //   playbackData = []
+  // }
+  playerConsoleArea.value += `Playback Data: key: ${data.key}, vel: ${data.vel}\n`;
+  playerConsoleArea.scrollTop = playerConsoleArea.scrollHeight;
   if(data.vel !== 0) {
     // console.log(`DATA | vel: ${data.vel}, key: ${data.key}\n`)
     window.noteOn(data.key);

@@ -130,7 +130,7 @@ document.getElementById('sendButton').addEventListener('click', async () => {
     const fileInput = document.getElementById('fileInput');
     const file = fileInput.files[0];
     const contents = await readFileAsArrayBuffer(file);
-    const portName = "/dev/pts/2"; // シリアルポート名を指定（適宜変更）
+    const portName = "/dev/pts/4"; // シリアルポート名を指定（適宜変更）
     console.log('Data send clicked');
 
     // イベントリスナーを設定
