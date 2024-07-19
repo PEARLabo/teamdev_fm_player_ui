@@ -51,7 +51,7 @@ function parse_event_msg(lo, hi, print_log_func) {
     case EventKeyEvent:
       {// KeyEvent
         let key = msg_data & 0xff;
-        let vel = (msg_data & 0xff) >>> 8;
+        let vel = (msg_data & 0xff00) >>> 8;
         print_log_func(`Ch${ch}: Key${vel ? "ON" : "OFF"} Key: ${key}`);
       }
       break;
@@ -66,7 +66,7 @@ function parse_event_msg(lo, hi, print_log_func) {
     case EventParam:
       {
         let param_target = (msg_data >> 16) & 0xf;
-        let slot = (msg_data >> 20) & 0xf;
+        let slot = (msg_data >>> 20) & 0xf;
         let reg_value = (msg_data >>> 24) & 0xff;
         print_log_func(`Ch${ch}: Parameter Set @ slot${slot+1} - ${PARAM_SET_LUT[param_target]} := ${reg_value}`);
       }

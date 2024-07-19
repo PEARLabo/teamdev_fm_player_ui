@@ -30,8 +30,9 @@ function drawPianoRoll() {
     for (let octave = 0; octave < numOctaves; octave++) {
       const octaveOffsetX = module_3_table[(octave & 3)] * 7 * WHITE_KEY_WIDTH;
       const yOffset = Math.floor(octave / 3) * PIANO_HEIGHT;
-
-      whiteKeys.forEach((key, i) => {
+      // Note: 破壊的な変更(復帰可能にするためにコメントで保護)
+      for(let i = 0,_end = whiteKeys.length; i < _end; i++) {
+        let key = whiteKeys[i];
         const pitch = octave * 12 + key + 24; // C1から開始するように24を追加
         const x = octaveOffsetX + i * WHITE_KEY_WIDTH;
         const y = yOffset;
@@ -46,25 +47,52 @@ function drawPianoRoll() {
           ctx.font = '14px Arial';
           ctx.fillText(`C${Math.floor(pitch / 12) - 1}`, x + 5, y + WHITE_KEY_HEIGHT - 5);
         }
-      });
+      }
+      // whiteKeys.forEach((key, i) => {
+      //   const pitch = octave * 12 + key + 24; // C1から開始するように24を追加
+      //   const x = octaveOffsetX + i * WHITE_KEY_WIDTH;
+      //   const y = yOffset;
+      //   ctx.fillStyle = activeNotes.has(pitch) ? '#D3D3D3' : 'white';  // 薄い灰色でアクティブな白鍵を表示
+      //   ctx.fillRect(x, y, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT);
+      //   ctx.strokeStyle = 'black';
+      //   ctx.strokeRect(x, y, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT);
+
+      //   // Cのラベルを表示
+      //   if (key === 0) {
+      //     ctx.fillStyle = 'black';
+      //     ctx.font = '14px Arial';
+      //     ctx.fillText(`C${Math.floor(pitch / 12) - 1}`, x + 5, y + WHITE_KEY_HEIGHT - 5);
+      //   }
+      // });
     }
 
     // 黒鍵を描画し、その上にアクティブな色を適用
     for (let octave = 0; octave < numOctaves; octave++) {
       const octaveOffsetX = module_3_table[(octave & 3)] * 7 * WHITE_KEY_WIDTH;
       const yOffset = Math.floor(octave / 3) * PIANO_HEIGHT;
-
-      blackKeys.forEach((key) => {
+      // Note: 破壊的な変更(復帰可能にするためにコメントで保護)
+      for(let i = 0,_end = blackKeys.length; i < _end; i++) {
+        let key = blackKeys[i];
         const pitch = octave * 12 + key + 24; // C#1から開始するように24を追加
         const x = octaveOffsetX + whiteKeys.indexOf(key - 1) * WHITE_KEY_WIDTH + WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2;
         const y = yOffset;
-
         // 黒鍵の基本描画
         ctx.fillStyle = activeNotes.has(pitch) ? '#A9A9A9' : 'black';  // 濃い灰色でアクティブな黒鍵を表示
         ctx.fillRect(x, y, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT);
         ctx.strokeStyle = 'black';
         ctx.strokeRect(x, y, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT);
-      });
+      }
+      // blackKeys.forEach((key) => {
+      //   const pitch = octave * 12 + key + 24; // C#1から開始するように24を追加
+      //   const x = octaveOffsetX + whiteKeys.indexOf(key - 1) * WHITE_KEY_WIDTH + WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2;
+      //   const y = yOffset;
+
+      //   // 黒鍵の基本描画
+      //   ctx.fillStyle = activeNotes.has(pitch) ? '#A9A9A9' : 'black';  // 濃い灰色でアクティブな黒鍵を表示
+      //   ctx.fillRect(x, y, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT);
+      //   ctx.strokeStyle = 'black';
+      //   ctx.strokeRect(x, y, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT);
+      // });
     }
   }
 
