@@ -269,6 +269,7 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
     // シリアルポートを開く
     let mut port = serialport::open_with_settings(&port_name, &settings)
         .map_err(|e| format!("Failed to open serial port: {}", e))?;
+    println!("Serial port opened: {}", port_name);
 
     // ファイルサイズをリトルエンディアンでバイト配列に変換
     let size_bytes = file_info.size.to_le_bytes();
@@ -281,8 +282,10 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
     // シリアルポートにデータを書き込む
     port.write_all(&all_data)
         .map_err(|e| format!("Failed to write to serial port: {}", e))?;
+    println!("File size sent!");
 
     //データ送信が始まったことを知らせるイベント
+    println!("Starting send file!");
     window.emit("playback_info", &"Starting send file!").unwrap();
 
     // シーケンサからの受信可能メッセージを待機
