@@ -174,6 +174,9 @@ document.getElementById('sendButton').addEventListener('click', async () => {
                 // Arrayの処理（必要に応じて）
                 let dst = parse_event_msg(data[0], data[1], null);
                 if(dst !== null) {
+                  if(dst.tempo !== 0) {
+                    updateTempo(dst);
+                  }
                   updatePianoRoll(dst);
                 }
             } else {

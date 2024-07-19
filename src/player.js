@@ -1,8 +1,8 @@
 let activeNotes = new Set();
-let eventQueue = new Queue(64);
+let eventQueue = new Queue(512);
 // const variables
-const CANVAS_WIDTH = 900;
-const CANVAS_HEIGHT = 400;
+const CANVAS_WIDTH = 900 / 2;
+const CANVAS_HEIGHT = 400 / 2;
 const TIME_DISPLAY_HEIGHT = 20; // 経過時間表示のための高さ
 const PIANO_HEIGHT = (CANVAS_HEIGHT - TIME_DISPLAY_HEIGHT) / 2; // 鍵盤のための高さを2段に分ける
 const WHITE_KEY_WIDTH = CANVAS_WIDTH / 21; // 3オクターブ分の白鍵を横に収める
@@ -101,7 +101,7 @@ function drawPianoRoll() {
     ctx.fillStyle = 'black';
     ctx.font = '16px Arial';
     // 秒数は小数点以下1桁まで表示
-    ctx.fillText(`Time: ${Math.floor(elapsedTime / 100) / 10}s`, 10, canvas.height - 5);
+    ctx.fillText(`Time: ${Math.floor(elapsedTime / 1000)}s`, 10, canvas.height - 5);
   }
 
   // アニメーションの開始
@@ -152,7 +152,7 @@ function updatePianoRoll(data) {
   eventQueue.enqueue(data);
   const playerConsoleArea = document.getElementById('playerConsole');
   if (playerConsoleArea) {
-    playerConsoleArea.value += `Playback Data: key: ${data.key}, vel: ${data.vel}\n`;
+    playerConsoleArea.value = `Playback Data: key: ${data.key}, vel: ${data.vel}\n`;
     playerConsoleArea.scrollTop = playerConsoleArea.scrollHeight;
   }
 }
@@ -160,13 +160,7 @@ function updatePianoRoll(data) {
 // イベントデータの処理
 function handleEvent(data) {
   const playerConsoleArea = document.getElementById('playerConsole');
-  // let playbackData = [];
-  // playbackData.push(`Playback Data: key: ${data.key}, vel: ${data.vel}`);
-  // if(playbackData.length >= 5) {
-  //   playerConsoleArea.value += playbackData.map(data => `${data}`).join('\n') + '\n'
-  //   playbackData = []
-  // }
-  playerConsoleArea.value += `Playback Data: key: ${data.key}, vel: ${data.vel}\n`;
+  // playerConsoleArea.value += `Playback Data: key: ${data.key}, vel: ${data.vel}\n`;
   playerConsoleArea.scrollTop = playerConsoleArea.scrollHeight;
   if(data.vel !== 0) {
     // console.log(`DATA | vel: ${data.vel}, key: ${data.key}\n`)
@@ -182,12 +176,12 @@ function handleEvent(data) {
 
 function updateTempo(data) {
   // テンポ情報をパースして更新
-  const tempoMatch = data.match(/tempo: (\d+)/);
-  if (tempoMatch) {
-    const tempo = parseInt(tempoMatch[1], 10);
+  // const tempoMatch = data.match(/tempo: (\d+)/);
+  if (data.tempo) {
+    // const tempo = parseInt(tempoMatch[1], 10);
     const tempoDisplay = document.getElementById('tempoDisplay');
     if (tempoDisplay) {
-      tempoDisplay.textContent = `Tempo: ${tempo}`;
+      tempoDisplay.textContent = `Tempo: ${data.tempo}`;
     }
   }
 }

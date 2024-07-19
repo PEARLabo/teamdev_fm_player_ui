@@ -263,7 +263,7 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
         flow_control: FlowControl::None,
         parity: Parity::None,
         stop_bits: StopBits::One,
-        timeout: Duration::from_millis(1500000),
+        timeout: Duration::from_millis(1500),
     };
 
     // シリアルポートを開く
@@ -433,8 +433,8 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
                 println!("Received playback info (hex): {:02x?}", &buffer[0..(following_size as usize + 1)]);
 
                 // JSON形式での送信を想定してデータを変換
-                let data_to_send = serde_json::to_string(&buffer[0..(following_size as usize + 1)])
-                    .map_err(|e| e.to_string())?;
+                // let data_to_send = serde_json::to_string(&buffer[0..(following_size as usize + 1)])
+                //    .map_err(|e| e.to_string())?;
 
                 // フロントエンドにメッセージを送信
                 // window.emit("playback_info", &data_to_send).unwrap();
@@ -536,7 +536,7 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
                         };
 
                         println!("{}", flaga_msg);
-                        window.emit("playback_info", &tauri_msg).unwrap();
+                        // window.emit("playback_info", &tauri_msg).unwrap();
                     },
                     5 => {
                         let flaga_msg = "FlagA is 5: Skip to next track.".to_string();
