@@ -125,12 +125,6 @@ function showWarningMessage() {
     consoleArea.value += 'Error: MIDI形式のファイルを選択してください\n';
 }
 
-function consoleLog(log) {
-  const playerConsoleArea = document.getElementById('playerConsole');
-  playerConsoleArea.scrollTop = playerConsoleArea.scrollHeight;
-  playerConsoleArea.value += log;
-}
-
 // 送信ボタンがクリックされたときのイベントリスナー
 document.getElementById('sendButton').addEventListener('click', async () => {
     const fileInput = document.getElementById('fileInput');
