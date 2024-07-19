@@ -381,22 +381,64 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
     // stdout.flush().unwrap();
 
     loop {
+        match port.read_exact(&mut buffer[0..1]) {
+          Ok(_) => {
+            assert!(buffer[0] & 0x0F == 0x01);
+          },
+          Err(e) => {
+            println!("Failed to read from serial port: {}", e);
+            // エラーメッセージを作成
+            let error_message = ErrorMessage {
+                error: format!("Failed to read from serial port: {}", e),
+            };
+
+            // JSON形式でフロントエンドにメッセージ送信
+            window.emit("playback_info", &error_message).unwrap();
+          }
+        }
+        let following_size = (buffer[0] >> 4) & 0xF;
+        if following_size == 0 {
+          // end event
+          // 既存のchanel, key, velocity情報をクリア
+          // stdout.execute(cursor::MoveTo(7, 0)).unwrap(); // "Tempo: "の後に移動
+          // print!("   ");
+          // stdout.execute(cursor::MoveTo(8, 1)).unwrap(); // "Chanel: "の後に移動
+          // print!("   ");
+          // stdout.execute(cursor::MoveTo(5, 2)).unwrap(); // "Key: "の後に移動
+          // print!("   ");
+          // stdout.execute(cursor::MoveTo(10, 3)).unwrap(); // "Velocity:"の後に移動
+          // print!("   ");
+
+          let flaga_msg = "End".to_string(); 
+          println!("{}", flaga_msg);
+          window.emit("playback_info", &flaga_msg).unwrap();
+          break;
+        }
+        println!("first byte: {:02X}", buffer[0]);
+        println!("size: {}", following_size);
+        println!("size: {}", following_size);
+        assert!(following_size < 5);
+        let mut tmp_buffer = vec![0; following_size as usize];
         // データを読み込む
-        match port.read_exact(&mut buffer) {
+        match port.read_exact(&mut tmp_buffer) {
             Ok(_) => {
+                for i in 0..(following_size as usize) {
+                  buffer[i + 1] = tmp_buffer[i];
+                }
+
                 // 受信したデータを16進数でログに表示
-                println!("Received playback info (hex): {:02x?}", buffer);
+                println!("Received playback info (hex): {:02x?}", &buffer[0..(following_size as usize + 1)]);
 
                 // JSON形式での送信を想定してデータを変換
-                let data_to_send = serde_json::to_string(&buffer)
+                let data_to_send = serde_json::to_string(&buffer[0..(following_size as usize + 1)])
                     .map_err(|e| e.to_string())?;
 
                 // フロントエンドにメッセージを送信
                 window.emit("playback_info", &data_to_send).unwrap();
 
                 //let data_width = u8::from_le(buffer[0] & 0x0F);
-                let flag_a = u8::from_le((buffer[1] >> 4) & 0x0F);
-                let chanel = u8::from_le(buffer[1] & 0x0F);
+                let flag_a = u8::from_le((buffer[1]) & 0x0F);
+                let chanel = u8::from_le(buffer[1]>> 4 & 0x0F);
                 //let event_data = buffer;
 
                 //flag_aの判定
@@ -404,8 +446,8 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
                     //key event
                     0 => {
                         // Little Endianであるため、bufferからkeyとvelocityを取り出す
-                        let key = u8::from_le(buffer[3]);
-                        let velocity = u8::from_le(buffer[4]);
+                        let key = u8::from_le(buffer[2]);
+                        let velocity = u8::from_le(buffer[3]);
 
                         if velocity == 0 {
                             //[flash]
@@ -464,19 +506,7 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
                     },
                     //end event
                     2 => {
-                        // 既存のchanel, key, velocity情報をクリア
-                        // stdout.execute(cursor::MoveTo(7, 0)).unwrap(); // "Tempo: "の後に移動
-                        // print!("   ");
-                        // stdout.execute(cursor::MoveTo(8, 1)).unwrap(); // "Chanel: "の後に移動
-                        // print!("   ");
-                        // stdout.execute(cursor::MoveTo(5, 2)).unwrap(); // "Key: "の後に移動
-                        // print!("   ");
-                        // stdout.execute(cursor::MoveTo(10, 3)).unwrap(); // "Velocity:"の後に移動
-                        // print!("   ");
-
-                        let flaga_msg = "End".to_string(); 
-                        println!("{}", flaga_msg);
-                        window.emit("playback_info", &flaga_msg).unwrap();
+                        unreachable!();
                     },
                     //nop event
                     3 => {
