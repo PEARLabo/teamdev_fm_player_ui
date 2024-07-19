@@ -137,10 +137,10 @@ document.getElementById('sendButton').addEventListener('click', async () => {
     if (!playbackListenerId) {
         window.__TAURI__.event.listen('playback_info', (event) => {
             const data = event.payload;
-            console.log(`Received event: ${data}`);
+            //console.log(`Received event: ${data}`);
             const consoleArea = document.getElementById('console');
             consoleArea.scrollTop = consoleArea.scrollHeight;
-            consoleArea.value += `Playback Data: ${data}\n`;
+            //consoleArea.value += `Playback Data: ${data}\n`;
 
             if (typeof data === 'string') {
                 console.log(`String event received: ${data}`);

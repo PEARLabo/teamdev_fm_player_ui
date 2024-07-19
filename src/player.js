@@ -71,7 +71,8 @@ function drawPianoRoll() {
   function displayTime(elapsedTime) {
     ctx.fillStyle = 'black';
     ctx.font = '16px Arial';
-    ctx.fillText(`Time: ${Math.floor(elapsedTime / 1000)}s`, 10, canvas.height - 5);
+    // 秒数は小数点以下1桁まで表示
+    ctx.fillText(`Time: ${Math.floor(elapsedTime / 100) / 10}s`, 10, canvas.height - 5);
   }
 
   // アニメーションの開始
