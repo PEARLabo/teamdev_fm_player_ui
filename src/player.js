@@ -136,7 +136,7 @@ function handleEvent(data) {
   } else if (data.startsWith("chanel:")) {
     // ノートオン/オフイベントを処理
     const noteMatch = data.match(/chanel: \d+\(\s*\d+\), key: (\d+)\(\s*\d+\), velocity: (\d+)\(\s*\d+\)/);
-    if (noteMatch) {
+    if (noteMatch && parseInt(noteMatch[0], 10) === 0) {
       const pitch = parseInt(noteMatch[1], 10);
       const velocity = parseInt(noteMatch[2], 10);
       if (velocity === 0) {
