@@ -381,9 +381,11 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
     // stdout.flush().unwrap();
 
     loop {
+        let mut msg_combined = 0u64;
         match port.read_exact(&mut buffer[0..1]) {
           Ok(_) => {
             assert!(buffer[0] & 0x0F == 0x01);
+            msg_combined = buffer[0] as u64;
           },
           Err(e) => {
             println!("Failed to read from serial port: {}", e);
@@ -424,6 +426,7 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
             Ok(_) => {
                 for i in 0..(following_size as usize) {
                   buffer[i + 1] = tmp_buffer[i];
+                  msg_combined |= (buffer[i + 1] as u64) << ((i + 1) * 8);
                 }
 
                 // 受信したデータを16進数でログに表示
@@ -434,12 +437,14 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
                     .map_err(|e| e.to_string())?;
 
                 // フロントエンドにメッセージを送信
-                window.emit("playback_info", &data_to_send).unwrap();
+                // window.emit("playback_info", &data_to_send).unwrap();
 
                 //let data_width = u8::from_le(buffer[0] & 0x0F);
                 let flag_a = u8::from_le((buffer[1]) & 0x0F);
                 let chanel = u8::from_le(buffer[1]>> 4 & 0x0F);
                 //let event_data = buffer;
+
+                let tauri_msg = [(msg_combined & 0xFFFFFFFF) as u32, (msg_combined >> 32) as u32];
 
                 //flag_aの判定
                 match flag_a {
@@ -467,7 +472,7 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
                             let flaga_msg = format!("chanel: {}({:2}), key: {}({:6}), velocity: 0({:11})",
                                 chanel, chanel, key, key, 0);
                             println!("{}", flaga_msg);
-                            window.emit("playback_info", &flaga_msg).unwrap();
+                            window.emit("playback_info", &tauri_msg).unwrap();
                         }else if velocity != 0{
 
                             //[flash]
@@ -486,7 +491,7 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
                             let flaga_msg = format!("chanel: {}({:2}), key: {}({:6}), velocity: {}({:11})",
                                 chanel, chanel, key, key, velocity, velocity);
                             println!("{}", flaga_msg);
-                            window.emit("playback_info", &flaga_msg).unwrap();
+                            window.emit("playback_info", &tauri_msg).unwrap();
                         }
                     }
                     //tempo event
@@ -502,7 +507,7 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
 
                         let flaga_msg = format!("tempo: {:?}({:?})[μsec/四分音符], BPM: {}", tempo.value(), tempo, bpm);
                         println!("{}", flaga_msg);
-                        window.emit("playback_info", &flaga_msg).unwrap();
+                        window.emit("playback_info", &tauri_msg).unwrap();
                     },
                     //end event
                     2 => {
@@ -531,17 +536,17 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
                         };
 
                         println!("{}", flaga_msg);
-                        window.emit("playback_info", &flaga_msg).unwrap();
+                        window.emit("playback_info", &tauri_msg).unwrap();
                     },
                     5 => {
                         let flaga_msg = "FlagA is 5: Skip to next track.".to_string();
                         println!("{}", flaga_msg);
-                        window.emit("playback_info", &flaga_msg).unwrap();
+                        window.emit("playback_info", &tauri_msg).unwrap();
                     }
                     _ => {
                         let flaga_msg = format!("FlagA is invalid: {}", flag_a);
                         println!("{}", flaga_msg);
-                        window.emit("playback_info", &flaga_msg).unwrap();
+                        window.emit("playback_info", &tauri_msg).unwrap();
                     }
                 }
             }

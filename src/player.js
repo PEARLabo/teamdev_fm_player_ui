@@ -28,7 +28,7 @@ function drawPianoRoll() {
   function drawPiano() {
     // 先に全ての白鍵を描画
     for (let octave = 0; octave < numOctaves; octave++) {
-      const octaveOffsetX = module_3_table[(octave & 3)] * 7 * WHITE_KEY_WIDTH;
+      const octaveOffsetX = module_3_table[(octave % 3)] * 7 * WHITE_KEY_WIDTH;
       const yOffset = Math.floor(octave / 3) * PIANO_HEIGHT;
       // Note: 破壊的な変更(復帰可能にするためにコメントで保護)
       for(let i = 0,_end = whiteKeys.length; i < _end; i++) {
@@ -68,7 +68,7 @@ function drawPianoRoll() {
 
     // 黒鍵を描画し、その上にアクティブな色を適用
     for (let octave = 0; octave < numOctaves; octave++) {
-      const octaveOffsetX = module_3_table[(octave & 3)] * 7 * WHITE_KEY_WIDTH;
+      const octaveOffsetX = module_3_table[(octave % 3)] * 7 * WHITE_KEY_WIDTH;
       const yOffset = Math.floor(octave / 3) * PIANO_HEIGHT;
       // Note: 破壊的な変更(復帰可能にするためにコメントで保護)
       for(let i = 0,_end = blackKeys.length; i < _end; i++) {
@@ -152,34 +152,19 @@ function updatePianoRoll(data) {
   eventQueue.push(data);
   const playerConsoleArea = document.getElementById('playerConsole');
   if (playerConsoleArea) {
-    playerConsoleArea.value += `Playback Data: ${data}\n`;
+    playerConsoleArea.value += `Playback Data: key: ${data.key}, vel: ${data.vel}\n`;
     playerConsoleArea.scrollTop = playerConsoleArea.scrollHeight;
   }
 }
 
 // イベントデータの処理
 function handleEvent(data) {
-  if (data.startsWith("tempo:")) {
-    // テンポ情報を更新
-    updateTempo(data);
-  } else if (data.startsWith("chanel:")) {
-    // ノートオン/オフイベントを処理
-    const noteMatch = data.match(/chanel: \d+\(\s*\d+\), key: (\d+)\(\s*\d+\), velocity: (\d+)\(\s*\d+\)/);
-    if (noteMatch && parseInt(noteMatch[0], 10) === 0) {
-      const pitch = parseInt(noteMatch[1], 10);
-      const velocity = parseInt(noteMatch[2], 10);
-      if (velocity === 0) {
-        window.noteOff(pitch);
-      } else {
-        window.noteOn(pitch);
-      }
-    }
-  } else if (data.startsWith("End")) {
-    handleEndEvent();
-    const playerConsoleArea = document.getElementById('playerConsole');
-    if (playerConsoleArea) {
-      playerConsoleArea.value += '==Playback Ended==\n';
-    }
+  if(data.vel !== 0) {
+    // console.log(`DATA | vel: ${data.vel}, key: ${data.key}\n`)
+    window.noteOn(data.key);
+  } else if(data.vel == 0) {
+    // console.log(`DATA | vel: ${data.vel}, key: ${data.key}\n`)
+    window.noteOff(data.key);
   } else {
     // その他のイベントを処理
     console.warn("Unknown event type:", data);

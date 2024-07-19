@@ -168,10 +168,14 @@ document.getElementById('sendButton').addEventListener('click', async () => {
                     console.warn(`Unknown event type: ${data}`);
                 }
                 // ピアノロールアップデート
-                updatePianoRoll(data);
+                // updatePianoRoll(data);
             } else if (Array.isArray(data)) {
-                console.log(`Array event received: ${JSON.stringify(data)}`);
+                // console.log(`Array event received: ${JSON.stringify(data)}`);
                 // Arrayの処理（必要に応じて）
+                let dst = parse_event_msg(data[0], data[1], null);
+                if(dst !== null) {
+                  updatePianoRoll(dst);
+                }
             } else {
                 console.warn(`Unexpected data type: ${typeof data}`);
             }
