@@ -20,6 +20,14 @@
 
 
         <div id="main">
+			<!--シリアルポートUI-->
+			<div id="serialPortSelector" class="content-card">
+				<label for="serialPortInput">Serial Port:</label>
+				<input type="text" id="serialPortInput" placeholder="/dev/pts/4">
+				<button id="setSerialPortButton">Set Serial Port</button>
+				<button id="disconnectButton">Disconnect</button>
+			</div>
+			
             <h1>Welcome to Fm_Sequencer by MIQS!</h1>
             <h2>ファイルを選択してください</h2>
             <input type="file" id="fileInput">
