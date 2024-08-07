@@ -74,20 +74,6 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
     let file_info = read_file(contents.clone(), state)?;
     let baud_rate = 115200;
 
-    // // シリアルポートの設定
-    // let settings = SerialPortBuilder {
-    //     baud_rate: 115200,
-    //     data_bits: DataBits::Eight,
-    //     flow_control: FlowControl::None,
-    //     parity: Parity::None,
-    //     stop_bits: StopBits::One,
-    //     timeout: Duration::from_millis(1500),
-    // };
-
-    // シリアルポートを開く
-    // let mut port = serialport::open_with_settings(&port_name, &settings)
-    //     .map_err(|e| format!("Failed to open serial port: {}", e))?;
-    // SerialPortBuilder で設定を作成
     let mut port = serialport::new(port_name.clone(), baud_rate)
         .data_bits(DataBits::Eight)
         .parity(Parity::None)
