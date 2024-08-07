@@ -50,34 +50,13 @@ impl U24 {
     }
 }
 
-
-// ファイルの内容を受け取り、情報を返すTauriコマンド
-// #[tauri::command]
-// fn read_file(contents: Vec<u8>, state: State<'_, Arc<Mutex<AppState>>>) -> Result<FileInfo, String> {
-//     println!("Reading file with contents of length: {}", contents.len()); // デバッグ用ログ
-
-//     // MIDIファイルかどうかを確認
-//     let is_midi = contents.len() >= 4 && &contents[..4] == b"MThd";
-//     println!("File size: {}, Is MIDI: {}", contents.len(), is_midi); // デバッグ用ログ
-//     Ok(FileInfo {
-//         size: contents.len(),
-//         is_midi,
-//     })
-// }
-
 //ファイルサイズと形式を判定するtauriコマンド
 #[tauri::command]
 fn read_file(contents: Vec<u8>, state: State<'_, Arc<Mutex<AppState>>>) -> Result<FileInfo, String> {
     println!("Reading file with contents of length: {}", contents.len()); // デバッグ用ログ
 
     let size = contents.len();
-    let is_midi = check_midi_format(&contents);
-
-    // if is_midi {
-    //     //stateをロックしてmidi_file_sentを更新
-    //     let mut app_state = state.lock().unwrap();
-    //     app_state.midi_file_sent = true;
-    // }   
+    let is_midi = check_midi_format(&contents); 
 
     Ok(FileInfo { size, is_midi})
 }
@@ -109,7 +88,7 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
     // let mut port = serialport::open_with_settings(&port_name, &settings)
     //     .map_err(|e| format!("Failed to open serial port: {}", e))?;
     // SerialPortBuilder で設定を作成
-    let mut port = serialport::new(port_name, baud_rate)
+    let mut port = serialport::new(port_name.clone(), baud_rate)
         .data_bits(DataBits::Eight)
         .parity(Parity::None)
         .stop_bits(StopBits::One)
