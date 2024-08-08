@@ -7,6 +7,8 @@ use std::sync::{Arc, Mutex};
 use commands::{set_serial_port, disconnect_serial_port};
 //use magical_global as magical;
 use ymodem_send_rs::YmodemSender;
+use serialport::{DataBits, Parity, StopBits, FlowControl};
+use crate::AppState;
 
 
 //MISI形式のファイルか判定する関数
