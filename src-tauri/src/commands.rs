@@ -1,6 +1,6 @@
 // src/commands.rs
 use tauri::{Window, State};
-use serialport::{SerialPort, DataBits, Parity, StopBits, FlowControl};
+use serialport::{DataBits, Parity, StopBits, FlowControl};
 use std::sync::{Arc, Mutex};
 use crate::AppState;
 

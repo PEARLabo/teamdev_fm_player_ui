@@ -1,17 +1,11 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-// use serialport::{DataBits, FlowControl, Parity, SerialPort, SerialPortSettings, StopBits};
 mod commands;
-use serialport::{DataBits, FlowControl, Parity, SerialPort, StopBits, SerialPortBuilder};
-use std::io::{self, Read, Write};
-use std::time::Duration;
-use tauri::Manager;
-use tauri::Window;
-use tauri::State;
+use tauri::{Window, State};
 use std::sync::{Arc, Mutex};
 use commands::{set_serial_port, disconnect_serial_port};
-use magical_global as magical;
+//use magical_global as magical;
 use ymodem_send_rs::YmodemSender;
 
 
@@ -23,7 +17,8 @@ fn check_midi_format(contents: &[u8]) -> bool {
 
 #[derive(Default)]
 struct AppState {
-    port: Option<Arc<Mutex<dyn serialport::SerialPort>>>,
+    port: Option<Arc<Mutex<Box<dyn serialport::SerialPort>>>>,
+    //port: Option<Arc<Mutex<dyn serialport::SerialPort>>>,[bug]
 }
 
 // エラーメッセージを格納する構造体
@@ -56,7 +51,7 @@ impl U24 {
 
 //ファイルサイズと形式を判定するtauriコマンド
 #[tauri::command]
-fn read_file(contents: Vec<u8>, state: State<'_, Arc<Mutex<AppState>>>) -> Result<FileInfo, String> {
+fn read_file(contents: Vec<u8>, _state: State<'_, Arc<Mutex<AppState>>>) -> Result<FileInfo, String> {
     println!("Reading file with contents of length: {}", contents.len()); // デバッグ用ログ
 
     let size = contents.len();
@@ -78,9 +73,10 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
     let file_info = read_file(contents.clone(), state)?;
     let mut app_state = state.lock().unwrap();
     
-    if let Some(ref port_mutex) = app_state.port{
-        let port = port_mutex.lock().unwrap();
-
+    // if let Some(ref port_mutex) = app_state.port{
+    //     let port = port_mutex.lock().unwrap();[Check!]
+    if let Some(port) = &mut app_state.port {
+        let mut port = port.lock().unwrap();
         // ファイルサイズをリトルエンディアンでバイト配列に変換
         let size_bytes = file_info.size.to_le_bytes();
         println!("file byte size: {:?}", size_bytes);
@@ -114,7 +110,14 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
                     //YmodemSenderのインスタンスを作成
                     let mut fname = "example.mid";
                     let mut sender = YmodemSender::new(fname, &contents);
-                    sender.send(&mut port);
+                    let mut port = app_state.port
+                        .as_ref()
+                        .ok_or("No serial port is open")?
+                        .lock()
+                        .map_err(|e| format!("Failed to lock serial port: {}", e))?;
+                    //let mut port_ref = port.as_mut(); // Box から &mut dyn SerialPort を取得
+                    //sender.send(&mut port_ref);
+                    sender.send(&mut *port);
 
                     // シーケンサからの受信完了メッセージを待機
                     let mut ack = [0; 1];
@@ -323,7 +326,7 @@ fn main() {
             std::env::set_var("https_proxy", "");
             val
         }
-        Err(e) => String::from("proxy setting error"),
+        Err(_e) => String::from("proxy setting error"),
     };
 
     tauri::Builder::default()
