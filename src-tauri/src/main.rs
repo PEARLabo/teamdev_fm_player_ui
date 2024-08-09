@@ -63,7 +63,7 @@ fn read_file(contents: Vec<u8>, _state: State<'_, Arc<Mutex<AppState>>>) -> Resu
 
 // ファイルサイズをシリアル通信で送信するTauriコマンド
 #[tauri::command]
-async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String, state: State<'_, Arc<Mutex<AppState>>>) -> Result<(), String> {
+async fn send_file_size<'a>(window: Window, contents: Vec<u8>, _port_name: String, state: State<'_, Arc<Mutex<AppState>>>) -> Result<(), String> {
     //ファイルがMIDI形式かどうかを確認
     if !check_midi_format(&contents) {
         //MIDI形式でない場合returnエラー
@@ -74,7 +74,8 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
     let file_info = read_file(contents.clone(), state)?;
     // 既にポートが設定されているか確認
     let port = magical::get_at::<Box<dyn SerialPort>>(0).unwrap();
-    
+    let mut port = port.as_mut().unwrap(); // `port` をミュータブル参照として取得
+
     // ファイルサイズをリトルエンディアンでバイト配列に変換
     let size_bytes = file_info.size.to_le_bytes();
     println!("file byte size: {:?}", size_bytes);
@@ -119,22 +120,26 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
 
                         let ack_high_nibble = (ack[0] >> 4) & 0x0F;
                         let ack_low_nibble = ack[0] & 0x0F;
-                        let ack_ok: [u8; 1] = [0xB0];
+                        let _ack_ok: [u8; 1] = [0xB0];
                         let ack_err: [u8; 1] = [0xA0];
 
                         //受信完了メッセージのヘッダ情報かつチェックサムの内容が一致しているか
                         if ack_high_nibble == 0xD && ack_low_nibble == 0x0 {
-                            //データ転送終了メッセ
+                            // データ転送終了メッセ
                             let ack_message = format!("Received ack byte: {:02x}", ack[0]);
                             println!("{}", ack_message);
-                            window.emit("playback_info", ack_message).unwrap();
-                            //window.emit("playback_info", &("File transfer successful, checksum: {:?}", ack[0])).unwrap();
+                            window.emit("playback_info", ack_message)
+                                .map_err(|e| format!("Failed to emit playback info: {}", e))?;
+                            Ok(())
                         } else if ack_low_nibble == 0xC {
-                            //異常終了メッセ
-                            port.write_all(&ack_err)
+                            // 異常終了メッセ
+                            port.write_all(&[0xC0])
                                 .map_err(|e| format!("Failed to write to serial port: {}", e))?;
-                            window.emit("playback_info", &"Failed to write to serial port: {}").unwrap();
-                            return Err("Incomplete file transfer".into());
+                            window.emit("playback_info", "Failed to write to serial port")
+                                .map_err(|e| format!("Failed to emit playback info: {}", e))?;
+                            Err("Incomplete file transfer".into())
+                        } else {
+                            Err("ack_nibble value error".to_string())
                         }
                     }
                     Err(e) => {
@@ -143,6 +148,7 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
                         port.write_all(&[0xC0])
                             .map_err(|e| format!("Failed to send incomplete message: {}", e))?;
                         window.emit("playback_info", &"Failed to read ack from serial port").unwrap();
+                        Err("Failed to read ack from serial port".into())
                     }
                 }
             } else {
@@ -154,18 +160,21 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
             // タイムアウト後の処理として未完了メッセージを送信する
             port.write_all(&[0xC0])
                 .map_err(|e| format!("Failed to send incomplete message: {}", e))?;
-            window.emit("playback_info", &"Failed to read from serial port").unwrap();
+            window.emit("playback_info", "Failed to read from serial port")
+                .map_err(|e| format!("Failed to emit playback info: {}", e))?;
+            Err("Failed to read from serial port".into())
         }
     }
 }
 
 
 #[tauri::command]
-async fn process_event(window: Window, state: State<'_, Arc<Mutex<AppState>>>) -> Result<(), String> {
+async fn process_event(window: Window, _state: State<'_, Arc<Mutex<AppState>>>) -> Result<(), String> {
     // 音楽再生情報を受信するためのバッファ
     let mut buffer = [0; 5]; // 最大5バイトのバッファ
     // 既にポートが設定されているか確認  
-    let port: &mut Box<dyn SerialPort> = magical::get_at_mut::<Box<dyn SerialPort>>(0).unwrap();
+    let mut port = magical::get_at::<Box<dyn SerialPort>>(0).unwrap();
+    let mut port = port.as_mut().unwrap(); // `port` をミュータブル参照として取得
 
     // フロントへのメッセージ送信デモ
     window.emit("playback_info", &"Starting playback info").unwrap();
@@ -190,10 +199,11 @@ async fn process_event(window: Window, state: State<'_, Arc<Mutex<AppState>>>) -
         }
         let following_size = (buffer[0] >> 4) & 0xF;
         if following_size == 0 {
-        let flaga_msg = "End".to_string(); 
-        println!("{}", flaga_msg);
-        window.emit("playback_info", &flaga_msg).unwrap();
-        break;
+            let flaga_msg = "End".to_string(); 
+            println!("{}", flaga_msg);
+            window.emit("playback_info", &flaga_msg).unwrap();
+            return Ok(()); 
+            //break;
         }
         println!("first byte: {:02X}", buffer[0]);
         println!("size: {}", following_size);
@@ -319,9 +329,9 @@ fn main() {
         .manage(app_state)
         .invoke_handler(tauri::generate_handler![
             read_file,
+            process_event,
             send_file_size, // 本番用
             //send_file_test  // テスト用
-            process_event,
             set_serial_port,
             disconnect_serial_port,
         ])
