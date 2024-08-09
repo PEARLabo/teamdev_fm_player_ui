@@ -22,12 +22,6 @@ struct AppState {
     port: Option<Arc<Mutex<dyn serialport::SerialPort>>>,
 }
 
-// #[cfg(windows)]
-// type PortSettng = serialport::COMPort;
-
-// #[cfg(unix)]
-// type Port = serialport::TTYPort;
-
 // エラーメッセージを格納する構造体
 #[derive(serde::Serialize)]
 struct ErrorMessage {
@@ -40,10 +34,6 @@ struct FileInfo {
     size: usize,
     is_midi: bool,
 }
-
-// //アプリケーションの状態を保持するための構造体
-// #[derive(serde::Serialize)]
-// struct AppState;
 
 #[derive(Debug)]
 struct U24(u32);
@@ -84,13 +74,11 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
     let file_info = read_file(contents.clone(), state)?;
     // 既にポートが設定されているか確認
     let port = magical::get_at::<Box<dyn SerialPort>>(0).unwrap();
-    //let port = magical::get_at::<PortSettng>(0).unwrap();
     
     // ファイルサイズをリトルエンディアンでバイト配列に変換
     let size_bytes = file_info.size.to_le_bytes();
     println!("file byte size: {:?}", size_bytes);
 
-    //let bit4_header = Bitfield::new(0x0F, 0x02);
     let bit4_header = 0x2F; //リトルエンディアンに対応させる
     let all_data: [u8; 4] = [bit4_header, size_bytes[0], size_bytes[1], size_bytes[2]];
 
@@ -116,9 +104,6 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
             println!("High nibble: {:x}, Low nibble: {:x}", high_resp, low_resp);
 
             if high_resp == 0x0 && low_resp == 0xE {
-                //ymodem形式でファイル送信
-                // ymodem_file_send(&contents, &settings, &mut port)
-                //     .map_err(|e| format!("Failed to send file using Ymodem: {}", e))?;
                 //YmodemSenderのインスタンスを作成
                 let mut fname = "example.mid";
                 let mut sender = YmodemSender::new(fname, &contents);
@@ -179,9 +164,7 @@ async fn send_file_size<'a>(window: Window, contents: Vec<u8>, port_name: String
 async fn process_event(window: Window, state: State<'_, Arc<Mutex<AppState>>>) -> Result<(), String> {
     // 音楽再生情報を受信するためのバッファ
     let mut buffer = [0; 5]; // 最大5バイトのバッファ
-    // 既にポートが設定されているか確認
-    //let port = magical::get_at::<Box<dyn SerialPort>>(0).unwrap();
-    // let port = magical::get_at::<PortSettng>(0).unwrap();    
+    // 既にポートが設定されているか確認  
     let port: &mut Box<dyn SerialPort> = magical::get_at_mut::<Box<dyn SerialPort>>(0).unwrap();
 
     // フロントへのメッセージ送信デモ
@@ -228,14 +211,6 @@ async fn process_event(window: Window, state: State<'_, Arc<Mutex<AppState>>>) -
                 // 受信したデータを16進数でログに表示
                 println!("Received playback info (hex): {:02x?}", &buffer[0..(following_size as usize + 1)]);
 
-                // JSON形式での送信を想定してデータを変換
-                // let data_to_send = serde_json::to_string(&buffer[0..(following_size as usize + 1)])
-                //    .map_err(|e| e.to_string())?;
-
-                // フロントエンドにメッセージを送信
-                // window.emit("playback_info", &data_to_send).unwrap();
-
-                //let data_width = u8::from_le(buffer[0] & 0x0F);
                 let flag_a = u8::from_le((buffer[1]) & 0x0F);
                 let chanel = u8::from_le(buffer[1]>> 4 & 0x0F);
 

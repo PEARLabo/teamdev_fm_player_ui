@@ -20,8 +20,6 @@ pub async fn set_serial_port(window: Window, port_name: String, _state: State<'_
     if magical::set_at(Box::new(Box::new(port_setting) as Box<dyn SerialPort>), 0).is_err() {
         println!("failed to set data");
     };
-    //let mut app_state = state.lock().unwrap();
-    //app_state.port = Some(Arc::new(Mutex::new(port)));
     window.emit("playback_info", &format!("Serial port opened: {}", port_name)).unwrap();
 
     Ok(())
@@ -43,13 +41,3 @@ pub async fn disconnect_serial_port(window: Window, _state: State<'_, Arc<Mutex<
 
     Ok(())
 }
-
-// #[tauri::command]
-// pub async fn disconnect_serial_port(window: Window, state: State<'_, Arc<Mutex<AppState>>>) -> Result<(), String> {
-//     // let mut app_state = state.lock().unwrap();
-//     // app_state.port = None;
-//     let port_close = magical::get_at_mut::<PortSettng>(0).unwrap();
-//     port_close = None;
-//     window.emit("playback_info", "Serial port disconnected").unwrap();
-//     Ok(())
-// }
