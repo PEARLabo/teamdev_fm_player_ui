@@ -13,7 +13,6 @@ body {
 	width: 960px;
 	height: 700px;
 	background: rgba(255, 255, 255, 0.8);
-	/* コンテナを透過させる */
 	box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
 	border-radius: 10px;
 	overflow: hidden;
@@ -25,7 +24,6 @@ body {
 	background: url('assets/miqs.png') no-repeat center center;
 	background-size: cover;
 	opacity: 1;
-	/* 画像を透けさせる */
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -36,11 +34,11 @@ body {
 
 header {
 	background: linear-gradient(90deg, rgba(58, 123, 213, 1) 0%, rgba(58, 213, 174, 1) 100%);
-	padding: 20px;
+	padding: 10px;
 	text-align: center;
 	color: white;
 	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-	border-radius: 10px;
+	border-radius: 10px 10px 0 0;
 }
 
 .header-container {
@@ -50,54 +48,52 @@ header {
 }
 
 .header-container .logo {
-	width: 50px;
-	height: 40px;
+	width: 40px;
+	height: 30px;
 	margin-right: 10px;
 }
 
 header h1 {
 	margin: 0;
-	font-size: 1.5em;
+	font-size: 1.2em;
 }
-
-
 
 .content-card {
 	background: rgba(255, 255, 255, 0.9);
-	padding: 20px;
+	padding: 15px;
 	border-radius: 8px;
 	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-	margin: 20px;
+	margin: 10px;
 }
 
 h1 {
-	font-size: 2em;
+	font-size: 1.5em;
 	text-align: center;
 	font-weight: bold;
 	color: #333;
-	margin: 12px 0;
+	margin: 10px 0;
 }
 
 h2 {
-	font-size: 1.2em;
+	font-size: 1em;
 	text-align: center;
-	margin-top: 20px;
+	margin-top: 15px;
 }
 
 input[type="file"] {
 	display: block;
-	margin: 20px auto;
-	padding: 10px;
+	margin: 10px auto;
+	padding: 8px;
 	border: 1px solid #ccc;
 	border-radius: 4px;
-	width: 80%;
+	width: 90%;
 }
 
 button {
 	background-color: #333;
 	color: #fff;
 	border: none;
-	padding: 10px 20px;
+	padding: 8px 16px;
 	cursor: pointer;
 	border-radius: 4px;
 	margin-top: 10px;
@@ -118,9 +114,9 @@ button:hover {
 
 textarea {
 	display: block;
-	max-width: 100%;
-	width: 80%;
-	height: 80px;
+	max-width: 90%;
+	width: 90%;
+	height: 60px;
 	margin: 10px auto;
 	padding: 10px;
 	background-color: #f4f4f4;
@@ -138,10 +134,8 @@ textarea {
 #pianoRoll {
 	display: block;
 	margin: 10px auto;
-	width: 100%;
-	/* キャンバスの幅を親要素に合わせる */
+	width: 90%;
 	height: auto;
-	/* キャンバスの高さを自動調整 */
 }
 
 #player {
@@ -150,8 +144,7 @@ textarea {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	height: calc(100% - 60px);
-	/* プレイヤーセクションの高さを調整 */
+	height: calc(100% - 50px);
 }
 
 #tempoDisplay {
@@ -161,10 +154,8 @@ textarea {
 	width: 120px;
 }
 
-/* 以下、シリアルポート選択　*/
-
 #serialPortSelector {
-	margin: 20px auto;
+	margin: 10px auto;
 	text-align: center;
 }
 
@@ -176,7 +167,7 @@ textarea {
 
 #serialPortInput {
 	padding: 10px;
-	width: 80%;
+	width: 90%;
 	border: 1px solid #ccc;
 	border-radius: 4px;
 	font-size: 1em;
@@ -185,25 +176,20 @@ textarea {
 
 #setSerialPortButton {
 	background-color: #4CAF50;
-	/* 緑色 */
 	cursor: pointer;
 	transition: background-color 0.3s;
 }
 
 #setSerialPortButton:hover {
 	background-color: #45a049;
-	/* マウスオーバー時に少し暗くする */
 }
 
-/*以下disconnectボタン*/
 #disconnectButton {
 	background-color: #f44336;
-	/* 赤色 */
 	cursor: pointer;
 	transition: background-color 0.3s;
 }
 
 #disconnectButton:hover {
 	background-color: #e31b0c;
-	/* マウスオーバー時に少し暗くする */
 }
