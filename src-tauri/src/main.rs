@@ -24,6 +24,10 @@ struct Args {
     disable_gui: bool,
     #[arg(short, long)]
     input: Option<String>,
+    #[arg(short, long)]
+    list: bool,
+    #[arg(short, long, default_value_t = 0)]
+    port: usize,
 }
 //MISI形式のファイルか判定する関数
 fn check_midi_format(contents: &[u8]) -> bool {
@@ -400,7 +404,19 @@ fn main() {
         }
         Err(_e) => String::from("proxy setting error"),
     };
-    if args.disable_gui {
+    if args.list {
+        if let Some(list) = get_serial_port_list() {
+            if list.is_empty() {
+                println!("No serial port found");
+            } else {
+                list.iter().enumerate().for_each(|(i, port)| {
+                    println!("{}: {}", i, port);
+                });
+            }
+        } else {
+            println!("No serial port found");
+        }
+    } else if args.disable_gui {
         cli::run(args);
     } else {
         tauri::Builder::default()
@@ -424,5 +440,18 @@ fn main() {
     if !proxy_env_value.is_empty() {
         std::env::set_var("http_proxy", proxy_env_value.as_str());
         std::env::set_var("https_proxy", proxy_env_value.as_str());
+    }
+}
+
+fn get_serial_port_list() -> Option<Vec<String>> {
+    if let Ok(ports_info) = serialport::available_ports() {
+        Some(
+            ports_info
+                .into_iter()
+                .map(|info| info.port_name)
+                .collect::<Vec<String>>(),
+        )
+    } else {
+        None
     }
 }
