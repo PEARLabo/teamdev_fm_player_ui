@@ -28,6 +28,7 @@ ymodem = "0.1.1"
 ymodem-send-rs = { git = "https://github.com/pearlab2024-teamdev/ymodem-send-rs"}# ymodemリブ
 magical-global = { git = "https://github.com/pearlab2024-teamdev/magical-global" }
 cc = "1.1.6"
+clap = { version = "4.5.16", features = ["derive"] }
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

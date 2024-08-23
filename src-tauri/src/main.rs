@@ -1,15 +1,30 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use clap::Parser;
 mod commands;
 use commands::{disconnect_serial_port, set_serial_port};
 use magical_global as magical;
 use serialport::SerialPort;
+use std::io::{Read, Write};
 use std::sync::{Arc, Mutex};
 use tauri::{State, Window};
 use ymodem_send_rs::YmodemSender;
-//use crate::AppState;
+mod cli;
+mod send_msg;
 
+#[cfg(unix)]
+type Port = serialport::TTYPort;
+#[cfg(windows)]
+type Port = serialport::COMPort;
+//use crate::AppState;
+#[derive(Parser, Debug)]
+struct Args {
+    #[arg(long)]
+    disable_gui: bool,
+    #[arg(short, long)]
+    input: Option<String>,
+}
 //MISI形式のファイルか判定する関数
 fn check_midi_format(contents: &[u8]) -> bool {
     contents.starts_with(b"MThd")
@@ -75,23 +90,24 @@ async fn send_file_size<'a>(
         //MIDI形式でない場合returnエラー
         return Err("You choosed not MIDI file".into());
     }
-
+    let mut port = magical::get_at_mut::<Box<dyn SerialPort>>(0).unwrap();
+    send_msg::file_size(port, &contents);
     // ファイル情報を取得
-    let file_info = read_file(contents.clone(), state)?;
-    // 既にポートが設定されているか確認
-    let mut port = magical::get_at_mut::<Box<dyn SerialPort>>(0).unwrap(); // `port` をミュータブル参照として取得
+    // let file_info = read_file(contents.clone(), state)?;
+    // // 既にポートが設定されているか確認
+    // let mut port = magical::get_at_mut::<Box<dyn SerialPort>>(0).unwrap(); // `port` をミュータブル参照として取得
 
-    // ファイルサイズをリトルエンディアンでバイト配列に変換
-    let size_bytes = file_info.size.to_le_bytes();
-    println!("file byte size: {:?}", size_bytes);
+    // // ファイルサイズをリトルエンディアンでバイト配列に変換
+    // let size_bytes = file_info.size.to_le_bytes();
+    // println!("file byte size: {:?}", size_bytes);
 
-    let bit4_header = 0x2F; //リトルエンディアンに対応させる
-    let all_data: [u8; 4] = [bit4_header, size_bytes[0], size_bytes[1], size_bytes[2]];
+    // let bit4_header = 0x2F; //リトルエンディアンに対応させる
+    // let all_data: [u8; 4] = [bit4_header, size_bytes[0], size_bytes[1], size_bytes[2]];
 
-    // シリアルポートにデータを書き込む
-    port.write_all(&all_data)
-        .map_err(|e| format!("Failed to write to serial port: {}", e))?;
-    println!("File size sent!");
+    // // シリアルポートにデータを書き込む
+    // port.write_all(&all_data)
+    //     .map_err(|e| format!("Failed to write to serial port: {}", e))?;
+    // println!("File size sent!");
 
     //データ送信が始まったことを知らせるイベント
     println!("Starting send file!");
@@ -374,7 +390,7 @@ async fn process_event(
 // アプリケーションのエントリーポイント
 fn main() {
     let app_state = Arc::new(Mutex::new(AppState { port: None }));
-
+    let args = Args::parse();
     // ignore proxy
     let proxy_env_value = match std::env::var("http_proxy") {
         Ok(val) => {
@@ -384,19 +400,22 @@ fn main() {
         }
         Err(_e) => String::from("proxy setting error"),
     };
-
-    tauri::Builder::default()
-        .manage(app_state)
-        .invoke_handler(tauri::generate_handler![
-            read_file,
-            process_event,
-            send_file_size, // 本番用
-            //send_file_test  // テスト用
-            set_serial_port,
-            disconnect_serial_port,
-        ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+    if args.disable_gui {
+        cli::run(args);
+    } else {
+        tauri::Builder::default()
+            .manage(app_state)
+            .invoke_handler(tauri::generate_handler![
+                read_file,
+                process_event,
+                send_file_size, // 本番用
+                //send_file_test  // テスト用
+                set_serial_port,
+                disconnect_serial_port,
+            ])
+            .run(tauri::generate_context!())
+            .expect("error while running tauri application");
+    }
 
     // let port_name = "COM3".to_string();
     // process_event(port_name);
