@@ -160,6 +160,7 @@ async fn send_file_size<'a>(
                         let ack_err: [u8; 1] = [0xA0];
 
                         //受信完了メッセージのヘッダ情報かつチェックサムの内容が一致しているか
+                        // TODO: フラグのビット位置がおそらく違う[要チェック]
                         if ack_high_nibble == 0xD && ack_low_nibble == 0x0 {
                             // データ転送終了メッセ
                             let ack_message = format!("Received ack byte: {:02x}", ack[0]);

@@ -40,7 +40,7 @@ fn send_midi_file(port: &mut Port, buf: Vec<u8>) {
     if msg_flag == 0xe {
         send_msg::file_data(port, &buf);
     } else {
-        panic!("");
+        panic!("Communication partner is not accepting.");
     }
     let msg_flag = send_msg::receive_byte(port).unwrap() & 0xf;
     if msg_flag == 0xc {
@@ -48,6 +48,7 @@ fn send_midi_file(port: &mut Port, buf: Vec<u8>) {
     } else if msg_flag == 0xd {
         println!("success to send  midi file");
     } else {
+        println!("received: {:#01X}", msg_flag);
         unreachable!();
     }
 }
