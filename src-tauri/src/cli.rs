@@ -32,6 +32,7 @@ pub fn run(args: Args) {
     } else {
         println!("No input path");
     }
+    magical::take_at::<Box<dyn serialport::SerialPort>>(0).unwrap()
 }
 
 fn send_midi_file(buf: Vec<u8>) {
@@ -42,7 +43,8 @@ fn send_midi_file(buf: Vec<u8>) {
     if msg_flag == 0xe {
         send_msg::file_data(&mut port, &buf);
     } else {
-        panic!("");
+      magical::take_at::<Box<dyn serialport::SerialPort>>(0).unwrap();
+      panic!("");
     }
     let msg_flag = send_msg::receive_byte(&mut port).unwrap() & 0xf;
     if msg_flag == 0xc {
@@ -66,7 +68,7 @@ fn open_serial_port(port: impl AsRef<str>) -> Result<(), String> {
         return Err("failed to open serial port".to_string());
     }
     // `magical::set_at` には `Box<dyn SerialPort>` を渡す
-    if magical::set_at(Box::new(port_setting), 0).is_err() {
+    if magical::set_at(Box::new(port_setting.unwrap()), 0).is_err() {
         println!("failed to set data");
     }
     Ok(())
