@@ -18,7 +18,7 @@ pub fn file_data(port: &mut Port, data: &[u8]) {
     println!("Start Send MIDI FIle by Ymodem");
     let mut fname = "example.mid";
     let mut sender = YmodemSender::new(fname, data);
-    sender.send(port);
+    sender.send(port).unwrap();
     println!("Maybe File sent!");
 }
 
