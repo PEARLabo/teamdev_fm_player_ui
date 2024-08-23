@@ -28,6 +28,8 @@ struct Args {
     list: bool,
     #[arg(short, long, default_value_t = 0)]
     port: usize,
+    #[arg(long)]
+    port_name: Option<String>,
 }
 //MISI形式のファイルか判定する関数
 fn check_midi_format(contents: &[u8]) -> bool {
