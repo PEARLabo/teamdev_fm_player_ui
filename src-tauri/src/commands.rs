@@ -1,5 +1,5 @@
 // src/commands.rs
-use crate::{utils::check_midi_format, AppState, FileInfo};
+use crate::{send_msg, utils::check_midi_format, AppState, FileInfo};
 use tauri::State;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -59,4 +59,35 @@ pub async fn send_file_size(
         .send((InternalCommand::Send, String::from("")))
         .await
         .map_err(|e| e.to_string())
+}
+
+// JSの世界からのイベント分岐
+// TODO: フロントへのイベント発行の実装
+pub async fn internal_control<R: tauri::Runtime>(
+    control: InternalCommand,
+    port: &mut kioto_serial::SerialStream,
+    manager: &impl tauri::Manager<R>,
+) -> bool {
+    let state = manager.state::<AppState>();
+    match control {
+        InternalCommand::Send => {
+            println!("start send file");
+            match send_msg::r#async::send_midi_file_async(
+                port,
+                state.file_data.lock().await.as_ref().unwrap(),
+            )
+            .await
+            {
+                Ok(_) => {
+                    println!("Send File Data");
+                }
+                Err(msg) => {
+                    println!("Error: {}", msg);
+                }
+            }
+            false
+        }
+        InternalCommand::Close => true,
+        _ => false,
+    }
 }

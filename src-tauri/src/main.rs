@@ -103,6 +103,7 @@ fn main() {
                       if let Some(output) = async_proc_output_rx.recv().await {
                         if output.0 == InternalCommand::Open {
                           if let Ok(mut stream) = kioto_serial::new(output.1, BAUD_RATE).open_native_async() {
+                            // Todo: フロントへの接続成功通知の実装
                             println!("Connect Success.");
                             loop {
                               tokio::select!(
@@ -110,7 +111,7 @@ fn main() {
                                   // JSの世界からの操作
                                   if internal_control(output.0,&mut stream,&app_handle).await {
                                     // Close Port
-
+                                    // Todo: ポートを閉じたい
                                     break;
                                   }
                                 }
@@ -121,6 +122,7 @@ fn main() {
                               );
                             }
                           } else {
+                            // Todo: フロントへの接続失敗通知の実装
                             println!("faild open port");
                           }
                         }
@@ -143,35 +145,6 @@ fn main() {
     if !proxy_env_value.is_empty() {
         std::env::set_var("http_proxy", proxy_env_value.as_str());
         std::env::set_var("https_proxy", proxy_env_value.as_str());
-    }
-}
-// JSの世界からのイベント分岐
-async fn internal_control<R: tauri::Runtime>(
-    control: InternalCommand,
-    port: &mut kioto_serial::SerialStream,
-    manager: &impl tauri::Manager<R>,
-) -> bool {
-    let state = manager.state::<AppState>();
-    match control {
-        InternalCommand::Send => {
-            println!("start send file");
-            match send_msg::r#async::send_midi_file_async(
-                port,
-                state.file_data.lock().await.as_ref().unwrap(),
-            )
-            .await
-            {
-                Ok(_) => {
-                    println!("Send File Data");
-                }
-                Err(msg) => {
-                    println!("Error: {}", msg);
-                }
-            }
-            false
-        }
-        InternalCommand::Close => true,
-        _ => false,
     }
 }
 

@@ -94,7 +94,7 @@ impl ParamChangeFlag {
         }
     }
 }
-
+// TODO: フロントへのイベント発行の実装
 pub async fn sequence_msg<R: tauri::Runtime>(
     first_byte: u8,
     port: &mut kioto_serial::SerialStream,
@@ -142,6 +142,7 @@ pub async fn sequence_msg<R: tauri::Runtime>(
         _ => {}
     }
 }
+// TODO: フロントへのイベント発行の実装
 fn msg_param_change<R: tauri::Runtime>(ch: u8, buf: &[u8], app_handle: &impl tauri::Manager<R>) {
     let param_flag = ParamChangeFlag::from(buf[0] & 0xf);
     match param_flag {
