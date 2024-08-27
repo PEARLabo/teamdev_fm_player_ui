@@ -10,19 +10,10 @@ mod utils;
 use clap::Parser;
 
 use commands::*;
-// use magical_global as magical;
-// use serialport::SerialPort;
-// use std::io::{Read, Write};
-// use std::sync::{Arc, Mutex};
-use kioto_serial::SerialPortBuilderExt;
-// use tokio::io::AsyncReadExt;
 use sequence_msg::sequence_msg;
 use serial::read_one_byte;
+use serial2_tokio::SerialPort;
 use tokio::sync::{mpsc, Mutex};
-// #[cfg(unix)]
-// type Port = serialport::TTYPort;
-// #[cfg(windows)]
-// type Port = serialport::COMPort;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -102,22 +93,22 @@ fn main() {
                   loop {
                       if let Some(output) = async_proc_output_rx.recv().await {
                         if output.0 == InternalCommand::Open {
-                          if let Ok(mut stream) = kioto_serial::new(output.1, BAUD_RATE).open_native_async() {
+                          if let Ok(mut port) = SerialPort::open(output.1, BAUD_RATE) {
                             // Todo: フロントへの接続成功通知の実装
                             println!("Connect Success.");
                             loop {
                               tokio::select!(
                                 Some(output) = async_proc_output_rx.recv() => {
                                   // JSの世界からの操作
-                                  if internal_control(output.0,&mut stream,&app_handle).await {
+                                  if internal_control(output.0,&mut port,&app_handle).await {
                                     // Close Port
                                     // Todo: ポートを閉じたい
                                     break;
                                   }
                                 }
-                                v = read_one_byte(&mut stream) => {
+                                v = read_one_byte(&mut port) => {
                                   // Sequencerとの独自プロトコルの通信
-                                  sequence_msg(v, &mut stream,&app_handle).await;
+                                  sequence_msg(v, &mut port,&app_handle).await;
                                 }
                               );
                             }
@@ -149,11 +140,11 @@ fn main() {
 }
 
 fn get_serial_port_list() -> Option<Vec<String>> {
-    if let Ok(ports_info) = serialport::available_ports() {
+    if let Ok(ports_info) = SerialPort::available_ports() {
         Some(
             ports_info
                 .into_iter()
-                .map(|info| info.port_name)
+                .map(|info| info.to_str().unwrap().to_string())
                 .collect::<Vec<String>>(),
         )
     } else {

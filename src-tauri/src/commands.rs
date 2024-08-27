@@ -65,7 +65,7 @@ pub async fn send_file_size(
 // TODO: フロントへのイベント発行の実装
 pub async fn internal_control<R: tauri::Runtime>(
     control: InternalCommand,
-    port: &mut kioto_serial::SerialStream,
+    port: &mut serial2_tokio::SerialPort,
     manager: &impl tauri::Manager<R>,
 ) -> bool {
     let state = manager.state::<AppState>();

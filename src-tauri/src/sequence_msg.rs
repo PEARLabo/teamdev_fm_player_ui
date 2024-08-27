@@ -97,7 +97,7 @@ impl ParamChangeFlag {
 // TODO: フロントへのイベント発行の実装
 pub async fn sequence_msg<R: tauri::Runtime>(
     first_byte: u8,
-    port: &mut kioto_serial::SerialStream,
+    port: &mut serial2_tokio::SerialPort,
     app_handle: &impl tauri::Manager<R>,
 ) {
     let msg_flag = first_byte & 0xf;

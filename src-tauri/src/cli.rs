@@ -1,13 +1,13 @@
 use crate::{send_msg, utils::check_midi_format, Args};
-use serialport::{DataBits, FlowControl, Parity, StopBits};
+use serial2::SerialPort;
 use std::fs::File;
 use std::io::Read;
-type Port = Box<dyn serialport::SerialPort>;
+
 pub fn run(args: Args) {
     let mut port = if let Ok(port) = if let Some(port_name) = args.port_name {
         open_serial_port(port_name)
-    } else if let Ok(port_info) = serialport::available_ports() {
-        open_serial_port(port_info[args.port].port_name.as_str())
+    } else if let Ok(port_info) = SerialPort::available_ports() {
+        open_serial_port(port_info[args.port].to_str().unwrap())
     } else {
         panic!("No ports");
     } {
@@ -31,7 +31,7 @@ pub fn run(args: Args) {
     }
 }
 
-fn send_midi_file(port: &mut Port, buf: Vec<u8>) {
+fn send_midi_file(port: &mut SerialPort, buf: Vec<u8>) {
     send_msg::file_size(port, &buf).unwrap();
     // Ymodemによるファイル転送(受信可能の場合)
     let msg_flag = send_msg::receive_byte(port).unwrap() & 0xf;
@@ -50,15 +50,9 @@ fn send_midi_file(port: &mut Port, buf: Vec<u8>) {
         unreachable!();
     }
 }
-fn open_serial_port(port: impl AsRef<str>) -> Result<Port, String> {
+fn open_serial_port(port: impl AsRef<str>) -> Result<SerialPort, String> {
     let baud_rate = 115200;
-    let port_setting = serialport::new(port.as_ref().to_string(), baud_rate)
-        .data_bits(DataBits::Eight)
-        .parity(Parity::None)
-        .stop_bits(StopBits::One)
-        .flow_control(FlowControl::None)
-        .timeout(std::time::Duration::from_millis(1500))
-        .open();
+    let port_setting = SerialPort::open(port.as_ref(), baud_rate);
     if port_setting.is_err() {
         return Err("failed to open serial port".to_string());
     }
