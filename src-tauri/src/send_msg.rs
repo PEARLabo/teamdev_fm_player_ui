@@ -1,5 +1,5 @@
 use std::io::{Read, Write};
-use ymodem_send_rs::{YmodemSender};
+use ymodem_send_rs::YmodemSender;
 type Port = Box<dyn serialport::SerialPort>;
 
 pub fn file_size(port: &mut Port, buf: &[u8]) -> Result<(), String> {
@@ -36,7 +36,7 @@ pub fn receive_byte(port: &mut Port) -> Result<u8, String> {
 pub mod r#async {
     use kioto_serial::SerialStream;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
-    use ymodem_send_rs::{YmodemSender};
+    use ymodem_send_rs::YmodemSender;
     pub async fn file_size(port: &mut SerialStream, buf: &[u8]) -> Result<(), String> {
         let f_size = buf.len().to_le_bytes();
         let bit4_header = 0x2F; //リトルエンディアンに対応させる

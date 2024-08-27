@@ -1,6 +1,6 @@
 // src/commands.rs
 use crate::{utils::check_midi_format, AppState, FileInfo};
-use tauri::{State};
+use tauri::State;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum InternalCommand {

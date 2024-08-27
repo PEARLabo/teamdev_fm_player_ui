@@ -58,7 +58,7 @@ struct FileInfo {
 
 // アプリケーションのエントリーポイント
 fn main() {
-    const baud_rate: u32 = 115200;
+    const BAUD_RATE: u32 = 115200;
     let args = Args::parse();
     // ignore proxy
     let proxy_env_value = match std::env::var("http_proxy") {
@@ -102,7 +102,7 @@ fn main() {
                   loop {
                       if let Some(output) = async_proc_output_rx.recv().await {
                         if output.0 == InternalCommand::Open {
-                          if let Ok(mut stream) = kioto_serial::new(output.1, baud_rate).open_native_async() {
+                          if let Ok(mut stream) = kioto_serial::new(output.1, BAUD_RATE).open_native_async() {
                             println!("Connect Success.");
                             loop {
                               tokio::select!(
@@ -116,7 +116,6 @@ fn main() {
                                 }
                                 v = read_one_byte(&mut stream) => {
                                   // Sequencerとの独自プロトコルの通信
-                                  println!("{:#02X}",v);
                                   sequence_msg(v, &mut stream,&app_handle).await;
                                 }
                               );

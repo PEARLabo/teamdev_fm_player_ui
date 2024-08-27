@@ -32,7 +32,7 @@ pub fn run(args: Args) {
 }
 
 fn send_midi_file(port: &mut Port, buf: Vec<u8>) {
-    send_msg::file_size(port, &buf);
+    send_msg::file_size(port, &buf).unwrap();
     // Ymodemによるファイル転送(受信可能の場合)
     let msg_flag = send_msg::receive_byte(port).unwrap() & 0xf;
     if msg_flag == 0xe {
