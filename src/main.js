@@ -215,7 +215,7 @@ document.getElementById('sendButton').addEventListener('click', async () => {
     }
 
     try {
-        await invoke(tauriFunctionName, { contents: Array.from(new Uint8Array(contents)), portName: portName }); // Rust側のsend_file_sizeコマンドを呼び出し
+        await invoke(tauriFunctionName, { data: Array.from(new Uint8Array(contents)), portName: portName }); // Rust側のsend_file_sizeコマンドを呼び出し
     } catch (error) {
         console.error(`Error sending file size: ${error}`);  // エラーログ
         // #console textarea 内に送信失敗メッセージを表示
