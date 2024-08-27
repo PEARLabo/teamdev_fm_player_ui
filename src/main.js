@@ -37,10 +37,11 @@ function switchMain() {
 }
 
 // シリアルポート設定ボタンのクリックイベントリスナーを追加
-document.getElementById('setSerialPortButton').addEventListener('click', () => {
+document.getElementById('setSerialPortButton').addEventListener('click', async () => {
     const serialPortInput = document.getElementById('serialPortInput').value;
     if (serialPortInput) {
         portName = serialPortInput; // ポート名を更新
+        await invoke('set_serial_port', { portName: serialPortInput} );
         console.log(`Serial port set to: ${portName}`); // デバッグ用ログ
     } else {
         console.error("Invalid serial port input.");
@@ -51,7 +52,7 @@ document.getElementById('setSerialPortButton').addEventListener('click', () => {
 document.getElementById('disconnectButton').addEventListener('click', async () => {
     try {
         // Rust側のdisconnect関数を呼び出す
-        await invoke('disconnect');
+        await invoke('disconnect_serial_port');
         console.log('Serial port disconnected successfully');
         const consoleArea = document.getElementById('console');
         consoleArea.value += 'Serial port disconnected successfully\n';

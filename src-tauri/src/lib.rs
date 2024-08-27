@@ -440,8 +440,6 @@
 //     "End".to_string()
 // ];
 
-
-
 //     for (i, data) in sample_data.iter().enumerate() {
 //         let window = window.clone();
 //         let data = data.clone();
