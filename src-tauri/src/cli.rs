@@ -1,4 +1,4 @@
-use crate::{check_midi_format, send_msg, Args};
+use crate::{send_msg, utils::check_midi_format, Args};
 use serialport::{DataBits, FlowControl, Parity, StopBits};
 use std::fs::File;
 use std::io::Read;

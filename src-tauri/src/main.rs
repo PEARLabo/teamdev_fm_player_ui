@@ -1,25 +1,29 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use clap::Parser;
-// mod commands;
-// use commands::{disconnect_serial_port, set_serial_port};
-use magical_global as magical;
-// use serialport::SerialPort;
-use std::io::{Read, Write};
-// use std::sync::{Arc, Mutex};
-use tauri::{State, Window};
-use ymodem_send_rs::YmodemSender;
 mod cli;
+mod commands;
 mod send_msg;
-use tokio::sync::{mpsc,Mutex};
+mod sequence_msg;
+mod serial;
+mod utils;
+use clap::Parser;
+
+use commands::*;
+// use magical_global as magical;
+// use serialport::SerialPort;
+// use std::io::{Read, Write};
+// use std::sync::{Arc, Mutex};
 use kioto_serial::SerialPortBuilderExt;
-use tokio::io::AsyncReadExt;
+use tauri::{State, Window};
+// use tokio::io::AsyncReadExt;
+use sequence_msg::sequence_msg;
+use serial::read_one_byte;
+use tokio::sync::{mpsc, Mutex};
 // #[cfg(unix)]
 // type Port = serialport::TTYPort;
 // #[cfg(windows)]
 // type Port = serialport::COMPort;
-//use crate::AppState;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -34,17 +38,10 @@ struct Args {
     #[arg(long)]
     port_name: Option<String>,
 }
-//MISI形式のファイルか判定する関数
-fn check_midi_format(contents: &[u8]) -> bool {
-    contents.starts_with(b"MThd")
-}
-
 // #[derive(Default)]
 struct AppState {
-    //port: Option<Arc<Mutex<Box<dyn serialport::SerialPort>>>>,[Check 元]
-    // port: Option<Arc<Mutex<dyn serialport::SerialPort>>>,
-    inner: Mutex<mpsc::Sender<(InternalCommand,String)>>,
-    file_data: Mutex<Option<Vec<u8>>>
+    inner: Mutex<mpsc::Sender<(InternalCommand, String)>>,
+    file_data: Mutex<Option<Vec<u8>>>,
 }
 
 // エラーメッセージを格納する構造体
@@ -60,32 +57,149 @@ struct FileInfo {
     is_midi: bool,
 }
 
-#[derive(Debug)]
-struct U24(u32);
+// アプリケーションのエントリーポイント
+fn main() {
+    const baud_rate: u32 = 115200;
+    let args = Args::parse();
+    // ignore proxy
+    let proxy_env_value = match std::env::var("http_proxy") {
+        Ok(val) => {
+            std::env::set_var("http_proxy", "");
+            std::env::set_var("https_proxy", "");
+            val
+        }
+        Err(_e) => String::from("proxy setting error"),
+    };
+    if args.list {
+        // Print the list of available ports
+        if let Some(list) = get_serial_port_list() {
+            if list.is_empty() {
+                println!("No serial port found");
+            } else {
+                list.iter().enumerate().for_each(|(i, port)| {
+                    println!("{}: {}", i, port);
+                });
+            }
+        } else {
+            println!("No serial port found");
+        }
+    } else if args.disable_gui {
+        // Run CLI Tool
+        cli::run(args);
+    } else {
+        let (async_proc_input_tx, async_proc_input_rx) = mpsc::channel(1);
+        let (async_proc_output_tx, mut async_proc_output_rx) = mpsc::channel(1);
+        tauri::Builder::default()
+            .manage(AppState {
+              inner: Mutex::new(async_proc_input_tx),
+              file_data: Mutex::new(None),
+            })
+            .setup(|app| {
+              tauri::async_runtime::spawn(async move {
+                async_process_model(async_proc_input_rx, async_proc_output_tx).await
+              });
+              let app_handle = app.handle();
+              tauri::async_runtime::spawn(async move {
+                  loop {
+                      if let Some(output) = async_proc_output_rx.recv().await {
+                        if output.0 == InternalCommand::Open {
+                          if let Ok(mut stream) = kioto_serial::new(output.1, baud_rate).open_native_async() {
+                            println!("Connect Success.");
+                            loop {
+                              tokio::select!(
+                                Some(output) = async_proc_output_rx.recv() => {
+                                  // JSの世界からの操作
+                                  if internal_control(output.0,&mut stream,&app_handle).await {
+                                    // Close Port
 
-//24bit整数を扱うための
-impl U24 {
-    fn from_be_bytes(high: u8, mid: u8, low: u8) -> Self {
-        Self(((high as u32) << 16) | ((mid as u32) << 8) | (low as u32))
+                                    break;
+                                  }
+                                }
+                                v = read_one_byte(&mut stream) => {
+                                  // Sequencerとの独自プロトコルの通信
+                                  println!("{:#02X}",v);
+                                  sequence_msg(v, &mut stream,&app_handle).await;
+                                }
+                              );
+                            }
+                          } else {
+                            println!("faild open port");
+                          }
+                        }
+                      }
+                  }
+              });
+              Ok(())
+            })
+            .invoke_handler(tauri::generate_handler![
+                read_file,
+                // process_event,
+                send_file_size, // 本番用
+                set_serial_port,
+                disconnect_serial_port,
+            ])
+            .run(tauri::generate_context!())
+            .expect("error while running tauri application");
     }
-
-    fn value(&self) -> u32 {
-        self.0
+    // reset env proxy
+    if !proxy_env_value.is_empty() {
+        std::env::set_var("http_proxy", proxy_env_value.as_str());
+        std::env::set_var("https_proxy", proxy_env_value.as_str());
+    }
+}
+// JSの世界からのイベント分岐
+async fn internal_control<R: tauri::Runtime>(
+    control: InternalCommand,
+    port: &mut kioto_serial::SerialStream,
+    manager: &impl tauri::Manager<R>,
+) -> bool {
+    let state = manager.state::<AppState>();
+    match control {
+        InternalCommand::Send => {
+            println!("start send file");
+            match send_msg::r#async::send_midi_file_async(
+                port,
+                state.file_data.lock().await.as_ref().unwrap(),
+            )
+            .await
+            {
+                Ok(_) => {
+                    println!("Send File Data");
+                }
+                Err(msg) => {
+                    println!("Error: {}", msg);
+                }
+            }
+            false
+        }
+        InternalCommand::Close => true,
+        _ => false,
     }
 }
 
-// //ファイルサイズと形式を判定するtauriコマンド
-#[tauri::command]
-fn read_file(
-    contents: Vec<u8>,
-    _state: State<'_, AppState>,
-) -> Result<FileInfo, String> {
-    println!("Reading file with contents of length: {}", contents.len()); // デバッグ用ログ
+fn get_serial_port_list() -> Option<Vec<String>> {
+    if let Ok(ports_info) = serialport::available_ports() {
+        Some(
+            ports_info
+                .into_iter()
+                .map(|info| info.port_name)
+                .collect::<Vec<String>>(),
+        )
+    } else {
+        None
+    }
+}
 
-    let size = contents.len();
-    let is_midi = check_midi_format(&contents);
-
-    Ok(FileInfo { size, is_midi })
+// Asyncの世界とのやり取り
+async fn async_process_model(
+    mut input_rx: mpsc::Receiver<(InternalCommand, String)>,
+    output_tx: mpsc::Sender<(InternalCommand, String)>,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    while let Some(input) = input_rx.recv().await {
+        let output = input;
+        output_tx.send(output).await?;
+    }
+    Ok(())
 }
 
 // ファイルサイズをシリアル通信で送信するTauriコマンド
@@ -397,195 +511,3 @@ fn read_file(
 //         }
 //     }
 // }
-mod serial;
-use serial::{read_one_byte};
-#[derive(Debug,PartialEq,Clone,Copy)]
-enum InternalCommand {
-  Open,
-  Close,
-  Send
-}
-impl std::fmt::Display for InternalCommand {
-  fn fmt(&self, f:  &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-     match self {
-         Self::Open => write!(f, "Port Open"),
-         Self::Close => write!(f, "Port Close"),
-         Self::Send => write!(f, "Send File"),
-     }
-  }
-}
-struct AsyncProcInputTx {
-  inner: Mutex<mpsc::Sender<(InternalCommand,String)>>,
-}
-// アプリケーションのエントリーポイント
-fn main() {
-    // let app_state = Arc::new(Mutex::new(AppState { port: None }));
-    const baud_rate:u32 = 115200;
-    let args = Args::parse();
-    // ignore proxy
-    let proxy_env_value = match std::env::var("http_proxy") {
-        Ok(val) => {
-            std::env::set_var("http_proxy", "");
-            std::env::set_var("https_proxy", "");
-            val
-        }
-        Err(_e) => String::from("proxy setting error"),
-    };
-    if args.list {
-        if let Some(list) = get_serial_port_list() {
-            if list.is_empty() {
-                println!("No serial port found");
-            } else {
-                list.iter().enumerate().for_each(|(i, port)| {
-                    println!("{}: {}", i, port);
-                });
-            }
-        } else {
-            println!("No serial port found");
-        }
-    } else if args.disable_gui {
-        cli::run(args);
-    } else {
-        let (async_proc_input_tx, async_proc_input_rx) = mpsc::channel(1);
-        let (async_proc_output_tx, mut async_proc_output_rx) = mpsc::channel(1);
-        tauri::Builder::default()
-            .manage(AppState {
-              inner: Mutex::new(async_proc_input_tx),
-              file_data: Mutex::new(None),
-            })
-            .setup(|app| {
-              tauri::async_runtime::spawn(async move {
-                async_process_model(async_proc_input_rx, async_proc_output_tx).await
-              });
-              let app_handle = app.handle();
-              tauri::async_runtime::spawn(async move {
-                  loop {
-                      if let Some(output) = async_proc_output_rx.recv().await {
-                        if output.0 == InternalCommand::Open {
-                          if let Ok(mut stream) = kioto_serial::new(output.1, baud_rate).open_native_async() {
-
-                            loop {
-                              tokio::select!(
-                                Some(output) = async_proc_output_rx.recv() => {
-                                  // JSの世界からの操作
-                                  if internal_control(output.0,&mut stream,&app_handle).await {
-                                    // Close Port
-                                    break;
-                                  }
-                                }
-                                v = read_one_byte(&mut stream) => {
-                                  // Sequencerとの独自プロトコルの通信
-                                  println!("{:#02X}",v);
-                                  sequencer_protocol_msg(v, &mut stream);
-                                }
-                              );
-                            }
-                          } else {
-                            println!("faild open port");
-                          }
-                        }
-                      }
-                  }
-              });
-  
-              Ok(())
-            })
-            .invoke_handler(tauri::generate_handler![
-                read_file,
-                // process_event,
-                send_file_size, // 本番用
-                //send_file_test  // テスト用
-                set_serial_port,
-                disconnect_serial_port,
-            ])
-            .run(tauri::generate_context!())
-            .expect("error while running tauri application");
-    }
-
-    // let port_name = "COM3".to_string();
-    // process_event(port_name);
-    // reset env proxy
-
-    if !proxy_env_value.is_empty() {
-        std::env::set_var("http_proxy", proxy_env_value.as_str());
-        std::env::set_var("https_proxy", proxy_env_value.as_str());
-    }
-}
-#[tauri::command]
-async fn set_serial_port(port_name: String, state: tauri::State<'_, AppState>) -> Result<(), String> {
-  let async_proc_input_tx = state.inner.lock().await;
-  async_proc_input_tx
-      .send((InternalCommand::Open,port_name))
-      .await
-      .map_err(|e| e.to_string())
-}
-#[tauri::command]
-async fn disconnect_serial_port(state: tauri::State<'_, AppState>) -> Result<(), String> {
-  let async_proc_input_tx = state.inner.lock().await;
-  async_proc_input_tx
-      .send((InternalCommand::Close,String::from("")))
-      .await
-      .map_err(|e| e.to_string())
-}
-#[tauri::command]
-async fn send_file_size(data: Vec<u8>,state: tauri::State<'_, AppState>) ->Result<(), String> {
-  let mut dst = state.file_data.lock().await;
-  *dst = Some(data);
-  let async_proc_input_tx = state.inner.lock().await;
-  async_proc_input_tx
-  .send((InternalCommand::Send,String::from("")))
-  .await
-  .map_err(|e| e.to_string())
-}
-
-async fn internal_control<R: tauri::Runtime>(control: InternalCommand,port: &mut kioto_serial::SerialStream, manager: &impl tauri::Manager<R>) -> bool {
-  let state = manager.state::<AppState>();
-  match control {
-    InternalCommand::Send => {
-      match send_msg::r#async::send_midi_file_async(port,state.file_data.lock().await.as_ref().unwrap()).await {
-        Ok(_) => {
-          println!("Send File Data");
-        }
-        Err(msg) => {
-          println!("Error: {}", msg);
-        }
-      }
-      false
-    }
-    InternalCommand::Close => {
-      true
-    }
-    _ => false
-  }
-}
-async fn sequencer_protocol_msg(first_byte: u8, port: &mut kioto_serial::SerialStream) {
-  let msg_flag = first_byte & 0xf;
-  let len = (first_byte >> 4) as usize;
-  let mut buf = vec![0;len];
-  port.read_exact(&mut buf).await.unwrap();
-  println!("{:?}",buf);
-}
-fn get_serial_port_list() -> Option<Vec<String>> {
-    if let Ok(ports_info) = serialport::available_ports() {
-        Some(
-            ports_info
-                .into_iter()
-                .map(|info| info.port_name)
-                .collect::<Vec<String>>(),
-        )
-    } else {
-        None
-    }
-}
-// Asyncの世界とのやり取り
-async fn async_process_model(
-  mut input_rx: mpsc::Receiver<(InternalCommand,String)>,
-  output_tx: mpsc::Sender<(InternalCommand,String)>,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-  while let Some(input) = input_rx.recv().await {
-      let output = input;
-      output_tx.send(output).await?;
-  }
-
-  Ok(())
-}
