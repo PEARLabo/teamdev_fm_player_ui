@@ -11,13 +11,12 @@
   "tauri": {
     "allowlist": {
       "all": false,
-      "shell": {
-        "all": false,
-        "open": true
-      },
-      "path": {
-        "all": true
+      "dialog": {
+        "all": true,
+        "open": true,
+        "save": true
       }
+      
     },
     "windows": [
       {
