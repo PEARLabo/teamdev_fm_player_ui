@@ -3,21 +3,24 @@
 
 use clap::Parser;
 mod commands;
-use commands::{disconnect_serial_port, set_serial_port};
+// use commands::{disconnect_serial_port, set_serial_port};
 use magical_global as magical;
 use serialport::SerialPort;
 use std::io::{Read, Write};
-use std::sync::{Arc, Mutex};
+// use std::sync::{Arc, Mutex};
 use tauri::{State, Window};
 use ymodem_send_rs::YmodemSender;
 mod cli;
 mod send_msg;
+use tokio::sync::{mpsc,Mutex};
 
-#[cfg(unix)]
-type Port = serialport::TTYPort;
-#[cfg(windows)]
-type Port = serialport::COMPort;
+
+// #[cfg(unix)]
+// type Port = serialport::TTYPort;
+// #[cfg(windows)]
+// type Port = serialport::COMPort;
 //use crate::AppState;
+
 #[derive(Parser, Debug)]
 struct Args {
     #[arg(long)]
@@ -39,7 +42,8 @@ fn check_midi_format(contents: &[u8]) -> bool {
 #[derive(Default)]
 struct AppState {
     //port: Option<Arc<Mutex<Box<dyn serialport::SerialPort>>>>,[Check 元]
-    port: Option<Arc<Mutex<dyn serialport::SerialPort>>>,
+    // port: Option<Arc<Mutex<dyn serialport::SerialPort>>>,
+    
 }
 
 // エラーメッセージを格納する構造体
@@ -392,7 +396,9 @@ async fn process_event(
         }
     }
 }
-
+struct AsyncProcInputTx {
+  inner: Mutex<mpsc::Sender<String>>,
+}
 // アプリケーションのエントリーポイント
 fn main() {
     let app_state = Arc::new(Mutex::new(AppState { port: None }));
@@ -421,15 +427,33 @@ fn main() {
     } else if args.disable_gui {
         cli::run(args);
     } else {
+        let (async_proc_input_tx, async_proc_input_rx) = mpsc::channel(1);
+        let (async_proc_output_tx, mut async_proc_output_rx) = mpsc::channel(1);
         tauri::Builder::default()
             .manage(app_state)
+            .setup(|app| {
+              tauri::async_runtime::spawn(async move {
+                async_process_model(async_proc_input_rx, async_proc_output_tx).await
+              });
+              let app_handle = app.handle();
+              tauri::async_runtime::spawn(async move {
+                  loop {
+                      if let Some(output) = async_proc_output_rx.recv().await {
+                          // rs2js(output, &app_handle);
+                          println!("{:?}",output)
+                      }
+                  }
+              });
+  
+              Ok(())
+            })
             .invoke_handler(tauri::generate_handler![
-                read_file,
-                process_event,
-                send_file_size, // 本番用
+                // read_file,
+                // process_event,
+                // send_file_size, // 本番用
                 //send_file_test  // テスト用
                 set_serial_port,
-                disconnect_serial_port,
+                // disconnect_serial_port,
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");
@@ -444,7 +468,14 @@ fn main() {
         std::env::set_var("https_proxy", proxy_env_value.as_str());
     }
 }
-
+#[tauri::command]
+fn set_serial_port(port_name: String, state: tauri::State<'_, AsyncProcInputTx>) -> Result<(), String> {
+  let async_proc_input_tx = state.inner.lock().await;
+  async_proc_input_tx
+      .send((0,message))
+      .await
+      .map_err(|e| e.to_string())
+}
 fn get_serial_port_list() -> Option<Vec<String>> {
     if let Ok(ports_info) = serialport::available_ports() {
         Some(
