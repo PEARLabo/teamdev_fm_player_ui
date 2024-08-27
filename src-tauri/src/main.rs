@@ -15,7 +15,6 @@ use commands::*;
 // use std::io::{Read, Write};
 // use std::sync::{Arc, Mutex};
 use kioto_serial::SerialPortBuilderExt;
-use tauri::{State, Window};
 // use tokio::io::AsyncReadExt;
 use sequence_msg::sequence_msg;
 use serial::read_one_byte;

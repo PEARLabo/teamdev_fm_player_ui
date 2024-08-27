@@ -1,4 +1,4 @@
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::io::{AsyncReadExt};
 pub async fn sequence_msg<R: tauri::Runtime>(
     first_byte: u8,
     port: &mut kioto_serial::SerialStream,

@@ -1,9 +1,6 @@
 // src/commands.rs
 use crate::{utils::check_midi_format, AppState, FileInfo};
-use magical_global as magical;
-use serialport::{DataBits, FlowControl, Parity, SerialPort, StopBits};
-use std::sync::{Arc, Mutex};
-use tauri::{State, Window};
+use tauri::{State};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum InternalCommand {

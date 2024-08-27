@@ -6,12 +6,10 @@ type Port = Box<dyn serialport::SerialPort>;
 pub fn run(args: Args) {
     let mut port = if let Ok(port) = if let Some(port_name) = args.port_name {
         open_serial_port(port_name)
+    } else if let Ok(port_info) = serialport::available_ports() {
+        open_serial_port(port_info[args.port].port_name.as_str())
     } else {
-        if let Ok(port_info) = serialport::available_ports() {
-            open_serial_port(port_info[args.port].port_name.as_str())
-        } else {
-            panic!("No ports");
-        }
+        panic!("No ports");
     } {
         port
     } else {

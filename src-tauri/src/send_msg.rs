@@ -1,5 +1,5 @@
 use std::io::{Read, Write};
-use ymodem_send_rs::{YmodemError, YmodemSender};
+use ymodem_send_rs::{YmodemSender};
 type Port = Box<dyn serialport::SerialPort>;
 
 pub fn file_size(port: &mut Port, buf: &[u8]) -> Result<(), String> {
@@ -16,8 +16,8 @@ pub fn file_size(port: &mut Port, buf: &[u8]) -> Result<(), String> {
 
 pub fn file_data(port: &mut Port, data: &[u8]) {
     println!("Start Send MIDI FIle by Ymodem");
-    let mut fname = "example.mid";
-    let mut sender = YmodemSender::new(fname, data);
+    let fname = "example.mid";
+    let sender = YmodemSender::new(fname, data);
     sender.send(port).unwrap();
     println!("Maybe File sent!");
 }
@@ -36,7 +36,7 @@ pub fn receive_byte(port: &mut Port) -> Result<u8, String> {
 pub mod r#async {
     use kioto_serial::SerialStream;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
-    use ymodem_send_rs::{YmodemError, YmodemSender};
+    use ymodem_send_rs::{YmodemSender};
     pub async fn file_size(port: &mut SerialStream, buf: &[u8]) -> Result<(), String> {
         let f_size = buf.len().to_le_bytes();
         let bit4_header = 0x2F; //リトルエンディアンに対応させる
@@ -69,12 +69,12 @@ pub mod r#async {
         }
     }
     pub async fn send_midi_file_async(port: &mut SerialStream, buf: &[u8]) -> Result<(), String> {
-        file_size(port, &buf).await.unwrap();
+        file_size(port, buf).await.unwrap();
         println!("file");
         // Ymodemによるファイル転送(受信可能の場合)
         let msg_flag = receive_byte(port).await.unwrap() & 0xf;
         if msg_flag == 0xe {
-            file_data(port, &buf).await;
+            file_data(port, buf).await;
         } else {
             println!("Communication partner is not accepting.");
             return Err(String::from("Communication partner is not accepting."));
