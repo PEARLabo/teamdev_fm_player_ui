@@ -1,7 +1,7 @@
 // src/commands.rs
 use crate::{send_msg, utils::check_midi_format, AppState, FileInfo};
+use std::{fs::File, io::Read};
 use tauri::State;
-use std::{fs::File,io::Read};
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum InternalCommand {
     Open,
@@ -19,17 +19,17 @@ impl std::fmt::Display for InternalCommand {
 }
 
 #[tauri::command]
-pub async fn open_file(path: String, state: State<'_, AppState>) -> Result<bool,String> {
-  let mut file = File::open(path).map_err(|e| e.to_string())?;
-  let mut buf = Vec::with_capacity(file.metadata().unwrap().len() as usize);
-  let _ = file.read_to_end(&mut buf).map_err(|e| e.to_string())?;
-  let is_midi = check_midi_format(&buf);
-  if is_midi {
-    // Set File Data
-    let mut dst = state.file_data.lock().await;
-    *dst = Some(buf);
-  }
-  Ok(is_midi)
+pub async fn open_file(path: String, state: State<'_, AppState>) -> Result<bool, String> {
+    let mut file = File::open(path).map_err(|e| e.to_string())?;
+    let mut buf = Vec::with_capacity(file.metadata().unwrap().len() as usize);
+    let _ = file.read_to_end(&mut buf).map_err(|e| e.to_string())?;
+    let is_midi = check_midi_format(&buf);
+    if is_midi {
+        // Set File Data
+        let mut dst = state.file_data.lock().await;
+        *dst = Some(buf);
+    }
+    Ok(is_midi)
 }
 // //ファイルサイズと形式を判定するtauriコマンド
 #[tauri::command]
@@ -61,13 +61,7 @@ pub async fn disconnect_serial_port(state: tauri::State<'_, AppState>) -> Result
         .map_err(|e| e.to_string())
 }
 #[tauri::command]
-pub async fn send_file_size(
-    // data: Vec<u8>,
-    state: tauri::State<'_, AppState>,
-) -> Result<(), String> {
-    println!("call send fn");
-    // let mut dst = state.file_data.lock().await;
-    // *dst = Some(data);
+pub async fn send_file_size(state: tauri::State<'_, AppState>) -> Result<(), String> {
     let async_proc_input_tx = state.inner.lock().await;
     async_proc_input_tx
         .send((InternalCommand::Send, String::from("")))
@@ -76,7 +70,7 @@ pub async fn send_file_size(
 }
 
 // JSの世界からのイベント分岐
-// TODO: フロントへのイベント発行の実装
+// TODO: フロントへのイベント発行の実装/関数名をいい感じに
 pub async fn internal_control<R: tauri::Runtime>(
     control: InternalCommand,
     port: &mut serial2_tokio::SerialPort,
@@ -86,11 +80,8 @@ pub async fn internal_control<R: tauri::Runtime>(
     match control {
         InternalCommand::Send => {
             println!("start send file");
-            match send_msg::r#async::send_midi_file_async(
-                port,
-                state.file_data.lock().await.as_ref().unwrap(),
-            )
-            .await
+            match send_msg::send_midi_file(port, state.file_data.lock().await.as_ref().unwrap())
+                .await
             {
                 Ok(_) => {
                     println!("Send File Data");

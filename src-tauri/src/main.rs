@@ -62,7 +62,7 @@ fn main() {
     // };
     if args.list {
         // Print the list of available ports
-        if let Some(list) = get_serial_port_list() {
+        if let Some(list) = serial::get_serial_port_list() {
             if list.is_empty() {
                 println!("No serial port found");
             } else {
@@ -75,7 +75,11 @@ fn main() {
         }
     } else if args.disable_gui {
         // Run CLI Tool
-        cli::run(args);
+        tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(cli::run(args))
     } else {
         let (async_proc_input_tx, async_proc_input_rx) = mpsc::channel(1);
         let (async_proc_output_tx, mut async_proc_output_rx) = mpsc::channel(1);
@@ -101,8 +105,7 @@ fn main() {
                                 Some(output) = async_proc_output_rx.recv() => {
                                   // JSの世界からの操作
                                   if internal_control(output.0,&mut port,&app_handle).await {
-                                    // Close Port
-                                    // Todo: ポートを閉じたい
+                                    // 特に操作不要。
                                     break;
                                   }
                                 }
@@ -138,19 +141,6 @@ fn main() {
     //     std::env::set_var("http_proxy", proxy_env_value.as_str());
     //     std::env::set_var("https_proxy", proxy_env_value.as_str());
     // }
-}
-
-fn get_serial_port_list() -> Option<Vec<String>> {
-    if let Ok(ports_info) = SerialPort::available_ports() {
-        Some(
-            ports_info
-                .into_iter()
-                .map(|info| info.to_str().unwrap().to_string())
-                .collect::<Vec<String>>(),
-        )
-    } else {
-        None
-    }
 }
 
 // Asyncの世界とのやり取り
