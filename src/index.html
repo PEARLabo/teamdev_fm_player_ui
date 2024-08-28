@@ -1,59 +1,76 @@
 <!DOCTYPE html>
 <html lang="ja">
 
-<head>
+  <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
     <title>Tauri File Selector</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/@tauri-apps/api/dist/bundle.js"></script>
-</head>
+    <link rel="stylesheet"
+          href="styles.css">
+    <script
+            src="https://cdn.jsdelivr.net/npm/@tauri-apps/api/dist/bundle.js"></script>
+  </head>
 
-<body>
+  <body>
     <div class="container">
-        <header>
-            <div class="header-container">
-                PearLab, Utsunomiya Univ.
-            </div>
-        </header>
+      <header>
+        <div class="header-container">
+          PearLab, Utsunomiya Univ.
+        </div>
+      </header>
 
-
-
-        <div id="main">
-			<!--シリアルポートUI-->
-			<div id="serialPortSelector" class="content-card">
-				<label for="serialPortInput">Serial Port:</label>
-				<input type="text" id="serialPortInput" placeholder="/dev/pts/4">
-				<button id="setSerialPortButton">Set Serial Port</button>
-				<button id="disconnectButton">Disconnect</button>
-			</div>
-			
-            <h1>Welcome to Fm_Sequencer by MIQS!</h1>
-            <h2>ファイルを選択してください</h2>
-            <input type="file" id="fileInput">
-            <p id="fileSize">ファイルサイズ: N/A</p>
-            <button id="sendButton" disabled>送信</button>
-            <textarea readonly id="console"></textarea>
-            <div>
-                <button onclick="switchPlayer()">Player</button>
-            </div>
+      <div id="main">
+        <!--シリアルポートUI-->
+        <div id="serialPortSelector"
+             class="content-card">
+          <label for="serialPortInput">Serial Port:</label>
+          <input type="text"
+                 id="serialPortInput"
+                 placeholder="/dev/pts/4">
+          <button id="setSerialPortButton">Set Serial Port</button>
+          <button id="disconnectButton">Disconnect</button>
         </div>
 
-        <div id="player" style="display: none;">
-            <h1>Player</h1>
-            <!-- <p id="tempoDisplay">Tempo: </p> -->
-            <div>
-                <button onclick="switchMain()">ファイル読み込み画面に戻る</button>
-            </div>
-            <textarea readonly id="playerConsole"></textarea>
-            <canvas id="pianoRoll" width="900" height="400" style="border: 1px solid black;"></canvas>
+        <h1>Welcome to Fm_Sequencer by MIQS!</h1>
+        <h2>ファイルを選択してください</h2>
+        <!-- <input type="file"
+               id="fileInput"> -->
+        <div>
+          <input type="button" id="fileOpen" value="ファイルを選択">
+          <label for="fileOpen" id="fname-display">選択されていません</label>
         </div>
+
+        <!-- <p id="fileSize">ファイルサイズ: N/A</p> -->
+        <button id="sendButton"
+                disabled>送信</button>
+        <textarea readonly
+                  id="console"></textarea>
+        <div>
+          <button onclick="switchPlayer()">Player</button>
+        </div>
+      </div>
+
+      <div id="player"
+           style="display: none;">
+        <h1>Player</h1>
+        <!-- <p id="tempoDisplay">Tempo: </p> -->
+        <div>
+          <button onclick="switchMain()">ファイル読み込み画面に戻る</button>
+        </div>
+        <textarea readonly
+                  id="playerConsole"></textarea>
+        <canvas id="pianoRoll"
+                width="900"
+                height="400"
+                style="border: 1px solid black;"></canvas>
+      </div>
     </div>
 
     <script src="queue.js"></script>
     <script src="sequencer_msg_parser.js"></script>
     <script src="player.js"></script>
     <script src="main.js"></script>
-</body>
+  </body>
 
 </html>

@@ -52,14 +52,14 @@ fn main() {
     const BAUD_RATE: u32 = 115200;
     let args = Args::parse();
     // ignore proxy
-    let proxy_env_value = match std::env::var("http_proxy") {
-        Ok(val) => {
-            std::env::set_var("http_proxy", "");
-            std::env::set_var("https_proxy", "");
-            val
-        }
-        Err(_e) => String::from("proxy setting error"),
-    };
+    // let proxy_env_value = match std::env::var("http_proxy") {
+    //     Ok(val) => {
+    //         std::env::set_var("http_proxy", "");
+    //         std::env::set_var("https_proxy", "");
+    //         val
+    //     }
+    //     Err(_e) => String::from("proxy setting error"),
+    // };
     if args.list {
         // Print the list of available ports
         if let Some(list) = get_serial_port_list() {
@@ -126,6 +126,7 @@ fn main() {
                 read_file,
                 // process_event,
                 send_file_size, // 本番用
+                open_file,
                 set_serial_port,
                 disconnect_serial_port,
             ])
@@ -133,10 +134,10 @@ fn main() {
             .expect("error while running tauri application");
     }
     // reset env proxy
-    if !proxy_env_value.is_empty() {
-        std::env::set_var("http_proxy", proxy_env_value.as_str());
-        std::env::set_var("https_proxy", proxy_env_value.as_str());
-    }
+    // if !proxy_env_value.is_empty() {
+    //     std::env::set_var("http_proxy", proxy_env_value.as_str());
+    //     std::env::set_var("https_proxy", proxy_env_value.as_str());
+    // }
 }
 
 fn get_serial_port_list() -> Option<Vec<String>> {

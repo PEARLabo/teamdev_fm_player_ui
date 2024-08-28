@@ -1,7 +1,7 @@
 // src/commands.rs
 use crate::{send_msg, utils::check_midi_format, AppState, FileInfo};
 use tauri::State;
-
+use std::{fs::File,io::Read};
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum InternalCommand {
     Open,
@@ -16,6 +16,20 @@ impl std::fmt::Display for InternalCommand {
             Self::Send => write!(f, "Send File"),
         }
     }
+}
+
+#[tauri::command]
+pub async fn open_file(path: String, state: State<'_, AppState>) -> Result<bool,String> {
+  let mut file = File::open(path).map_err(|e| e.to_string())?;
+  let mut buf = Vec::with_capacity(file.metadata().unwrap().len() as usize);
+  let _ = file.read_to_end(&mut buf).map_err(|e| e.to_string())?;
+  let is_midi = check_midi_format(&buf);
+  if is_midi {
+    // Set File Data
+    let mut dst = state.file_data.lock().await;
+    *dst = Some(buf);
+  }
+  Ok(is_midi)
 }
 // //ファイルサイズと形式を判定するtauriコマンド
 #[tauri::command]
@@ -48,12 +62,12 @@ pub async fn disconnect_serial_port(state: tauri::State<'_, AppState>) -> Result
 }
 #[tauri::command]
 pub async fn send_file_size(
-    data: Vec<u8>,
+    // data: Vec<u8>,
     state: tauri::State<'_, AppState>,
 ) -> Result<(), String> {
     println!("call send fn");
-    let mut dst = state.file_data.lock().await;
-    *dst = Some(data);
+    // let mut dst = state.file_data.lock().await;
+    // *dst = Some(data);
     let async_proc_input_tx = state.inner.lock().await;
     async_proc_input_tx
         .send((InternalCommand::Send, String::from("")))
