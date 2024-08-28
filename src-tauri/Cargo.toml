@@ -15,21 +15,17 @@ path = "./src/lib.rs"
 tauri-build = { version = "1.5.4", features = [] }
 
 [dependencies]
-tauri = { version = "1.7.2", features = [ "dialog-all"] }
+tauri = { version = "1.7.2", features = [ "dialog-message", "dialog-open"] }
 serde = { version = "1.0.209", features = ["derive"] }
 serde_json = "1.0.127"
 
 # イベント表示内容更新用
 # crossterm = "0.27.0"
 #テスト用モジュール
-tokio = { version = "1.39.3", features = ["io-util", "sync", "macros"] }
+tokio = { version = "1.39.3", default-features = false,features = ["io-util", "sync", "macros"] }
 ymodem-send-rs = { git = "https://github.com/pearlab2024-teamdev/ymodem-send-rs"}# ymodemリブ
-# magical-global = { git = "https://github.com/pearlab2024-teamdev/magical-global" }
 clap = { version = "4.5.16", features = ["derive"] }
-# tokio-serial = "5.4.4"
-# kioto-serial = "0.1.0"
 serial2-tokio = "0.1.13"
-serial2 = "0.2.26"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
