@@ -43,9 +43,7 @@ struct AppState {
 }
 
 // エラーメッセージを格納する構造体
-#[derive(serde::Serialize)]>>>>>>> main
-461
-
+#[derive(serde::Serialize)]
 struct ErrorMessage {
     error: String,
 }
