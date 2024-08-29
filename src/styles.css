@@ -1,3 +1,7 @@
+:root {
+  --body-width: 960px;
+  --body-height: 700px;
+}
 body {
 	font-family: 'Arial', sans-serif;
 	padding: 0;
@@ -10,8 +14,8 @@ body {
 }
 
 .container {
-	width: 960px;
-	height: 700px;
+	width: var(--body-width);
+	height: var(--body-height);
 	background: rgba(255, 255, 255, 0.8);
 	/* コンテナを透過させる */
 	box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
@@ -22,7 +26,7 @@ body {
 
 .container::before {
 	content: "";
-	background: url('assets/miqs.png') no-repeat center center;
+	background: url('assets/miqs.webp') no-repeat center center;
 	background-size: cover;
 	opacity: 1;
 	/* 画像を透けさせる */
@@ -33,7 +37,10 @@ body {
 	height: 100%;
 	z-index: -1;
 }
+.row-container {
+  display: flex;
 
+}
 header {
 	background: linear-gradient(90deg, rgba(58, 123, 213, 1) 0%, rgba(58, 213, 174, 1) 100%);
 	padding: 20px;
@@ -163,17 +170,72 @@ textarea {
 
 /* 以下、シリアルポート選択　*/
 
-#serialPortSelector {
-	margin: 20px auto;
-	text-align: center;
+#control-serialport-selector:checked + #serialPortSelector {
+  position: fixed;
+  transition-property: top;
+  transition-duration: 250ms;
+  transition-delay: 0ms;
+  transition-timing-function: ease-in-out;
+	top: calc(((100vh - var(--body-height)) / 2) + 58px);
+  
 }
-
+#control-serialport-selector + #serialPortSelector {
+  position: fixed;
+  transition-property: top;
+  transition-duration: 250ms;
+  transition-delay: 0ms;
+  transition-timing-function: ease-in-out;
+	top: calc(-200px);
+  width:  var(--body-width);
+  padding: 20px 0;
+  margin: auto;
+	text-align: center;
+  background: rgb(255, 255, 255);
+}
+#selector-toggle-button {
+  cursor: pointer;
+  position: fixed;
+  top:  calc(((100vh - var(--body-height)) / 2) + 80px);
+  right: calc(((100vw - var(--body-width)) / 2) + 20px);
+  display: flex;
+  align-items: center;
+}
+#selector-toggle-button > span {
+  display: inline-block;
+  font-size: 1.2em;
+}
+#control-serialport-selector {
+  display: none;
+}
+#control-serialport-selector + #serialPortSelector + #selector-toggle-button::before {
+  content: "";
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-left: 5px solid #000;
+  border-bottom: 5px solid #000;
+  transform-origin: center center;
+  transform: rotate(-45deg) translateY(-10px);
+  /* transform: translateY(0) translateX(0); */
+  
+  transition-property: transform;
+  transition-duration: 250ms;
+}
+#control-serialport-selector:checked + #serialPortSelector + #selector-toggle-button::before {
+  transform-origin: center;
+  transform: rotate(135deg) translateY(0px) translateX(10px);
+  transition-property: transform;
+  transition-duration: 250ms;
+}
 #serialPortSelector label {
 	display: block;
 	margin-bottom: 10px;
 	font-size: 1.2em;
 }
-
+#port-control-buttons {
+  width: 60%;
+  margin: auto;
+}
 #serialPortInput {
 	padding: 10px;
 	width: 80%;

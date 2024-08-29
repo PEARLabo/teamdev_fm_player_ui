@@ -22,16 +22,21 @@
 
       <div id="main">
         <!--シリアルポートUI-->
+        
+        <input type="checkbox" name="" id="control-serialport-selector" >
         <div id="serialPortSelector"
              class="content-card">
           <label for="serialPortInput">Serial Port:</label>
           <input type="text"
                  id="serialPortInput"
                  placeholder="/dev/pts/4">
-          <button id="setSerialPortButton">Set Serial Port</button>
+          <div class="row-container" id="port-control-buttons">
+            <button id="setSerialPortButton">Set Serial Port</button>
           <button id="disconnectButton">Disconnect</button>
+          </div>
+          
         </div>
-
+        <label for="control-serialport-selector" id="selector-toggle-button"><span>Setting</span></label>
         <h1>Welcome to Fm_Sequencer by MIQS!</h1>
         <h2>ファイルを選択してください</h2>
         <!-- <input type="file"
