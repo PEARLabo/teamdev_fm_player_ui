@@ -1,4 +1,11 @@
 use tokio::io::AsyncReadExt;
+
+fn convert_to_bpm(data: &[u8]) -> u32 {
+    let usec_per_beat =
+        ((data[0] as u32) | ((data[1] as u32) << 8) | ((data[2] as u32) << 16)) as usize;
+    (60000000usize / usec_per_beat) as u32
+}
+
 #[derive(serde::Serialize)]
 pub struct SequenceMsg {
     channel: u8,
@@ -34,7 +41,7 @@ impl std::fmt::Display for SequenceMsg {
                 write!(f, "Tempo: {} BPM", convert_to_bpm(data))
             }
             SequenceEventFlag::End => write!(f, "End"),
-            SequenceEventFlag::Nop => write!(f, "Ch{:2}: NOP",self.channel),
+            SequenceEventFlag::Nop => write!(f, "Ch{:2}: NOP", self.channel),
             SequenceEventFlag::Param => {
                 write!(
                     f,
@@ -59,8 +66,9 @@ impl std::fmt::Display for SequenceMsg {
         }
     }
 }
+
 impl SequenceMsg {
-    fn new(channel: u8, event: SequenceEventFlag, data: Option<Vec<u8>>) -> Self {
+    pub fn new(channel: u8, event: SequenceEventFlag, data: Option<Vec<u8>>) -> Self {
         Self {
             channel,
             sq_event: event,
@@ -181,31 +189,4 @@ impl ParamChangeFlag {
             _ => 0xff,
         }
     }
-}
-fn convert_to_bpm(data: &[u8]) -> u32 {
-    let usec_per_beat =
-        ((data[0] as u32) | ((data[1] as u32) << 8) | ((data[2] as u32) << 16)) as usize;
-    (60000000usize / usec_per_beat) as u32
-}
-pub async fn receive_msg(first_byte: u8, port: &mut serial2_tokio::SerialPort) -> SequenceMsg {
-    let msg_flag = first_byte & 0xf;
-    let len = (first_byte >> 4) as usize;
-    if len == 0 && msg_flag == 1 {
-        // End Event
-        println!("ALL: Play End");
-        return SequenceMsg::new(0, SequenceEventFlag::End, None);
-    }
-    let mut buf = vec![0; len];
-    port.read_exact(&mut buf).await.unwrap();
-    // println!("{:#02x} {:#02x?}",first_byte, buf);
-    if msg_flag != 1 {
-        println!("receive: {:#02x}", msg_flag);
-    }
-
-    SequenceMsg::from(buf.as_slice())
-}
-
-fn cvt_string(buf: &[u8]) -> String {
-    let tmp = Vec::from(buf);
-    String::from_utf8(tmp).unwrap_or(String::from("unknown"))
 }

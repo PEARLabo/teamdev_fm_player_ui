@@ -1,3 +1,4 @@
+use crate::sequence_msg::{SequenceEventFlag, SequenceMsg};
 use serial2_tokio::SerialPort;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use ymodem_send_rs::{YmodemAsyncSend, YmodemSender};
@@ -22,7 +23,7 @@ pub async fn file_data(port: &mut SerialPort, data: &[u8]) {
     sender.send(port).await.unwrap();
     println!("Maybe File sent!");
 }
-
+// Receive only one byte
 pub async fn receive_byte(port: &mut SerialPort) -> Result<u8, String> {
     let mut response = [0; 1];
     match port.read_exact(&mut response).await {
@@ -33,6 +34,7 @@ pub async fn receive_byte(port: &mut SerialPort) -> Result<u8, String> {
         }
     }
 }
+
 pub async fn send_midi_file(port: &mut SerialPort, buf: &[u8]) -> Result<(), String> {
     file_size(port, buf).await.unwrap();
     // Ymodemによるファイル転送(受信可能の場合)
@@ -56,7 +58,27 @@ pub async fn send_midi_file(port: &mut SerialPort, buf: &[u8]) -> Result<(), Str
     }
 }
 
+pub async fn receive_sequence_msg(
+    first_byte: u8,
+    port: &mut serial2_tokio::SerialPort,
+) -> Option<SequenceMsg> {
+    let msg_flag = first_byte & 0xf;
+    let len = (first_byte >> 4) as usize;
+    if len == 0 && msg_flag == 1 {
+        // End Event(継続するデータなし)
+        return Some(SequenceMsg::new(0, SequenceEventFlag::End, None));
+    }
+    let mut buf = vec![0; len];
+    port.read_exact(&mut buf).await.unwrap();
+    if msg_flag != 1 {
+        println!("receive: {:#02x}", msg_flag);
+        return None;
+    }
+
+    Some(SequenceMsg::from(buf.as_slice()))
+}
+
 pub fn clear_buffer(port: &mut SerialPort) {
-  port.discard_input_buffer().unwrap();
-  port.discard_output_buffer().unwrap();
+    port.discard_input_buffer().unwrap();
+    port.discard_output_buffer().unwrap();
 }

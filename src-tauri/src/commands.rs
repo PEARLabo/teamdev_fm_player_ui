@@ -1,5 +1,5 @@
 // src/commands.rs
-use crate::{serial_com, sequence_msg::SequenceMsg, utils::check_midi_format, AppState, FileInfo};
+use crate::{sequence_msg::SequenceMsg, serial_com, utils::check_midi_format, AppState, FileInfo};
 use std::{fs::File, io::Read};
 use tauri::State;
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -52,6 +52,7 @@ pub async fn set_serial_port(
         .await
         .map_err(|e| e.to_string())
 }
+
 #[tauri::command]
 pub async fn disconnect_serial_port(state: tauri::State<'_, AppState>) -> Result<(), String> {
     let async_proc_input_tx = state.inner.lock().await;
@@ -60,6 +61,7 @@ pub async fn disconnect_serial_port(state: tauri::State<'_, AppState>) -> Result
         .await
         .map_err(|e| e.to_string())
 }
+
 #[tauri::command]
 pub async fn send_file_size(state: tauri::State<'_, AppState>) -> Result<(), String> {
     let async_proc_input_tx = state.inner.lock().await;
@@ -69,9 +71,9 @@ pub async fn send_file_size(state: tauri::State<'_, AppState>) -> Result<(), Str
         .map_err(|e| e.to_string())
 }
 
-// JSの世界からのイベント分岐
+// JSの世界からのイベント分岐(trueを返すとシリアル通信を閉じる)
 // TODO: フロントへのイベント発行の実装/関数名をいい感じに
-pub async fn internal_control<R: tauri::Runtime>(
+pub async fn handle_internal_control<R: tauri::Runtime>(
     control: InternalCommand,
     port: &mut serial2_tokio::SerialPort,
     manager: &impl tauri::Manager<R>,
@@ -96,7 +98,8 @@ pub async fn internal_control<R: tauri::Runtime>(
         _ => false,
     }
 }
-
-pub fn from_sequencer<R: tauri::Runtime>(msg: SequenceMsg, manager: &impl tauri::Manager<R>) {
+// TODO: フロントへの送信を実装
+// シーケンサからの演奏情報受け取り時に実行する関数
+pub fn handle_sequence_msg<R: tauri::Runtime>(msg: SequenceMsg, manager: &impl tauri::Manager<R>) {
     println!("{}", msg);
 }

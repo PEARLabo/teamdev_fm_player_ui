@@ -3,13 +3,13 @@
 
 mod cli;
 mod commands;
-mod serial_com;
 mod sequence_msg;
+mod serial_com;
 mod utils;
 use clap::Parser;
 
 use commands::*;
-use sequence_msg::receive_msg;
+
 use serial2_tokio::SerialPort;
 use tokio::sync::{mpsc, Mutex};
 
@@ -102,15 +102,17 @@ fn main() {
                             loop {
                               tokio::select!(
                                 Some(output) = async_proc_output_rx.recv() => {
-                                  // JSの世界からの操作
-                                  if internal_control(output.0,&mut port,&app_handle).await {
-                                    // 特に操作不要。
+                                  // フロントからのイベント
+                                  if handle_internal_control(output.0,&mut port,&app_handle).await {
+                                    serial_com::clear_buffer(&mut port);
                                     break;
                                   }
                                 }
                                 Ok(v) = serial_com::receive_byte(&mut port) => {
                                   // Sequencerとの独自プロトコルの通信
-                                  from_sequencer(receive_msg(v, &mut port).await,&app_handle);
+                                  if let Some(sq_msg) = serial_com::receive_sequence_msg(v, &mut port).await {
+                                    handle_sequence_msg(sq_msg, &app_handle);
+                                  }
                                 }
                               );
                             }
