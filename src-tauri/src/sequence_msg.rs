@@ -45,9 +45,10 @@ impl std::fmt::Display for SequenceMsg {
             SequenceEventFlag::Param => {
                 write!(
                     f,
-                    "Ch{:2}: Set {}",
+                    "Ch{:2}: Set {} {:#02X}",
                     self.channel,
-                    self.param_change.unwrap()
+                    self.param_change.unwrap(),
+                    data[0]
                 )
             }
             SequenceEventFlag::ProgramChange => {
