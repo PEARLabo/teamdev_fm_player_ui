@@ -1,5 +1,5 @@
 // src/commands.rs
-use crate::{send_msg, utils::check_midi_format, AppState, FileInfo};
+use crate::{send_msg, sequence_msg::SequenceMsg, utils::check_midi_format, AppState, FileInfo};
 use std::{fs::File, io::Read};
 use tauri::State;
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -95,4 +95,8 @@ pub async fn internal_control<R: tauri::Runtime>(
         InternalCommand::Close => true,
         _ => false,
     }
+}
+
+pub fn from_sequencer<R: tauri::Runtime>(msg: SequenceMsg, manager: &impl tauri::Manager<R>) {
+    println!("{}", msg);
 }

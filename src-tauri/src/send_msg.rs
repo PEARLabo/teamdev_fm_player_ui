@@ -1,6 +1,6 @@
 use serial2_tokio::SerialPort;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use ymodem_send_rs::{YmodemSender, YmodemAsyncSend};
+use ymodem_send_rs::{YmodemAsyncSend, YmodemSender};
 
 pub async fn file_size(port: &mut SerialPort, buf: &[u8]) -> Result<(), String> {
     let f_size = buf.len().to_le_bytes();

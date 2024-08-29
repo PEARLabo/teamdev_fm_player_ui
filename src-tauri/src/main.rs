@@ -5,13 +5,11 @@ mod cli;
 mod commands;
 mod send_msg;
 mod sequence_msg;
-mod serial;
 mod utils;
 use clap::Parser;
 
 use commands::*;
-use sequence_msg::sequence_msg;
-use serial::read_one_byte;
+use sequence_msg::receive_msg;
 use serial2_tokio::SerialPort;
 use tokio::sync::{mpsc, Mutex};
 
@@ -62,7 +60,7 @@ fn main() {
     // };
     if args.list {
         // Print the list of available ports
-        if let Some(list) = serial::get_serial_port_list() {
+        if let Some(list) = utils::get_serial_port_list() {
             if list.is_empty() {
                 println!("No serial port found");
             } else {
@@ -109,9 +107,9 @@ fn main() {
                                     break;
                                   }
                                 }
-                                v = read_one_byte(&mut port) => {
+                                Ok(v) = send_msg::receive_byte(&mut port) => {
                                   // Sequencerとの独自プロトコルの通信
-                                  sequence_msg(v, &mut port,&app_handle).await;
+                                  from_sequencer(receive_msg(v, &mut port).await,&app_handle);
                                 }
                               );
                             }

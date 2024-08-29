@@ -1,5 +1,72 @@
 use tokio::io::AsyncReadExt;
-enum SequenceEventFlag {
+#[derive(serde::Serialize)]
+pub struct SequenceMsg {
+    channel: u8,
+    sq_event: SequenceEventFlag,
+    param_change: Option<ParamChangeFlag>,
+    data: Option<Vec<u8>>,
+}
+impl<'a> From<&'a [u8]> for SequenceMsg {
+    fn from(data: &'a [u8]) -> Self {
+        let event_flag = SequenceEventFlag::from(data[0] & 0xf);
+        let ch = (data[0] >> 4) & 0xf;
+        if event_flag == SequenceEventFlag::Param {
+            Self::new_param_change(ch, ParamChangeFlag::from(data[1] & 0xf), data[2..].to_vec())
+        } else {
+            Self::new(ch, event_flag, Some(data[1..].to_vec()))
+        }
+    }
+}
+impl std::fmt::Display for SequenceMsg {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let data = self.data.as_ref().unwrap();
+        match self.sq_event {
+            SequenceEventFlag::KeyEvent => {
+                if data[1] == 0 {
+                    // Key Off
+                    write!(f, "Ch{:2}: Key Off     {}", self.channel, data[0])
+                } else {
+                    // Key On
+                    write!(f, "Ch{:2}: Key On      {}", self.channel, data[0])
+                }
+            }
+            SequenceEventFlag::Tempo => {
+                write!(f, "Tempo")
+            }
+            SequenceEventFlag::End => write!(f, "End"),
+            SequenceEventFlag::Expression => {
+                write!(f, "Ch{}: Expression     {}", self.channel, data[0])
+            }
+            SequenceEventFlag::ProgramChange => {
+                write!(f, "Ch{}: Program Change {}", self.channel, "")
+            }
+            SequenceEventFlag::Param => {
+                write!(f, "")
+            }
+            _ => write!(f, ""),
+        }
+    }
+}
+impl SequenceMsg {
+    fn new(channel: u8, event: SequenceEventFlag, data: Option<Vec<u8>>) -> Self {
+        Self {
+            channel,
+            sq_event: event,
+            param_change: None,
+            data,
+        }
+    }
+    fn new_param_change(channel: u8, param_change: ParamChangeFlag, data: Vec<u8>) -> Self {
+        Self {
+            channel,
+            sq_event: SequenceEventFlag::Param,
+            param_change: Some(param_change),
+            data: Some(data),
+        }
+    }
+}
+#[derive(serde::Serialize, PartialEq)]
+pub enum SequenceEventFlag {
     KeyEvent,
     Tempo,
     End,
@@ -24,8 +91,9 @@ impl From<u8> for SequenceEventFlag {
         }
     }
 }
+
 impl SequenceEventFlag {
-    fn into_u8(self) -> u8 {
+    pub fn into_u8(self) -> u8 {
         match self {
             Self::KeyEvent => 0,
             Self::Tempo => 1,
@@ -38,7 +106,8 @@ impl SequenceEventFlag {
         }
     }
 }
-enum ParamChangeFlag {
+#[derive(serde::Serialize)]
+pub enum ParamChangeFlag {
     Slot,
     DtMul,
     Tl,
@@ -80,7 +149,7 @@ impl From<u8> for ParamChangeFlag {
     }
 }
 impl ParamChangeFlag {
-    fn into_u8(self) -> u8 {
+    pub fn into_u8(self) -> u8 {
         match self {
             Self::Slot => 0,
             Self::DtMul => 1,
@@ -94,18 +163,14 @@ impl ParamChangeFlag {
         }
     }
 }
-// TODO: フロントへのイベント発行の実装
-pub async fn sequence_msg<R: tauri::Runtime>(
-    first_byte: u8,
-    port: &mut serial2_tokio::SerialPort,
-    app_handle: &impl tauri::Manager<R>,
-) {
+
+pub async fn receive_msg(first_byte: u8, port: &mut serial2_tokio::SerialPort) -> SequenceMsg {
     let msg_flag = first_byte & 0xf;
     let len = (first_byte >> 4) as usize;
     if len == 0 && msg_flag == 1 {
         // End Event
         println!("ALL: Play End");
-        return;
+        return SequenceMsg::new(0, SequenceEventFlag::End, None);
     }
     let mut buf = vec![0; len];
     port.read_exact(&mut buf).await.unwrap();
@@ -113,34 +178,37 @@ pub async fn sequence_msg<R: tauri::Runtime>(
     if msg_flag != 1 {
         println!("receive: {:#02x}", msg_flag);
     }
-    let event_flag = SequenceEventFlag::from(buf[0] & 0xf);
-    let ch = (buf[0] >> 4) & 0xf;
-    match event_flag {
-        SequenceEventFlag::KeyEvent => {
-            let key = buf[1];
-            let vel = buf[2];
-            if vel == 0 {
-                println!("Ch{ch}: Key Off {}", key);
-            } else {
-                println!("Ch{ch}: Key On  {}", key);
-            }
-        }
-        SequenceEventFlag::Tempo => {
-            let tempo = ((buf[1] as u32) << 16) | ((buf[2] as u32) << 8) | (buf[3] as u32);
-            println!("Ch{ch}: TEMPO   {}", tempo);
-        }
-        SequenceEventFlag::End => {
-            println!("ALL: Play End");
-        }
-        SequenceEventFlag::Nop => {}
-        SequenceEventFlag::Param => msg_param_change(ch, &buf[1..], app_handle),
-        SequenceEventFlag::ProgramChange => {
-            let name = cvt_string(&buf[1..]);
-            println!("Ch{ch}: PC      {}", name);
-        }
-        SequenceEventFlag::Expression => {}
-        _ => {}
-    }
+
+    SequenceMsg::from(buf.as_slice())
+
+    // let event_flag = SequenceEventFlag::from(buf[0] & 0xf);
+    // let ch = (buf[0] >> 4) & 0xf;
+    // match event_flag {
+    //     SequenceEventFlag::KeyEvent => {
+    //         let key = buf[1];
+    //         let vel = buf[2];
+    //         if vel == 0 {
+    //             println!("Ch{ch}: Key Off {}", key);
+    //         } else {
+    //             println!("Ch{ch}: Key On  {}", key);
+    //         }
+    //     }
+    //     SequenceEventFlag::Tempo => {
+    //         let tempo = ((buf[1] as u32) << 16) | ((buf[2] as u32) << 8) | (buf[3] as u32);
+    //         println!("Ch{ch}: TEMPO   {}", tempo);
+    //     }
+    //     SequenceEventFlag::End => {
+    //         println!("ALL: Play End");
+    //     }
+    //     SequenceEventFlag::Nop => {}
+    //     SequenceEventFlag::Param => msg_param_change(ch, &buf[1..], app_handle),
+    //     SequenceEventFlag::ProgramChange => {
+    //         let name = cvt_string(&buf[1..]);
+    //         println!("Ch{ch}: PC      {}", name);
+    //     }
+    //     SequenceEventFlag::Expression => {}
+    //     _ => {}
+    // }
 }
 // TODO: フロントへのイベント発行の実装
 fn msg_param_change<R: tauri::Runtime>(ch: u8, buf: &[u8], app_handle: &impl tauri::Manager<R>) {
