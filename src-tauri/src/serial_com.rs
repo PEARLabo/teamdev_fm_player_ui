@@ -55,3 +55,8 @@ pub async fn send_midi_file(port: &mut SerialPort, buf: &[u8]) -> Result<(), Str
         unreachable!();
     }
 }
+
+pub fn clear_buffer(port: &mut SerialPort) {
+  port.discard_input_buffer().unwrap();
+  port.discard_output_buffer().unwrap();
+}

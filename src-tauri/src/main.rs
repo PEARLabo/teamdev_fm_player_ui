@@ -98,6 +98,7 @@ fn main() {
                           if let Ok(mut port) = SerialPort::open(output.1, BAUD_RATE) {
                             // Todo: フロントへの接続成功通知の実装
                             println!("Connect Success.");
+                            serial_com::clear_buffer(&mut port);
                             loop {
                               tokio::select!(
                                 Some(output) = async_proc_output_rx.recv() => {

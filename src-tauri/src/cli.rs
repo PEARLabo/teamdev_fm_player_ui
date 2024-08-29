@@ -15,7 +15,7 @@ pub async fn run(args: Args) {
     } else {
         panic!("Could not open port");
     };
-
+    serial_com::clear_buffer(&mut port);
     if let Some(path) = args.input {
         let mut file = File::open(path).unwrap();
         let mut buf = Vec::new();
