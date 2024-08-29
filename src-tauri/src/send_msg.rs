@@ -1,6 +1,7 @@
 use serial2_tokio::SerialPort;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use ymodem_send_rs::YmodemSender;
+use ymodem_send_rs::{YmodemSender, YmodemAsyncSend};
+
 pub async fn file_size(port: &mut SerialPort, buf: &[u8]) -> Result<(), String> {
     let f_size = buf.len().to_le_bytes();
     let bit4_header = 0x2F; //リトルエンディアンに対応させる
@@ -18,7 +19,7 @@ pub async fn file_data(port: &mut SerialPort, data: &[u8]) {
     println!("Start Send MIDI FIle by Ymodem");
     let fname = "example.mid";
     let sender = YmodemSender::new(fname, data);
-    sender.send_async(port).await.unwrap();
+    sender.send(port).await.unwrap();
     println!("Maybe File sent!");
 }
 
@@ -34,7 +35,6 @@ pub async fn receive_byte(port: &mut SerialPort) -> Result<u8, String> {
 }
 pub async fn send_midi_file(port: &mut SerialPort, buf: &[u8]) -> Result<(), String> {
     file_size(port, buf).await.unwrap();
-    println!("file");
     // Ymodemによるファイル転送(受信可能の場合)
     let msg_flag = receive_byte(port).await.unwrap() & 0xf;
     if msg_flag == 0xe {
