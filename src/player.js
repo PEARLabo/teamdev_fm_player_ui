@@ -1,14 +1,15 @@
 let activeNotes = new Set();
 let eventQueue = new Queue(512);
 // const variables
-const CANVAS_WIDTH = 900 / 2;
-const CANVAS_HEIGHT = 400 / 2;
+const CANVAS_WIDTH = 900;
+const CANVAS_HEIGHT = 400;
 const TIME_DISPLAY_HEIGHT = 20; // 経過時間表示のための高さ
 const PIANO_HEIGHT = (CANVAS_HEIGHT - TIME_DISPLAY_HEIGHT) / 2; // 鍵盤のための高さを2段に分ける
 const WHITE_KEY_WIDTH = CANVAS_WIDTH / 21; // 3オクターブ分の白鍵を横に収める
 const WHITE_KEY_HEIGHT = PIANO_HEIGHT; // 白鍵の高さを全体に合わせて調整
 const BLACK_KEY_WIDTH = WHITE_KEY_WIDTH * 0.6;
 const BLACK_KEY_HEIGHT = WHITE_KEY_HEIGHT * 0.6;
+let canvas_is_update_frame = true;
 // ピアノロールの描画(switchPlayer関数内で呼び出し)
 function drawPianoRoll() {
   const canvas = document.getElementById("pianoRoll");
@@ -52,22 +53,6 @@ function drawPianoRoll() {
           );
         }
       }
-      // whiteKeys.forEach((key, i) => {
-      //   const pitch = octave * 12 + key + 24; // C1から開始するように24を追加
-      //   const x = octaveOffsetX + i * WHITE_KEY_WIDTH;
-      //   const y = yOffset;
-      //   ctx.fillStyle = activeNotes.has(pitch) ? '#D3D3D3' : 'white';  // 薄い灰色でアクティブな白鍵を表示
-      //   ctx.fillRect(x, y, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT);
-      //   ctx.strokeStyle = 'black';
-      //   ctx.strokeRect(x, y, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT);
-
-      //   // Cのラベルを表示
-      //   if (key === 0) {
-      //     ctx.fillStyle = 'black';
-      //     ctx.font = '14px Arial';
-      //     ctx.fillText(`C${Math.floor(pitch / 12) - 1}`, x + 5, y + WHITE_KEY_HEIGHT - 5);
-      //   }
-      // });
     }
 
     // 黒鍵を描画し、その上にアクティブな色を適用
@@ -90,42 +75,34 @@ function drawPianoRoll() {
         ctx.strokeStyle = "black";
         ctx.strokeRect(x, y, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT);
       }
-      // blackKeys.forEach((key) => {
-      //   const pitch = octave * 12 + key + 24; // C#1から開始するように24を追加
-      //   const x = octaveOffsetX + whiteKeys.indexOf(key - 1) * WHITE_KEY_WIDTH + WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2;
-      //   const y = yOffset;
-
-      //   // 黒鍵の基本描画
-      //   ctx.fillStyle = activeNotes.has(pitch) ? '#A9A9A9' : 'black';  // 濃い灰色でアクティブな黒鍵を表示
-      //   ctx.fillRect(x, y, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT);
-      //   ctx.strokeStyle = 'black';
-      //   ctx.strokeRect(x, y, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT);
-      // });
     }
   }
 
-  // 経過時間の表示
-  function displayTime(elapsedTime) {
-    ctx.fillStyle = "black";
-    ctx.font = "16px Arial";
-    // 秒数は小数点以下1桁まで表示
-    ctx.fillText(
-      `Time: ${Math.floor(elapsedTime / 1000)}s`,
-      10,
-      canvas.height - 5,
-    );
-  }
+  // // 経過時間の表示
+  // function displayTime(elapsedTime) {
+  //   ctx.fillStyle = "black";
+  //   ctx.font = "16px Arial";
+  //   // 秒数は小数点以下1桁まで表示
+  //   ctx.fillText(
+  //     `Time: ${Math.floor(elapsedTime / 1000)}s`,
+  //     10,
+  //     canvas.height - 5,
+  //   );
+  // }
 
   // アニメーションの開始
   function animate(time) {
-    if (!startTime) startTime = time;
-    const elapsedTime = time - startTime;
+    // if (!startTime) startTime = time;
+    // const elapsedTime = time - startTime;
+    if(canvas_is_update_frame) {
+      processEventQueue();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPiano();
+    }
+    canvas_is_update_frame = !canvas_is_update_frame;
+    // displayTime(elapsedTime);
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawPiano();
-    displayTime(elapsedTime);
-
-    processEventQueue();
+    
 
     requestAnimationFrame(animate);
   }

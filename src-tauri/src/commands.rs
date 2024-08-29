@@ -102,4 +102,6 @@ pub async fn handle_internal_control<R: tauri::Runtime>(
 // シーケンサからの演奏情報受け取り時に実行する関数
 pub fn handle_sequence_msg<R: tauri::Runtime>(msg: SequenceMsg, manager: &impl tauri::Manager<R>) {
     println!("{}", msg);
+    println!("hogehoge");
+    manager.emit_all("sequencer-msg", msg).unwrap();
 }

@@ -7,7 +7,10 @@ let portName = "/dev/pts/4"; //デフォルトのシリアルポート名
 // Tauri関数名を指定
 let tauriFunctionName = "send_file_size"; // 本番用
 //let tauriFunctionName = 'send_file_test'; // テスト用
-
+window.__TAURI__.event.listen("sequencer-msg", (data) => {
+  console.log("hoge")
+  console.log(data)
+})
 // div.playerを表示し、div.mainを非表示にする関数
 function switchPlayer() {
   const main = document.getElementById("main");
@@ -196,64 +199,64 @@ document.getElementById("sendButton").addEventListener("click", async () => {
   // const contents = await readFileAsArrayBuffer(file);
   // console.log('Data send clicked');
 
-  // イベントリスナーを設定
-  if (!playbackListenerId) {
-    window.__TAURI__.event
-      .listen("playback_info", (event) => {
-        const data = event.payload;
-        //console.log(`Received event: ${data}`);
-        const consoleArea = document.getElementById("console");
-        consoleArea.scrollTop = consoleArea.scrollHeight;
-        //consoleArea.value += `Playback Data: ${data}\n`;
+  // // イベントリスナーを設定
+  // if (!playbackListenerId) {
+  //   window.__TAURI__.event
+  //     .listen("playback_info", (event) => {
+  //       const data = event.payload;
+  //       //console.log(`Received event: ${data}`);
+  //       const consoleArea = document.getElementById("console");
+  //       consoleArea.scrollTop = consoleArea.scrollHeight;
+  //       //consoleArea.value += `Playback Data: ${data}\n`;
 
-        if (typeof data === "string") {
-          console.log(`String event received: ${data}`);
-          if (data.startsWith("Starting playback info")) {
-            console.log("Data sent successfully"); // デバッグ用ログ
-            switchPlayer();
-            updatePianoRoll(data);
-            // #playerConsole textarea デモ
-            const playerConsoleArea = document.getElementById("playerConsole");
-            playerConsoleArea.scrollTop = playerConsoleArea.scrollHeight;
-            playerConsoleArea.value += "==Switched Player==\n";
-          } else if (data.startsWith("Received response byte:")) {
-            // 受信したレスポンスバイトの処理
-            console.log(`Processing response: ${data}`);
-          } else if (data.startsWith("tempo:")) {
-            console.log(`Tempo event received: ${data}`);
-            // Tempoの処理
-          } else if (data.startsWith("chanel:")) {
-            console.log(`Channel event received: ${data}`);
-            // Channelイベントの処理
-          } else if (
-            data.startsWith("FlagA is invalid:") ||
-            data.startsWith("FlagA is 5: Skip to next track.")
-          ) {
-            console.log(`Flag event received: ${data}`);
-            // Flagイベントの処理
-          } else {
-            console.warn(`Unknown event type: ${data}`);
-          }
-          // ピアノロールアップデート
-          // updatePianoRoll(data);
-        } else if (Array.isArray(data)) {
-          // console.log(`Array event received: ${JSON.stringify(data)}`);
-          // Arrayの処理（必要に応じて）
-          let dst = parse_event_msg(data[0], data[1], null);
-          if (dst !== null) {
-            if (dst.tempo !== 0) {
-              updateTempo(dst);
-            }
-            updatePianoRoll(dst);
-          }
-        } else {
-          console.warn(`Unexpected data type: ${typeof data}`);
-        }
-      })
-      .then((unlisten) => {
-        playbackListenerId = unlisten;
-      });
-  }
+  //       if (typeof data === "string") {
+  //         console.log(`String event received: ${data}`);
+  //         if (data.startsWith("Starting playback info")) {
+  //           console.log("Data sent successfully"); // デバッグ用ログ
+  //           switchPlayer();
+  //           updatePianoRoll(data);
+  //           // #playerConsole textarea デモ
+  //           const playerConsoleArea = document.getElementById("playerConsole");
+  //           playerConsoleArea.scrollTop = playerConsoleArea.scrollHeight;
+  //           playerConsoleArea.value += "==Switched Player==\n";
+  //         } else if (data.startsWith("Received response byte:")) {
+  //           // 受信したレスポンスバイトの処理
+  //           console.log(`Processing response: ${data}`);
+  //         } else if (data.startsWith("tempo:")) {
+  //           console.log(`Tempo event received: ${data}`);
+  //           // Tempoの処理
+  //         } else if (data.startsWith("chanel:")) {
+  //           console.log(`Channel event received: ${data}`);
+  //           // Channelイベントの処理
+  //         } else if (
+  //           data.startsWith("FlagA is invalid:") ||
+  //           data.startsWith("FlagA is 5: Skip to next track.")
+  //         ) {
+  //           console.log(`Flag event received: ${data}`);
+  //           // Flagイベントの処理
+  //         } else {
+  //           console.warn(`Unknown event type: ${data}`);
+  //         }
+  //         // ピアノロールアップデート
+  //         // updatePianoRoll(data);
+  //       } else if (Array.isArray(data)) {
+  //         // console.log(`Array event received: ${JSON.stringify(data)}`);
+  //         // Arrayの処理（必要に応じて）
+  //         let dst = parse_event_msg(data[0], data[1], null);
+  //         if (dst !== null) {
+  //           if (dst.tempo !== 0) {
+  //             updateTempo(dst);
+  //           }
+  //           updatePianoRoll(dst);
+  //         }
+  //       } else {
+  //         console.warn(`Unexpected data type: ${typeof data}`);
+  //       }
+  //     })
+  //     .then((unlisten) => {
+  //       playbackListenerId = unlisten;
+  //     });
+  // }
 
   try {
     await invoke(tauriFunctionName); // Rust側のsend_file_sizeコマンドを呼び出し

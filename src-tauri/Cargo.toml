@@ -23,6 +23,7 @@ tokio = { version = "1.39.3", default-features = false,features = ["io-util", "s
 ymodem-send-rs = { git = "https://github.com/pearlab2024-teamdev/ymodem-send-rs", features= ["async"] }# ymodemリブ
 clap = { version = "4.5.16", features = ["derive"] }
 serial2-tokio = "0.1.13"
+serde_repr = "0.1.19"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

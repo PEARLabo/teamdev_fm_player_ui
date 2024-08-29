@@ -13,7 +13,7 @@ const [
   EventParam, // | ParamType(8bit) |slot(8bit)|data(8bit)|
   EventProgramChange,
   EventExpression,
-  EventText,
+  EventOther,
 ] = [...Array(8)].map((_, i) => i);
 const PARAM_SET_LUT = [
   "SlotMask",

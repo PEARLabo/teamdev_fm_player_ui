@@ -6,7 +6,7 @@ fn convert_to_bpm(data: &[u8]) -> u32 {
     (60000000usize / usec_per_beat) as u32
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, Clone)]
 pub struct SequenceMsg {
     channel: u8,
     sq_event: SequenceEventFlag,
@@ -20,7 +20,17 @@ impl<'a> From<&'a [u8]> for SequenceMsg {
         if event_flag == SequenceEventFlag::Param {
             Self::new_param_change(ch, ParamChangeFlag::from(data[1] & 0xf), data[2..].to_vec())
         } else {
-            Self::new(ch, event_flag, Some(data[1..].to_vec()))
+            let data = if event_flag == SequenceEventFlag::Tempo {
+                // Convert u32 to u8x4
+                let bpm = convert_to_bpm(&data[1..]);
+                unsafe {
+                    let ptr = ((&bpm) as *const u32) as *const u8;
+                    std::slice::from_raw_parts(ptr, 4).to_vec()
+                }
+            } else {
+                data[1..].to_vec()
+            };
+            Self::new(ch, event_flag, Some(data))
         }
     }
 }
@@ -38,7 +48,9 @@ impl std::fmt::Display for SequenceMsg {
                 }
             }
             SequenceEventFlag::Tempo => {
-                write!(f, "Tempo: {} BPM", convert_to_bpm(data))
+                write!(f, "Tempo: {} BPM", unsafe {
+                    *(data.as_ptr() as *const u32)
+                })
             }
             SequenceEventFlag::End => write!(f, "End"),
             SequenceEventFlag::Nop => write!(f, "Ch{:2}: NOP", self.channel),
@@ -93,7 +105,8 @@ impl SequenceMsg {
         }
     }
 }
-#[derive(serde::Serialize, PartialEq)]
+#[derive(serde_repr::Serialize_repr, PartialEq, Clone)]
+#[repr(u8)]
 pub enum SequenceEventFlag {
     KeyEvent,
     Tempo,
@@ -134,7 +147,8 @@ impl SequenceEventFlag {
         }
     }
 }
-#[derive(serde::Serialize, Clone, Copy)]
+#[derive(serde_repr::Serialize_repr, Clone, Copy)]
+#[repr(u8)]
 pub enum ParamChangeFlag {
     Slot,
     DtMul,
