@@ -19,30 +19,42 @@ impl<'a> From<&'a [u8]> for SequenceMsg {
 }
 impl std::fmt::Display for SequenceMsg {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let data = self.data.as_ref().unwrap();
+        let data = self.get_data().unwrap_or(&[0; 1]);
         match self.sq_event {
             SequenceEventFlag::KeyEvent => {
                 if data[1] == 0 {
                     // Key Off
-                    write!(f, "Ch{:2}: Key Off     {}", self.channel, data[0])
+                    write!(f, "Ch{:2}: Key Off        {}", self.channel, data[0])
                 } else {
                     // Key On
-                    write!(f, "Ch{:2}: Key On      {}", self.channel, data[0])
+                    write!(f, "Ch{:2}: Key On         {}", self.channel, data[0])
                 }
             }
             SequenceEventFlag::Tempo => {
-                write!(f, "Tempo")
+                write!(f, "Tempo: {} BPM", convert_to_bpm(data))
             }
             SequenceEventFlag::End => write!(f, "End"),
-            SequenceEventFlag::Expression => {
-                write!(f, "Ch{}: Expression     {}", self.channel, data[0])
+            SequenceEventFlag::Nop => write!(f, "Ch{:2}: NOP",self.channel),
+            SequenceEventFlag::Param => {
+                write!(
+                    f,
+                    "Ch{:2}: Set {}",
+                    self.channel,
+                    self.param_change.unwrap()
+                )
             }
             SequenceEventFlag::ProgramChange => {
-                write!(f, "Ch{}: Program Change {}", self.channel, "")
+                write!(
+                    f,
+                    "Ch{:2}: Program Change [{}]",
+                    self.channel,
+                    std::str::from_utf8(data).unwrap_or("unknown")
+                )
             }
-            SequenceEventFlag::Param => {
-                write!(f, "")
+            SequenceEventFlag::Expression => {
+                write!(f, "Ch{:2}: Expression     {}", self.channel, data[0])
             }
+
             _ => write!(f, ""),
         }
     }
@@ -62,6 +74,13 @@ impl SequenceMsg {
             sq_event: SequenceEventFlag::Param,
             param_change: Some(param_change),
             data: Some(data),
+        }
+    }
+    fn get_data(&self) -> Option<&[u8]> {
+        if let Some(data) = &self.data {
+            Some(data.as_slice())
+        } else {
+            None
         }
     }
 }
@@ -106,7 +125,7 @@ impl SequenceEventFlag {
         }
     }
 }
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, Clone, Copy)]
 pub enum ParamChangeFlag {
     Slot,
     DtMul,
@@ -121,7 +140,7 @@ pub enum ParamChangeFlag {
 impl std::fmt::Display for ParamChangeFlag {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Slot => write!(f, "slot"),
+            Self::Slot => write!(f, "Slot"),
             Self::DtMul => write!(f, "Detune/Multiple"),
             Self::Tl => write!(f, "TotalLevel"),
             Self::KsAr => write!(f, "KeyScale/AttackRate"),
@@ -163,7 +182,11 @@ impl ParamChangeFlag {
         }
     }
 }
-
+fn convert_to_bpm(data: &[u8]) -> u32 {
+    let usec_per_beat =
+        ((data[0] as u32) | ((data[1] as u32) << 8) | ((data[2] as u32) << 16)) as usize;
+    (60000000usize / usec_per_beat) as u32
+}
 pub async fn receive_msg(first_byte: u8, port: &mut serial2_tokio::SerialPort) -> SequenceMsg {
     let msg_flag = first_byte & 0xf;
     let len = (first_byte >> 4) as usize;
@@ -180,53 +203,8 @@ pub async fn receive_msg(first_byte: u8, port: &mut serial2_tokio::SerialPort) -
     }
 
     SequenceMsg::from(buf.as_slice())
+}
 
-    // let event_flag = SequenceEventFlag::from(buf[0] & 0xf);
-    // let ch = (buf[0] >> 4) & 0xf;
-    // match event_flag {
-    //     SequenceEventFlag::KeyEvent => {
-    //         let key = buf[1];
-    //         let vel = buf[2];
-    //         if vel == 0 {
-    //             println!("Ch{ch}: Key Off {}", key);
-    //         } else {
-    //             println!("Ch{ch}: Key On  {}", key);
-    //         }
-    //     }
-    //     SequenceEventFlag::Tempo => {
-    //         let tempo = ((buf[1] as u32) << 16) | ((buf[2] as u32) << 8) | (buf[3] as u32);
-    //         println!("Ch{ch}: TEMPO   {}", tempo);
-    //     }
-    //     SequenceEventFlag::End => {
-    //         println!("ALL: Play End");
-    //     }
-    //     SequenceEventFlag::Nop => {}
-    //     SequenceEventFlag::Param => msg_param_change(ch, &buf[1..], app_handle),
-    //     SequenceEventFlag::ProgramChange => {
-    //         let name = cvt_string(&buf[1..]);
-    //         println!("Ch{ch}: PC      {}", name);
-    //     }
-    //     SequenceEventFlag::Expression => {}
-    //     _ => {}
-    // }
-}
-// TODO: フロントへのイベント発行の実装
-fn msg_param_change<R: tauri::Runtime>(ch: u8, buf: &[u8], app_handle: &impl tauri::Manager<R>) {
-    let param_flag = ParamChangeFlag::from(buf[0] & 0xf);
-    match param_flag {
-        ParamChangeFlag::Slot => {}
-        ParamChangeFlag::DtMul => {}
-        ParamChangeFlag::Tl => {}
-        ParamChangeFlag::KsAr => {}
-        ParamChangeFlag::Dr => {}
-        ParamChangeFlag::Sr => {}
-        ParamChangeFlag::SlRr => {}
-        ParamChangeFlag::FbCon => {}
-        ParamChangeFlag::Other => {
-            println!("Ch{ch}: unknown param");
-        }
-    }
-}
 fn cvt_string(buf: &[u8]) -> String {
     let tmp = Vec::from(buf);
     String::from_utf8(tmp).unwrap_or(String::from("unknown"))

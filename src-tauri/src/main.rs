@@ -3,7 +3,7 @@
 
 mod cli;
 mod commands;
-mod send_msg;
+mod serial_com;
 mod sequence_msg;
 mod utils;
 use clap::Parser;
@@ -107,7 +107,7 @@ fn main() {
                                     break;
                                   }
                                 }
-                                Ok(v) = send_msg::receive_byte(&mut port) => {
+                                Ok(v) = serial_com::receive_byte(&mut port) => {
                                   // Sequencerとの独自プロトコルの通信
                                   from_sequencer(receive_msg(v, &mut port).await,&app_handle);
                                 }

@@ -1,4 +1,4 @@
-use crate::{send_msg, utils::check_midi_format, Args};
+use crate::{serial_com, utils::check_midi_format, Args};
 // use serial2::SerialPort;
 use serial2_tokio::SerialPort;
 use std::fs::File;
@@ -22,7 +22,7 @@ pub async fn run(args: Args) {
         file.read_to_end(&mut buf).unwrap();
         if check_midi_format(&buf) {
             println!("Send File Size");
-            send_msg::send_midi_file(&mut port, &buf).await.unwrap();
+            serial_com::send_midi_file(&mut port, &buf).await.unwrap();
         } else {
             println!("Not a midi format");
         }

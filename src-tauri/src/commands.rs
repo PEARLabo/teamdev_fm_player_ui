@@ -1,5 +1,5 @@
 // src/commands.rs
-use crate::{send_msg, sequence_msg::SequenceMsg, utils::check_midi_format, AppState, FileInfo};
+use crate::{serial_com, sequence_msg::SequenceMsg, utils::check_midi_format, AppState, FileInfo};
 use std::{fs::File, io::Read};
 use tauri::State;
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -80,7 +80,7 @@ pub async fn internal_control<R: tauri::Runtime>(
     match control {
         InternalCommand::Send => {
             println!("start send file");
-            match send_msg::send_midi_file(port, state.file_data.lock().await.as_ref().unwrap())
+            match serial_com::send_midi_file(port, state.file_data.lock().await.as_ref().unwrap())
                 .await
             {
                 Ok(_) => {
