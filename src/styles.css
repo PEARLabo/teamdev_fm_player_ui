@@ -269,3 +269,17 @@ textarea {
 	background-color: #e31b0c;
 	/* マウスオーバー時に少し暗くする */
 }
+
+#playerStateDisplay {
+  width: 60%;
+  margin: auto;
+
+}
+#playerStateDisplay > div {
+  width: 60%;
+  font-weight: bold;
+  
+}
+#currentPlayState {
+  width: 100%;
+}

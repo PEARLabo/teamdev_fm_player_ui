@@ -7,9 +7,13 @@ let portName = "/dev/pts/4"; //デフォルトのシリアルポート名
 // Tauri関数名を指定
 let tauriFunctionName = "send_file_size"; // 本番用
 //let tauriFunctionName = 'send_file_test'; // テスト用
+init_play_state_display();
 window.__TAURI__.event.listen("sequencer-msg", (data) => {
-  console.log("hoge")
   console.log(data)
+  let parsed = parse_event_msg(data.payload);
+  if (parsed) {
+    update_play_state_display(parsed)
+  }
 })
 // div.playerを表示し、div.mainを非表示にする関数
 function switchPlayer() {
@@ -20,8 +24,8 @@ function switchPlayer() {
   // ピアノロールの描画
   drawPianoRoll();
   // #console をクリア
-  document.getElementById("console").value = null;
-  document.getElementById("playerConsole").value = null;
+  // document.getElementById("console").value = null;
+  // document.getElementById("playerConsole").value = null;
 }
 
 // div.mainを表示し、div.playerを非表示にする関数
@@ -79,7 +83,6 @@ document
 // }
 // Fileを開くイベント(ダイアログから取得したパスをバックエンドへ送る)
 document.getElementById("fileOpen").onclick = async () => {
-  console.log("click open");
   const selected = await open({
     multiple: false,
     filters: [
@@ -93,7 +96,6 @@ document.getElementById("fileOpen").onclick = async () => {
       },
     ],
   });
-  console.log("after dialog");
   if (selected) {
     let is_midi = await invoke("open_file", { path: selected });
     let fname = selected.split("/").at(-1);
@@ -275,3 +277,5 @@ document.getElementById("sendButton").addEventListener("click", async () => {
     // consoleArea.value += 'Error sending file size\n';
   }
 });
+
+switchPlayer()

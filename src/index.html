@@ -63,8 +63,12 @@
         <div>
           <button onclick="switchMain()">ファイル読み込み画面に戻る</button>
         </div>
-        <textarea readonly
-                  id="playerConsole"></textarea>
+        <!-- <textarea readonly
+                  id="playerConsole"></textarea> -->
+        <div id="playerStateDisplay">
+          <div>BPM:<span id="bpm"></span></div>
+          <table id="currentPlayState"></table>
+        </div>
         <canvas id="pianoRoll"
                 width="900"
                 height="400"
@@ -74,6 +78,7 @@
 
     <script src="queue.js"></script>
     <script src="sequencer_msg_parser.js"></script>
+    <script src="play_state.js"></script>
     <script src="player.js"></script>
     <script src="main.js"></script>
   </body>
