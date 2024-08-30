@@ -2,7 +2,7 @@ const player_header_items = ["channel", "timbre", "note", "pitch", "Expr"];
 const [CHANNEL_INDEX, TIMBRE_INDEX, NOTE_INDEX, PITCH_INDEX, Expr_INDEX] = [
   ...Array(5),
 ].map((_, i) => i);
-function init_play_state_display(max_ch = 6) {
+export function init_play_state_display(max_ch = 6) {
   const fragment = document.createDocumentFragment();
 
   const header_elm = document.createElement("tr");
@@ -27,7 +27,7 @@ function init_play_state_display(max_ch = 6) {
   document.getElementById("currentPlayState").appendChild(fragment);
 }
 
-function update_play_state_display(msg) {
+export function update_play_state_display(msg) {
   if (msg.is_tempo()) {
     document.getElementById("bpm").innerHTML = msg.get_tempo();
   } else if (msg.is_program_change()) {

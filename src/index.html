@@ -10,6 +10,7 @@
           href="styles.css">
     <script
             src="https://cdn.jsdelivr.net/npm/@tauri-apps/api/dist/bundle.js"></script>
+    <script type="module" src="main.mjs"></script>
   </head>
 
   <body>
@@ -52,7 +53,7 @@
         <textarea readonly
                   id="console"></textarea>
         <div>
-          <button onclick="switchPlayer()">Player</button>
+          <button id="swichPlayerBtn">Player</button>
         </div>
       </div>
 
@@ -61,7 +62,7 @@
         <h1>Player</h1>
         <!-- <p id="tempoDisplay">Tempo: </p> -->
         <div>
-          <button onclick="switchMain()">ファイル読み込み画面に戻る</button>
+          <button id="swichMainBtn">ファイル読み込み画面に戻る</button>
         </div>
         <!-- <textarea readonly
                   id="playerConsole"></textarea> -->
@@ -75,12 +76,7 @@
                 style="border: 1px solid black;"></canvas>
       </div>
     </div>
-    <script src="color.js"></script>
-    <script src="queue.js"></script>
-    <script src="sequencer_msg_parser.js"></script>
-    <script src="play_state.js"></script>
-    <script src="player.js"></script>
-    <script src="main.js"></script>
+
   </body>
 
 </html>

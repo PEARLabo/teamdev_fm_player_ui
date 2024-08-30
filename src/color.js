@@ -1,4 +1,4 @@
-function color_mixer(colors) {
+export function color_mixer(colors) {
   // console.log(colors)
   const is_array = Array.isArray(colors);
   if (!is_array) {
@@ -18,12 +18,12 @@ function color_mixer(colors) {
   }
   return (r << 16) | (g << 8) | b;
 }
-function into_color_code(color) {
+export function into_color_code(color) {
   // console.log(`#${color.toString(16)}`)
   return `#${color.toString(16)}`;
 }
 
-function darken(color, darkness) {
+export function darken(color, darkness) {
   if (darkness >= 1) return color;
   if (darkness <= 0) return 0;
   const r = (color >> 16) & 255;

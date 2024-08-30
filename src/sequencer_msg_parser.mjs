@@ -18,7 +18,7 @@ const PARAM_SET_LUT = [
   "SustainLevel ReleaseRate",
   "FeedbackLevel Connection",
 ];
-class SequenceMsg {
+export default class SequenceMsg {
   #key = 0;
   #vel = 0;
   #tempo = 0;

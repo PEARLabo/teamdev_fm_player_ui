@@ -14,7 +14,7 @@ let canvas_is_update_frame = true;
 let is_play_state_changed = true;
 const draw_count = 0;
 // ピアノロールの描画(switchPlayer関数内で呼び出し)
-function drawPianoRoll() {
+export function drawPianoRoll() {
   const canvas = document.getElementById("pianoRoll");
   canvas.height = CANVAS_HEIGHT; // Canvasの高さを設定
   canvas.width = CANVAS_WIDTH; // Canvasの幅を設定
@@ -110,7 +110,6 @@ function drawPianoRoll() {
   window.noteOff = noteOff;
 }
 
-
 // ノートオンイベントを処理
 function noteOn(ch, pitch) {
   if (activeNotes.has(pitch)) {
@@ -131,10 +130,10 @@ function noteOff(ch, pitch) {
   is_play_state_changed = true;
 }
 // イベントデータをキューに追加
-function updatePianoRoll(msg) {
+export function updatePianoRoll(msg) {
   if (!msg.is_key_event()) return;
-  let ch = msg.get_channel();
-  let {key,vel} = msg.get_key_vel();
+  const ch = msg.get_channel();
+  const { key, vel } = msg.get_key_vel();
   if (vel !== 0) {
     noteOn(ch, key);
   } else if (vel === 0) {
