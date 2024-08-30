@@ -1,5 +1,4 @@
-let activeNotes = new Map();
-let eventQueue = new Queue(512);
+const activeNotes = new Map();
 // const variables
 const CANVAS_WIDTH = 900;
 const CANVAS_HEIGHT = 400;
@@ -13,7 +12,7 @@ const BLACK_KEY_HEIGHT = WHITE_KEY_HEIGHT * 0.6;
 const COLOR_LUT = [0xf08080, 0xfffacd, 0xe6e6fa, 0xd6efff, 0xcfffe5, 0xffd1dc];
 let canvas_is_update_frame = true;
 let is_play_state_changed = true;
-let draw_count = 0;
+const draw_count = 0;
 // ピアノロールの描画(switchPlayer関数内で呼び出し)
 function drawPianoRoll() {
   const canvas = document.getElementById("pianoRoll");
@@ -27,7 +26,7 @@ function drawPianoRoll() {
   const whiteKeys = [0, 2, 4, 5, 7, 9, 11];
   const blackKeys = [1, 3, 6, 8, 10];
   const module_3_table = [0, 1, 2, 0];
-  let startTime = null;
+  const startTime = null;
 
   // ピアノの描画
   function drawPiano() {
@@ -38,7 +37,7 @@ function drawPianoRoll() {
       const yOffset = Math.floor(octave / 3) * PIANO_HEIGHT;
 
       for (let i = 0, _end = whiteKeys.length; i < _end; i++) {
-        let key = whiteKeys[i];
+        const key = whiteKeys[i];
         const pitch = octave * 12 + key + 24; // C1から開始するように24を追加
         const x = octaveOffsetX + i * WHITE_KEY_WIDTH;
         const y = yOffset;
@@ -69,7 +68,7 @@ function drawPianoRoll() {
       const yOffset = Math.floor(octave / 3) * PIANO_HEIGHT;
 
       for (let i = 0, _end = blackKeys.length; i < _end; i++) {
-        let key = blackKeys[i];
+        const key = blackKeys[i];
         const pitch = octave * 12 + key + 24; // C#1から開始するように24を追加
         const x =
           octaveOffsetX +
@@ -91,22 +90,9 @@ function drawPianoRoll() {
     // console.log("Render Elapsed Time: " + (end - start_time))
   }
 
-  // // 経過時間の表示
-  // function displayTime(elapsedTime) {
-  //   ctx.fillStyle = "black";
-  //   ctx.font = "16px Arial";
-  //   // 秒数は小数点以下1桁まで表示
-  //   ctx.fillText(
-  //     `Time: ${Math.floor(elapsedTime / 1000)}s`,
-  //     10,
-  //     canvas.height - 5,
-  //   );
-  // }
-
   // アニメーションの開始
   function animate(time) {
     if (canvas_is_update_frame && is_play_state_changed) {
-      // processEventQueue();
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawPiano();
       // draw_count++;
@@ -124,13 +110,7 @@ function drawPianoRoll() {
   window.noteOff = noteOff;
 }
 
-// イベントキューの処理
-function processEventQueue() {
-  while (eventQueue.length > 0) {
-    const data = eventQueue.dequeue();
-    handleEvent(data);
-  }
-}
+
 // ノートオンイベントを処理
 function noteOn(ch, pitch) {
   if (activeNotes.has(pitch)) {
@@ -143,45 +123,22 @@ function noteOn(ch, pitch) {
 // ノートオフイベントを処理
 function noteOff(ch, pitch) {
   if (!activeNotes.has(pitch)) return;
-  let set = activeNotes.get(pitch);
+  const set = activeNotes.get(pitch);
   set.delete(ch);
-  if (set.size == 0) {
+  if (set.size === 0) {
     activeNotes.delete(pitch);
   }
   is_play_state_changed = true;
 }
 // イベントデータをキューに追加
-function updatePianoRoll(data) {
-  // eventQueue.enqueue(data);
-  if (!data.is_key_event()) return;
-  if (data.vel !== 0) {
-    noteOn(data.ch, data.key);
-  } else if (data.vel == 0) {
-    noteOff(data.ch, data.key);
-  }
-}
-
-// イベントデータの処理
-function handleEvent(data) {
-  if (data.vel !== 0) {
-    noteOn(data.ch, data.key);
-  } else if (data.vel == 0) {
-    noteOff(data.ch, data.key);
-  } else {
-    // その他のイベントを処理
-    console.warn("Unknown event type:", data);
-  }
-}
-
-function updateTempo(data) {
-  // テンポ情報をパースして更新
-  // const tempoMatch = data.match(/tempo: (\d+)/);
-  if (data.tempo) {
-    // const tempo = parseInt(tempoMatch[1], 10);
-    const tempoDisplay = document.getElementById("tempoDisplay");
-    if (tempoDisplay) {
-      tempoDisplay.textContent = `Tempo: ${data.tempo}`;
-    }
+function updatePianoRoll(msg) {
+  if (!msg.is_key_event()) return;
+  let ch = msg.get_channel();
+  let {key,vel} = msg.get_key_vel();
+  if (vel !== 0) {
+    noteOn(ch, key);
+  } else if (vel === 0) {
+    noteOff(ch, key);
   }
 }
 
@@ -190,7 +147,7 @@ function handleEndEvent() {
   console.log("End Event received.");
 }
 function get_key_color(current_on) {
-  let color_array = [];
+  const color_array = [];
   current_on.forEach((ch) => color_array.push(COLOR_LUT[ch]));
   return color_mixer(color_array);
 }

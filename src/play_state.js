@@ -3,22 +3,22 @@ const [CHANNEL_INDEX, TIMBRE_INDEX, NOTE_INDEX, PITCH_INDEX, Expr_INDEX] = [
   ...Array(5),
 ].map((_, i) => i);
 function init_play_state_display(max_ch = 6) {
-  let fragment = document.createDocumentFragment();
+  const fragment = document.createDocumentFragment();
 
-  let header_elm = document.createElement("tr");
+  const header_elm = document.createElement("tr");
   for (let i = 0; i < player_header_items.length; ++i) {
-    let item = document.createElement("th");
+    const item = document.createElement("th");
     item.textContent = player_header_items[i];
     header_elm.appendChild(item);
   }
   fragment.appendChild(header_elm);
   for (let i = 0; i < max_ch; ++i) {
-    let tr = document.createElement("tr");
-    let ch = document.createElement("th");
+    const tr = document.createElement("tr");
+    const ch = document.createElement("th");
     ch.textContent = `Ch${i + 1}:`;
     tr.appendChild(ch);
     for (let j = 0; j < player_header_items.length - 1; ++j) {
-      let td = document.createElement("td");
+      const td = document.createElement("td");
       td.id = `ch${i + 1}_${player_header_items[j + 1]}`;
       tr.appendChild(td);
     }
@@ -26,20 +26,20 @@ function init_play_state_display(max_ch = 6) {
   }
   document.getElementById("currentPlayState").appendChild(fragment);
 }
+
 function update_play_state_display(msg) {
-  if (msg.tempo) {
-    document.getElementById("bpm").innerHTML = msg.tempo;
-  } else if (msg.timbre.length) {
+  if (msg.is_tempo()) {
+    document.getElementById("bpm").innerHTML = msg.get_tempo();
+  } else if (msg.is_program_change()) {
     document.getElementById(
-      `ch${msg.ch + 1}_${player_header_items[TIMBRE_INDEX]}`,
-    ).innerHTML = msg.timbre;
-  } else if (!msg.vel) {
+      `ch${msg.get_channel() + 1}_${player_header_items[TIMBRE_INDEX]}`,
+    ).innerHTML = msg.get_timbre();
+  } else if (msg.is_key_event()) {
+    const { key, vel } = msg.get_key_vel();
     document.getElementById(
-      `ch${msg.ch + 1}_${player_header_items[NOTE_INDEX]}`,
-    ).innerHTML = `OFF ${msg.key}`;
-  } else {
-    document.getElementById(
-      `ch${msg.ch + 1}_${player_header_items[NOTE_INDEX]}`,
-    ).innerHTML = `ON ${msg.key}`;
+      `ch${msg.get_channel() + 1}_${player_header_items[NOTE_INDEX]}`,
+    ).innerHTML = `${vel ? "ON" : "OFF"} ${key}`;
+  } else if (msg.is_end()) {
+    // TODO: 表示のクリアの実装
   }
 }

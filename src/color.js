@@ -1,17 +1,17 @@
 function color_mixer(colors) {
   // console.log(colors)
-  let is_array = Array.isArray(colors);
+  const is_array = Array.isArray(colors);
   if (!is_array) {
     return colors;
   }
   if (colors.length === 1) {
     return colors[0];
   }
-  let alpha = 1 / colors.length;
-  let r = 0,
-    g = 0,
-    b = 0;
-  for (let i in colors) {
+  const alpha = 1 / colors.length;
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  for (const i in colors) {
     r += colors[i][0] * alpha;
     g += colors[i][1] * alpha;
     b += colors[i][2] * alpha;
@@ -26,8 +26,8 @@ function into_color_code(color) {
 function darken(color, darkness) {
   if (darkness >= 1) return color;
   if (darkness <= 0) return 0;
-  let r = (color >> 16) & 255;
-  let g = (color >> 8) & 255;
-  let b = color & 255;
+  const r = (color >> 16) & 255;
+  const g = (color >> 8) & 255;
+  const b = color & 255;
   return ((r * darkness) << 16) | ((g * darkness) << 8) | (b * darkness);
 }

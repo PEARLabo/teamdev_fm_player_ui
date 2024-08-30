@@ -1,10 +1,3 @@
-/**
- *
- * @param lo
- * @param hi
- * @param print_log_func print log function
- * @returns null | {ch: number, key: number, vel: number}
- */
 const [
   EventKeyEvent,
   EventTempo, // 4分音符１つ分のusec
@@ -25,62 +18,85 @@ const PARAM_SET_LUT = [
   "SustainLevel ReleaseRate",
   "FeedbackLevel Connection",
 ];
-function convert_to_bpm(usec_per_beat) {
-  let minute_per_beat = usec_per_beat / 1000_000;
-  let beat_per_sec = 60 / minute_per_beat;
-  return usec_per_beat;
-}
 class SequenceMsg {
-  constructor(flag, ch) {
-    this.sq_event = flag; // イベントタイプ
-    this.ch = ch; // チャンネル番号
-    this.key = 0; // キー番号
-    this.vel = 0; // ベロシティ
-    this.tempo = 0; // テンポ
-    this.timbre = ""; // Timbre
+  #key = 0;
+  #vel = 0;
+  #tempo = 0;
+  #timbre = "";
+  #sq_event = EventOther;
+  #ch = 0;
+  constructor(sequence_msg) {
+    let flag = sequence_msg.sq_event;
+    const ch = sequence_msg.channel;
+    switch (flag) {
+      case EventKeyEvent:
+        {
+          this.#key = sequence_msg.data[0];
+          this.#vel = sequence_msg.data[1];
+        }
+        break;
+      case EventTempo:
+        {
+          this.#tempo =
+            sequence_msg.data[0] |
+            (sequence_msg.data[1] << 8) |
+            (sequence_msg.data[2] << 16);
+        }
+        break;
+      case EventEnd:
+        // this = null;
+        break;
+      case EventProgramChange:
+        {
+          let name = "";
+          for (let i = 0; i < 6; i++) {
+            name += String.fromCharCode(sequence_msg.data[i]);
+          }
+          this.#timbre = name;
+        }
+        break;
+      default:
+        flag = EventOther;
+        // 未対応イベント
+        break;
+    }
+    this.#sq_event = flag; // イベントタイプ
+    this.#ch = ch; // チャンネル番号
   }
   is_key_event() {
-    return this.sq_event == EventKeyEvent;
+    return this.#sq_event === EventKeyEvent;
   }
-}
-function parse_event_msg(sequence_msg, print_log_func) {
-  let flag_a = sequence_msg.sq_event;
-  let ch = sequence_msg.channel;
-  // Note: 未使用時0を記入
-  let dst = new SequenceMsg(flag_a, ch);
-  if (!print_log_func) {
-    print_log_func = () => {};
+  is_nop() {
+    return this.#sq_event === EventNop;
   }
-  switch (flag_a) {
-    case EventKeyEvent:
-      {
-        dst.key = sequence_msg.data[0];
-        dst.vel = sequence_msg.data[1];
-      }
-      break;
-    case EventTempo:
-      {
-        dst.tempo =
-          sequence_msg.data[0] |
-          (sequence_msg.data[1] << 8) |
-          (sequence_msg.data[2] << 16);
-      }
-      break;
-    case EventEnd:
-      dst = null;
-      break;
-    case EventProgramChange:
-      {
-        let name = "";
-        for (let i = 0; i < 6; i++) {
-          name += String.fromCharCode(sequence_msg.data[i]);
-        }
-        dst.timbre = name;
-      }
-      break;
-    default:
-      dst = null;
-      break;
+  is_tempo() {
+    return this.#sq_event === EventTempo;
   }
-  return dst;
+  is_program_change() {
+    return this.#sq_event === EventProgramChange;
+  }
+  is_other() {
+    return this.#sq_event === EventOther;
+  }
+  is_ignore_msg() {
+    return this.#sq_event === EventOther || this.#sq_event === EventNop;
+  }
+  is_end() {
+    return this.#sq_event === EventEnd;
+  }
+  get_channel() {
+    return this.#ch;
+  }
+  get_tempo() {
+    return this.#tempo;
+  }
+  get_key_vel() {
+    return {
+      key: this.#key,
+      vel: this.#vel,
+    };
+  }
+  get_timbre() {
+    return this.#timbre;
+  }
 }

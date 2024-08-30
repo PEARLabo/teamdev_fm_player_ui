@@ -14,15 +14,13 @@ class Queue {
   }
   at(index) {
     if (index < 0) {
-      let t = index + this.count;
+      const t = index + this.count;
       if (t < 0) {
         return undefined;
-      } else {
-        return this.buffer[index + this.start + this.count];
       }
-    } else {
-      return this.buffer[index + this.start];
+      return this.buffer[index + this.start + this.count];
     }
+    return this.buffer[index + this.start];
   }
   first() {
     return this.buffer[this.start];
@@ -33,7 +31,7 @@ class Queue {
   /* 操作系メソッド */
   change_at(idx, value) {
     if (idx < 0) {
-      let t = idx + this.count;
+      const t = idx + this.count;
       if (t >= 0) {
         this.buffer[idx + this.start + this.count] = value;
       }
@@ -53,7 +51,7 @@ class Queue {
     } else {
       index = this.start + idx;
     }
-    let v = this.buffer[index];
+    const v = this.buffer[index];
     if (v) {
       this.buffer[index] = f(v);
     }
@@ -62,7 +60,7 @@ class Queue {
     this.buffer[this.start + this.count] = value;
   }
   change_last_by(f) {
-    let v = this.buffer[this.start + this.count];
+    const v = this.buffer[this.start + this.count];
     if (v) {
       this.buffer[this.start + this.count] = f(v);
     }
@@ -83,26 +81,25 @@ class Queue {
    */
   dequeue() {
     if (this.count) {
-      let item = this.buffer[this.start];
+      const item = this.buffer[this.start];
       this.buffer[this.start++] = undefined;
       this.count--;
       return item;
-    } else {
-      return undefined;
     }
+    return undefined;
   }
   /**
    * @description
    * @param {Array<T>}values
    */
   append(values) {
-    let l = values.length;
+    const l = values.length;
     // データをシフト
     if (this.start + this.count + l > this.capacity) {
       this.shrink_to_fit();
     }
     // Queueに追加
-    let offset = this.start + this.count;
+    const offset = this.start + this.count;
     for (let i = 0; i < l; i++) {
       this.buffer[i + offset] = values[i];
     }
@@ -113,9 +110,10 @@ class Queue {
    */
   shrink_to_fit() {
     if (this.start) {
-      let buf = this.buffer;
-      let n = this.count < this.buffer.length ? this.count : this.buffer.length;
-      let offset = this.start;
+      const buf = this.buffer;
+      const n =
+        this.count < this.buffer.length ? this.count : this.buffer.length;
+      const offset = this.start;
       for (let i = 0; i < n; i++) {
         buf[i] = buf[i + offset];
       }

@@ -5,13 +5,13 @@ let playbackListenerId = null;
 let portName = "/dev/pts/4"; //デフォルトのシリアルポート名
 
 // Tauri関数名を指定
-let tauriFunctionName = "send_file_size"; // 本番用
+const tauriFunctionName = "send_file_size"; // 本番用
 //let tauriFunctionName = 'send_file_test'; // テスト用
 init_play_state_display();
 window.__TAURI__.event.listen("sequencer-msg", (data) => {
   // console.log(data)
-  let parsed = parse_event_msg(data.payload);
-  if (parsed) {
+  const parsed = new SequenceMsg(data.payload);
+  if (parsed.is_ignore_msg()) {
     update_play_state_display(parsed);
     updatePianoRoll(parsed);
   }
@@ -98,8 +98,8 @@ document.getElementById("fileOpen").onclick = async () => {
     ],
   });
   if (selected) {
-    let is_midi = await invoke("open_file", { path: selected });
-    let fname = selected.split("/").at(-1);
+    const is_midi = await invoke("open_file", { path: selected });
+    const fname = selected.split("/").at(-1);
     if (is_midi) {
       document.getElementById("fname-display").innerHTML = fname;
       displaySendButton();
