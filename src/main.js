@@ -9,12 +9,13 @@ let tauriFunctionName = "send_file_size"; // 本番用
 //let tauriFunctionName = 'send_file_test'; // テスト用
 init_play_state_display();
 window.__TAURI__.event.listen("sequencer-msg", (data) => {
-  console.log(data)
+  // console.log(data)
   let parsed = parse_event_msg(data.payload);
   if (parsed) {
-    update_play_state_display(parsed)
+    update_play_state_display(parsed);
+    updatePianoRoll(parsed);
   }
-})
+});
 // div.playerを表示し、div.mainを非表示にする関数
 function switchPlayer() {
   const main = document.getElementById("main");
@@ -278,4 +279,4 @@ document.getElementById("sendButton").addEventListener("click", async () => {
   }
 });
 
-switchPlayer()
+switchPlayer();
