@@ -5,20 +5,23 @@ import {
   init_play_state_display,
   update_play_state_display,
 } from "./play_state.mjs";
-import { updatePianoRoll, drawPianoRoll } from "./player.mjs";
+// import { updatePianoRoll, drawPianoRoll } from "./player.mjs";
+import PianoRoll from "./player_current.mjs";
 let playbackListenerId = null;
 let portName = "/dev/pts/4"; //デフォルトのシリアルポート名
 
 // Tauri関数名を指定
 const tauriFunctionName = "send_file_size"; // 本番用
 //let tauriFunctionName = 'send_file_test'; // テスト用
-
+let piano_roll;
 window.__TAURI__.event.listen("sequencer-msg", (data) => {
   // console.log(data)
   const parsed = new SequenceMsg(data.payload);
   if (parsed.is_ignore_msg()) {
     update_play_state_display(parsed);
-    updatePianoRoll(parsed);
+    if (piano_roll) {
+      piano_roll.updatePianoRoll(parsed);
+    }
   }
 });
 
@@ -110,7 +113,8 @@ function switchPlayer() {
   main.style.display = "none";
   player.style.display = "block";
   // ピアノロールの描画
-  drawPianoRoll();
+  piano_roll = new PianoRoll("pianoRoll");
+  piano_roll.draw();
   // #console をクリア
   // document.getElementById("console").value = null;
   // document.getElementById("playerConsole").value = null;

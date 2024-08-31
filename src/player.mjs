@@ -93,8 +93,8 @@ export function drawPianoRoll() {
   // アニメーションの開始
   function animate(time) {
     if (canvas_is_update_frame && is_play_state_changed) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawPiano();
+      ctx.clearRect(0, CANVAS_HEIGHT - TIME_DISPLAY_HEIGHT, canvas.width, TIME_DISPLAY_HEIGHT);
+      updateActiveKeys();
       // draw_count++;
       // console.log(draw_count);
     }

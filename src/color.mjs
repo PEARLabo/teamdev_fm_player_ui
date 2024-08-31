@@ -20,7 +20,7 @@ export function color_mixer(colors) {
 }
 export function into_color_code(color) {
   // console.log(`#${color.toString(16)}`)
-  return `#${color.toString(16)}`;
+  return `#${color.toString(16).padStart(6,'0')}`;
 }
 
 export function darken(color, darkness) {
