@@ -1,5 +1,5 @@
-import { into_color_code } from "./color.mjs";
-import { is_natural, distance_from_c,distance_from_c_sharp } from "./musical_scale.mjs";
+import { into_color_code,color_mixer,darken } from "./color.mjs";
+import { is_natural, distance_from_c,distance_from_c_sharp, is_accidental } from "./musical_scale.mjs";
 const WHITE_KEY_WIDTH = 45;
 const WHITE_KEY_HEIGHT = 200;
 const BLACK_KEY_WIDTH = WHITE_KEY_WIDTH * 0.6;
@@ -44,6 +44,7 @@ export default class PianoRoll {
     let isActive = this.#activeNotes.has(note);
     let color;
     if (is_natural(key)) {
+      console.log(note);
       i = distance_from_c(key);
       x = octaveOffsetX + i * WHITE_KEY_WIDTH;
       key_width = WHITE_KEY_WIDTH;
@@ -60,9 +61,6 @@ export default class PianoRoll {
       ctx.clearRect(x,y,key_width, key_height)
     }
     let draw_canvas = () => {
-      if (!is_natural(key)) {
-        console.log(into_color_code(color));
-      }
       ctx.fillStyle = into_color_code(color);
       ctx.fillRect(x, y, key_width, key_height);
       ctx.strokeStyle = 'black';
@@ -79,6 +77,15 @@ export default class PianoRoll {
     };
     if(is_natural(key)) {
       draw_canvas();
+      // let next_is_changed = this.#change_keys.has(note + 1);
+      // let prev_is_changed = this.#change_keys.has(note - 1);
+      // if (!is_rewrite) return;
+      // if(!next_is_changed && is_accidental((key + 1) % 12)) {
+      //   this.#draw_key(note - 1);
+      // }
+      // if(!prev_is_changed && is_accidental((key - 1) % 12)) {
+      //   this.#draw_key(note - 1);
+      // }
     } else {
       // 描画の遅延実行
       queueMicrotask(draw_canvas);
@@ -92,7 +99,7 @@ export default class PianoRoll {
   #animate() {
     if (this.#canvas_is_update_frame && this.#change_keys.size) {
       // 再描画
-      this.#change_keys.forEach(this.#draw_key)
+      this.#change_keys.forEach(this.#draw_key.bind(this));
     }
     this.#change_keys.clear();
     this.#canvas_is_update_frame = !this.#canvas_is_update_frame;
@@ -117,17 +124,18 @@ export default class PianoRoll {
       this.#activeNotes.get(note).add(ch);
     }
     this.#activeNotes.set(note, new Set([ch]));
-    this.#change_keys.set(note);
+    this.#change_keys.add(note);
   }
 
   noteOff(ch,note) {
     if (!this.#activeNotes.has(note)) return;
+    console.log(note,ch);
     const set = this.#activeNotes.get(note);
     set.delete(ch);
     if (set.size === 0) {
-      activeNotes.delete(note);
+      this.#activeNotes.delete(note);
     }
-    this.#change_keys.set(note);
+    this.#change_keys.add(note);
   }
   reset() {
 

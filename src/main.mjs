@@ -6,7 +6,7 @@ import {
   update_play_state_display,
 } from "./play_state.mjs";
 // import { updatePianoRoll, drawPianoRoll } from "./player.mjs";
-import PianoRoll from "./player_current.mjs";
+import PianoRoll from "./player.mjs";
 let playbackListenerId = null;
 let portName = "/dev/pts/4"; //デフォルトのシリアルポート名
 
@@ -17,7 +17,8 @@ let piano_roll;
 window.__TAURI__.event.listen("sequencer-msg", (data) => {
   // console.log(data)
   const parsed = new SequenceMsg(data.payload);
-  if (parsed.is_ignore_msg()) {
+  if (!parsed.is_ignore_msg()) {
+    // console.log(parsed)
     update_play_state_display(parsed);
     if (piano_roll) {
       piano_roll.updatePianoRoll(parsed);
@@ -26,6 +27,7 @@ window.__TAURI__.event.listen("sequencer-msg", (data) => {
 });
 
 window.onload = () => {
+  console.log("test")
   init_play_state_display();
   // Fileを開くイベント(ダイアログから取得したパスをバックエンドへ送る)
   document.getElementById("fileOpen").onclick = async () => {
