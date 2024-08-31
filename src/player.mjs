@@ -44,13 +44,13 @@ export default class PianoRoll {
     let isActive = this.#activeNotes.has(note);
     let color;
     if (is_natural(key)) {
-      console.log(note);
       i = distance_from_c(key);
       x = octaveOffsetX + i * WHITE_KEY_WIDTH;
       key_width = WHITE_KEY_WIDTH;
       key_height = WHITE_KEY_HEIGHT;
       color = isActive ?  get_key_color(this.#activeNotes.get(note)): 0xffffff;
     } else {
+      
       i = distance_from_c_sharp(key);
       x = octaveOffsetX + distance_from_c(key - 1) * WHITE_KEY_WIDTH + WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2;
       key_width = BLACK_KEY_WIDTH;
@@ -77,15 +77,15 @@ export default class PianoRoll {
     };
     if(is_natural(key)) {
       draw_canvas();
-      // let next_is_changed = this.#change_keys.has(note + 1);
-      // let prev_is_changed = this.#change_keys.has(note - 1);
-      // if (!is_rewrite) return;
-      // if(!next_is_changed && is_accidental((key + 1) % 12)) {
-      //   this.#draw_key(note - 1);
-      // }
-      // if(!prev_is_changed && is_accidental((key - 1) % 12)) {
-      //   this.#draw_key(note - 1);
-      // }
+      let next_is_changed = this.#change_keys.has(note + 1);
+      let prev_is_changed = this.#change_keys.has(note - 1);
+      if (!is_rewrite) return;
+      if(!next_is_changed && is_accidental((key + 1) % 12)) {
+        this.#draw_key(note + 1);
+      }
+      if(!prev_is_changed && is_accidental((key - 1) % 12)) {
+        this.#draw_key(note - 1);
+      }
     } else {
       // 描画の遅延実行
       queueMicrotask(draw_canvas);
@@ -100,8 +100,9 @@ export default class PianoRoll {
     if (this.#canvas_is_update_frame && this.#change_keys.size) {
       // 再描画
       this.#change_keys.forEach(this.#draw_key.bind(this));
+      this.#change_keys.clear();
     }
-    this.#change_keys.clear();
+    
     this.#canvas_is_update_frame = !this.#canvas_is_update_frame;
     requestAnimationFrame(this.#animate.bind(this));
   }
@@ -122,14 +123,14 @@ export default class PianoRoll {
   noteOn(ch,note) {
     if (this.#activeNotes.has(note)) {
       this.#activeNotes.get(note).add(ch);
+    } else {
+      this.#activeNotes.set(note, new Set([ch]));
     }
-    this.#activeNotes.set(note, new Set([ch]));
     this.#change_keys.add(note);
   }
 
   noteOff(ch,note) {
     if (!this.#activeNotes.has(note)) return;
-    console.log(note,ch);
     const set = this.#activeNotes.get(note);
     set.delete(ch);
     if (set.size === 0) {
