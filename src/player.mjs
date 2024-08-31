@@ -1,152 +1,142 @@
-const activeNotes = new Map();
-// const variables
-const CANVAS_WIDTH = 900;
-const CANVAS_HEIGHT = 400;
-const TIME_DISPLAY_HEIGHT = 20; // 経過時間表示のための高さ
-const PIANO_HEIGHT = (CANVAS_HEIGHT - TIME_DISPLAY_HEIGHT) / 2; // 鍵盤のための高さを2段に分ける
-const WHITE_KEY_WIDTH = CANVAS_WIDTH / 21; // 3オクターブ分の白鍵を横に収める
-const WHITE_KEY_HEIGHT = PIANO_HEIGHT; // 白鍵の高さを全体に合わせて調整
+import { into_color_code } from "./color.mjs";
+import { is_natural, distance_from_c,distance_from_c_sharp } from "./musical_scale.mjs";
+const WHITE_KEY_WIDTH = 45;
+const WHITE_KEY_HEIGHT = 200;
 const BLACK_KEY_WIDTH = WHITE_KEY_WIDTH * 0.6;
 const BLACK_KEY_HEIGHT = WHITE_KEY_HEIGHT * 0.6;
+
 // Note: 適当な色を設定。いい感じに変更求ム
 const COLOR_LUT = [0xf08080, 0xfffacd, 0xe6e6fa, 0xd6efff, 0xcfffe5, 0xffd1dc];
-let canvas_is_update_frame = true;
-let is_play_state_changed = true;
-const draw_count = 0;
-// ピアノロールの描画(switchPlayer関数内で呼び出し)
-export function drawPianoRoll() {
-  const canvas = document.getElementById("pianoRoll");
-  canvas.height = CANVAS_HEIGHT; // Canvasの高さを設定
-  canvas.width = CANVAS_WIDTH; // Canvasの幅を設定
 
-  const ctx = canvas.getContext("2d");
-
-  const numOctaves = 6; // 6オクターブ表示に調整
-
-  const whiteKeys = [0, 2, 4, 5, 7, 9, 11];
-  const blackKeys = [1, 3, 6, 8, 10];
-  const module_3_table = [0, 1, 2, 0];
-  const startTime = null;
-
-  // ピアノの描画
-  function drawPiano() {
-    // let start_time = performance.now();
-    // 先に全ての白鍵を描画
-    for (let octave = 0; octave < numOctaves; octave++) {
-      const octaveOffsetX = module_3_table[octave % 3] * 7 * WHITE_KEY_WIDTH;
-      const yOffset = Math.floor(octave / 3) * PIANO_HEIGHT;
-
-      for (let i = 0, _end = whiteKeys.length; i < _end; i++) {
-        const key = whiteKeys[i];
-        const pitch = octave * 12 + key + 24; // C1から開始するように24を追加
-        const x = octaveOffsetX + i * WHITE_KEY_WIDTH;
-        const y = yOffset;
-
-        ctx.fillStyle = activeNotes.has(pitch)
-          ? into_color_code(get_key_color(activeNotes.get(pitch)))
-          : "white"; // 薄い灰色でアクティブな白鍵を表示
-        ctx.fillRect(x, y, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT);
-        ctx.strokeStyle = "black";
-        ctx.strokeRect(x, y, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT);
-
-        // Cのラベルを表示
-        if (key === 0) {
-          ctx.fillStyle = "black";
-          ctx.font = "14px Arial";
-          ctx.fillText(
-            `C${Math.floor(pitch / 12) - 1}`,
-            x + 5,
-            y + WHITE_KEY_HEIGHT - 5,
-          );
-        }
-      }
-    }
-
-    // 黒鍵を描画し、その上にアクティブな色を適用
-    for (let octave = 0; octave < numOctaves; octave++) {
-      const octaveOffsetX = module_3_table[octave % 3] * 7 * WHITE_KEY_WIDTH;
-      const yOffset = Math.floor(octave / 3) * PIANO_HEIGHT;
-
-      for (let i = 0, _end = blackKeys.length; i < _end; i++) {
-        const key = blackKeys[i];
-        const pitch = octave * 12 + key + 24; // C#1から開始するように24を追加
-        const x =
-          octaveOffsetX +
-          whiteKeys.indexOf(key - 1) * WHITE_KEY_WIDTH +
-          WHITE_KEY_WIDTH -
-          BLACK_KEY_WIDTH / 2;
-        const y = yOffset;
-        // 黒鍵の基本描画
-        ctx.fillStyle = activeNotes.has(pitch)
-          ? into_color_code(darken(get_key_color(activeNotes.get(pitch)), 0.9))
-          : "black"; // 濃い灰色でアクティブな黒鍵を表示
-        ctx.fillRect(x, y, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT);
-        ctx.strokeStyle = "black";
-        ctx.strokeRect(x, y, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT);
-      }
-    }
-    is_play_state_changed = false;
-    // let end = performance.now();
-    // console.log("Render Elapsed Time: " + (end - start_time))
-  }
-
-  // アニメーションの開始
-  function animate(time) {
-    if (canvas_is_update_frame && is_play_state_changed) {
-      ctx.clearRect(0, CANVAS_HEIGHT - TIME_DISPLAY_HEIGHT, canvas.width, TIME_DISPLAY_HEIGHT);
-      updateActiveKeys();
-      // draw_count++;
-      // console.log(draw_count);
-    }
-    canvas_is_update_frame = !canvas_is_update_frame;
-
-    requestAnimationFrame(animate);
-  }
-
-  requestAnimationFrame(animate);
-
-  // 外部からノートオン、ノートオフをトリガーできるようにする
-  window.noteOn = noteOn;
-  window.noteOff = noteOff;
-}
-
-// ノートオンイベントを処理
-function noteOn(ch, pitch) {
-  if (activeNotes.has(pitch)) {
-    activeNotes.get(pitch).add(ch);
-  }
-  activeNotes.set(pitch, new Set([ch]));
-  is_play_state_changed = true;
-}
-
-// ノートオフイベントを処理
-function noteOff(ch, pitch) {
-  if (!activeNotes.has(pitch)) return;
-  const set = activeNotes.get(pitch);
-  set.delete(ch);
-  if (set.size === 0) {
-    activeNotes.delete(pitch);
-  }
-  is_play_state_changed = true;
-}
-// イベントデータをキューに追加
-export function updatePianoRoll(msg) {
-  if (!msg.is_key_event()) return;
-  const ch = msg.get_channel();
-  const { key, vel } = msg.get_key_vel();
-  if (vel !== 0) {
-    noteOn(ch, key);
-  } else if (vel === 0) {
-    noteOff(ch, key);
-  }
-}
-
-function handleEndEvent() {
-  activeNotes.clear();
-  console.log("End Event received.");
-}
 function get_key_color(current_on) {
   const color_array = [];
   current_on.forEach((ch) => color_array.push(COLOR_LUT[ch]));
   return color_mixer(color_array);
+}
+
+export default class PianoRoll {
+  #activeNotes = new Map(); // Active Note
+  #change_keys = new Set(); // State Changed Note
+  #canvas_is_update_frame = true; //
+  #canvas;
+  #num_octaves = 6;
+  #row_octaves = 3;
+  #animate_id;
+
+  constructor(id) {
+    this.#canvas = document.getElementById(id);
+    let rows = Math.ceil(this.#num_octaves / this.#row_octaves);
+    this.#canvas.width = WHITE_KEY_WIDTH * this.#row_octaves * 7;
+    this.#canvas.height = WHITE_KEY_HEIGHT * rows;
+  }
+
+  #draw_key(note,is_rewrite = true) {
+    let ctx = this.#canvas.getContext("2d");
+    const octave = Math.floor((note - 24) / 12);
+    const key = (note - 24) % 12;
+    const octaveOffsetX = (octave % this.#row_octaves) * 7 * WHITE_KEY_WIDTH;
+    const yOffset = Math.floor(octave / this.#row_octaves) * WHITE_KEY_HEIGHT;
+    let x;
+    let i;
+    let key_width;
+    let key_height;
+    const y = yOffset;
+    let isActive = this.#activeNotes.has(note);
+    let color;
+    if (is_natural(key)) {
+      i = distance_from_c(key);
+      x = octaveOffsetX + i * WHITE_KEY_WIDTH;
+      key_width = WHITE_KEY_WIDTH;
+      key_height = WHITE_KEY_HEIGHT;
+      color = isActive ?  get_key_color(this.#activeNotes.get(note)): 0xffffff;
+    } else {
+      i = distance_from_c_sharp(key);
+      x = octaveOffsetX + distance_from_c(key - 1) * WHITE_KEY_WIDTH + WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2;
+      key_width = BLACK_KEY_WIDTH;
+      key_height = BLACK_KEY_HEIGHT;
+      color = isActive ?  darken(get_key_color(this.#activeNotes.get(note)),0.8): 0x000000;
+    }
+    if(is_rewrite) {
+      ctx.clearRect(x,y,key_width, key_height)
+    }
+    let draw_canvas = () => {
+      if (!is_natural(key)) {
+        console.log(into_color_code(color));
+      }
+      ctx.fillStyle = into_color_code(color);
+      ctx.fillRect(x, y, key_width, key_height);
+      ctx.strokeStyle = 'black';
+      ctx.strokeRect(x, y, key_width, key_height);
+      if (key === 0) {
+        ctx.fillStyle = "black";
+        ctx.font = "14px Arial";
+        ctx.fillText(
+          `C${octave+1}`,
+          x + 5,
+          y + WHITE_KEY_HEIGHT - 5,
+        );
+      }
+    };
+    if(is_natural(key)) {
+      draw_canvas();
+    } else {
+      // 描画の遅延実行
+      queueMicrotask(draw_canvas);
+    }
+  }
+  #init_draw() {
+    for(let i = 24,_end = this.#num_octaves*12+i; i < _end; i++) {
+      this.#draw_key(i,false);
+    }
+  }
+  #animate() {
+    if (this.#canvas_is_update_frame && this.#change_keys.size) {
+      // 再描画
+      this.#change_keys.forEach(this.#draw_key)
+    }
+    this.#change_keys.clear();
+    this.#canvas_is_update_frame = !this.#canvas_is_update_frame;
+    requestAnimationFrame(this.#animate.bind(this));
+  }
+  updatePianoRoll(msg) {
+    if(msg.is_end()) {
+      this.reset();
+      return;
+    }
+    if (!msg.is_key_event()) return;
+    const ch = msg.get_channel();
+    const { key, vel } = msg.get_key_vel();
+    if (vel !== 0) {
+      this.noteOn(ch, key);
+    } else if (vel === 0) {
+      this.noteOff(ch, key);
+    }
+  }
+  noteOn(ch,note) {
+    if (this.#activeNotes.has(note)) {
+      this.#activeNotes.get(note).add(ch);
+    }
+    this.#activeNotes.set(note, new Set([ch]));
+    this.#change_keys.set(note);
+  }
+
+  noteOff(ch,note) {
+    if (!this.#activeNotes.has(note)) return;
+    const set = this.#activeNotes.get(note);
+    set.delete(ch);
+    if (set.size === 0) {
+      activeNotes.delete(note);
+    }
+    this.#change_keys.set(note);
+  }
+  reset() {
+
+  }
+  draw() {
+    this.#init_draw();
+    this.#animate_id = requestAnimationFrame(this.#animate.bind(this))
+  }
+  stop_draw() {
+    // TODO: impl
+  }
 }

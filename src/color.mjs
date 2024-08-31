@@ -1,5 +1,9 @@
+/**
+ * 
+ * @param {[number] | number} colors 
+ * @returns {number} mixed color
+ */
 export function color_mixer(colors) {
-  // console.log(colors)
   const is_array = Array.isArray(colors);
   if (!is_array) {
     return colors;
@@ -18,11 +22,20 @@ export function color_mixer(colors) {
   }
   return (r << 16) | (g << 8) | b;
 }
+/**
+ * 
+ * @param {number} color 
+ * @returns {String} color code
+ */
 export function into_color_code(color) {
-  // console.log(`#${color.toString(16)}`)
   return `#${color.toString(16).padStart(6,'0')}`;
 }
-
+/**
+ * 
+ * @param {number} color 
+ * @param {number} darkness 
+ * @returns {number} Darkened color
+ */
 export function darken(color, darkness) {
   if (darkness >= 1) return color;
   if (darkness <= 0) return 0;
