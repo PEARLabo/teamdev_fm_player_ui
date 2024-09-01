@@ -15,10 +15,10 @@ export function color_mixer(colors) {
   let r = 0;
   let g = 0;
   let b = 0;
-  for (const i in colors) {
-    r += colors[i][0] * alpha;
-    g += colors[i][1] * alpha;
-    b += colors[i][2] * alpha;
+  for (const color of colors) {
+    r += ((color & 0xff0000) >> 16) * alpha;
+    g += ((color & 0x00ff00) >> 8) * alpha;
+    b += (color & 0x0000ff) * alpha;
   }
   return (r << 16) | (g << 8) | b;
 }

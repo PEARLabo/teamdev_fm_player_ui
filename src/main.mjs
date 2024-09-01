@@ -1,12 +1,12 @@
 const { open, message } = window.__TAURI__.dialog;
 const { invoke } = window.__TAURI__.tauri;
-import SequenceMsg from "./sequencer_msg_parser.mjs";
+import SequenceMsg from "./js/sequencer_msg_parser.mjs";
 import {
   init_play_state_display,
   update_play_state_display,
-} from "./play_state.mjs";
+} from "./js/play_state.mjs";
 // import { updatePianoRoll, drawPianoRoll } from "./player.mjs";
-import PianoRoll from "./player.mjs";
+import PianoRoll from "./js/pianoroll.mjs";
 let playbackListenerId = null;
 let portName = "/dev/pts/4"; //デフォルトのシリアルポート名
 

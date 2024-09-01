@@ -1,3 +1,4 @@
+import Note from "./note.mjs";
 const [
   EventKeyEvent,
   EventTempo, // 4分音符１つ分のusec
@@ -19,10 +20,9 @@ const PARAM_SET_LUT = [
   "FeedbackLevel Connection",
 ];
 export default class SequenceMsg {
-  #key = 0;
-  #vel = 0;
+  #note;
   #tempo = 0;
-  #timbre = "";
+  #instrument = "";
   #sq_event = EventOther;
   #ch = 0;
   constructor(sequence_msg) {
@@ -31,8 +31,7 @@ export default class SequenceMsg {
     switch (flag) {
       case EventKeyEvent:
         {
-          this.#key = sequence_msg.data[0];
-          this.#vel = sequence_msg.data[1];
+          this.#note = new Note(sequence_msg.data[0],sequence_msg.data[1])
         }
         break;
       case EventTempo:
@@ -52,7 +51,7 @@ export default class SequenceMsg {
           for (let i = 0; i < 6; i++) {
             name += String.fromCharCode(sequence_msg.data[i]);
           }
-          this.#timbre = name;
+          this.#instrument = name;
         }
         break;
       default:
@@ -90,13 +89,14 @@ export default class SequenceMsg {
   get_tempo() {
     return this.#tempo;
   }
-  get_key_vel() {
-    return {
-      key: this.#key,
-      vel: this.#vel,
-    };
+  /**
+   * 
+   * @returns {Note}
+   */
+  get_note() {
+    return this.#note;
   }
-  get_timbre() {
-    return this.#timbre;
+  get_instrument() {
+    return this.#instrument;
   }
 }

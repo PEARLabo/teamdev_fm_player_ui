@@ -1,5 +1,5 @@
-const player_header_items = ["channel", "timbre", "note", "pitch", "Expr"];
-const [CHANNEL_INDEX, TIMBRE_INDEX, NOTE_INDEX, PITCH_INDEX, Expr_INDEX] = [
+const player_header_items = ["channel", "instrument", "note", "pitch", "Expr"];
+const [CHANNEL_INDEX, INSTRUMENT_INDEX, NOTE_INDEX, PITCH_INDEX, Expr_INDEX] = [
   ...Array(5),
 ].map((_, i) => i);
 export function init_play_state_display(max_ch = 6) {
@@ -27,18 +27,22 @@ export function init_play_state_display(max_ch = 6) {
   document.getElementById("currentPlayState").appendChild(fragment);
 }
 
+/**
+ * 
+ * @param {SequenceMsg} msg 
+ */
 export function update_play_state_display(msg) {
   if (msg.is_tempo()) {
     document.getElementById("bpm").innerHTML = msg.get_tempo();
   } else if (msg.is_program_change()) {
     document.getElementById(
-      `ch${msg.get_channel() + 1}_${player_header_items[TIMBRE_INDEX]}`,
-    ).innerHTML = msg.get_timbre();
+      `ch${msg.get_channel() + 1}_${player_header_items[INSTRUMENT_INDEX]}`,
+    ).innerHTML = msg.get_instrument();
   } else if (msg.is_key_event()) {
-    const { key, vel } = msg.get_key_vel();
+    const note = msg.get_note();
     document.getElementById(
       `ch${msg.get_channel() + 1}_${player_header_items[NOTE_INDEX]}`,
-    ).innerHTML = `${vel ? "ON" : "OFF"} ${key}`;
+    ).innerHTML = `${note.is_key_on() ? "ON" : "OFF"} ${note.note_name}(${note.note_number})`;
   } else if (msg.is_end()) {
     // TODO: 表示のクリアの実装
   }

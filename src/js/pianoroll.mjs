@@ -1,5 +1,6 @@
 import { into_color_code,color_mixer,darken } from "./color.mjs";
-import { is_natural, distance_from_c,distance_from_c_sharp, is_accidental } from "./musical_scale.mjs";
+import { is_natural, distance_from_c,distance_from_c_sharp, is_accidental } from "./note.mjs";
+import SequenceMsg from "./sequencer_msg_parser.mjs";
 const WHITE_KEY_WIDTH = 45;
 const WHITE_KEY_HEIGHT = 200;
 const BLACK_KEY_WIDTH = WHITE_KEY_WIDTH * 0.6;
@@ -29,11 +30,18 @@ export default class PianoRoll {
     this.#canvas.width = WHITE_KEY_WIDTH * this.#row_octaves * 7;
     this.#canvas.height = WHITE_KEY_HEIGHT * rows;
   }
-
+  /**
+   * 
+   * @param {Note} note 
+   * @param {boolean} is_rewrite 
+   * @returns 
+   */
   #draw_key(note,is_rewrite = true) {
     let ctx = this.#canvas.getContext("2d");
-    const octave = Math.floor((note - 24) / 12);
-    const key = (note - 24) % 12;
+    const div_12 = note / 12;
+    const key = note % 12;
+    const octave = Math.floor(div_12) - 2;
+    
     const octaveOffsetX = (octave % this.#row_octaves) * 7 * WHITE_KEY_WIDTH;
     const yOffset = Math.floor(octave / this.#row_octaves) * WHITE_KEY_HEIGHT;
     let x;
@@ -50,17 +58,16 @@ export default class PianoRoll {
       key_height = WHITE_KEY_HEIGHT;
       color = isActive ?  get_key_color(this.#activeNotes.get(note)): 0xffffff;
     } else {
-      
       i = distance_from_c_sharp(key);
-      x = octaveOffsetX + distance_from_c(key - 1) * WHITE_KEY_WIDTH + WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2;
+      x = octaveOffsetX + distance_from_c(key + 1) * WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2;
       key_width = BLACK_KEY_WIDTH;
       key_height = BLACK_KEY_HEIGHT;
       color = isActive ?  darken(get_key_color(this.#activeNotes.get(note)),0.8): 0x000000;
     }
-    if(is_rewrite) {
-      ctx.clearRect(x,y,key_width, key_height)
-    }
     let draw_canvas = () => {
+      // if(is_rewrite) {
+      //   ctx.clearRect(x,y,key_width, key_height)
+      // }
       ctx.fillStyle = into_color_code(color);
       ctx.fillRect(x, y, key_width, key_height);
       ctx.strokeStyle = 'black';
@@ -77,13 +84,13 @@ export default class PianoRoll {
     };
     if(is_natural(key)) {
       draw_canvas();
-      let next_is_changed = this.#change_keys.has(note + 1);
-      let prev_is_changed = this.#change_keys.has(note - 1);
       if (!is_rewrite) return;
-      if(!next_is_changed && is_accidental((key + 1) % 12)) {
+      let higher_is_changed = this.#change_keys.has(note + 1);
+      let lower_is_changed = this.#change_keys.has(note - 1);
+      if(!higher_is_changed && is_accidental(key + 1)) {
         this.#draw_key(note + 1);
       }
-      if(!prev_is_changed && is_accidental((key - 1) % 12)) {
+      if(!lower_is_changed && is_accidental(key - 1)) {
         this.#draw_key(note - 1);
       }
     } else {
@@ -106,6 +113,11 @@ export default class PianoRoll {
     this.#canvas_is_update_frame = !this.#canvas_is_update_frame;
     requestAnimationFrame(this.#animate.bind(this));
   }
+  /**
+   * 
+   * @param {SequenceMsg} msg 
+   * @returns 
+   */
   updatePianoRoll(msg) {
     if(msg.is_end()) {
       this.reset();
@@ -113,13 +125,18 @@ export default class PianoRoll {
     }
     if (!msg.is_key_event()) return;
     const ch = msg.get_channel();
-    const { key, vel } = msg.get_key_vel();
-    if (vel !== 0) {
-      this.noteOn(ch, key);
-    } else if (vel === 0) {
-      this.noteOff(ch, key);
+    const note = msg.get_note();
+    if (note.is_key_on()) {
+      this.noteOn(ch, note.note_number);
+    } else {
+      this.noteOff(ch, note.note_number);
     }
   }
+  /**
+   * 
+   * @param {number} ch 
+   * @param {number} note 
+   */
   noteOn(ch,note) {
     if (this.#activeNotes.has(note)) {
       this.#activeNotes.get(note).add(ch);
@@ -128,7 +145,12 @@ export default class PianoRoll {
     }
     this.#change_keys.add(note);
   }
-
+  /**
+   * 
+   * @param {number} ch 
+   * @param {number} note 
+   * @returns 
+   */
   noteOff(ch,note) {
     if (!this.#activeNotes.has(note)) return;
     const set = this.#activeNotes.get(note);
