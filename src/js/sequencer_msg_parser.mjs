@@ -7,6 +7,11 @@ const [
   EventParam, // | ParamType(8bit) |slot(8bit)|data(8bit)|
   EventProgramChange,
   EventExpression,
+  EventPitchBend,
+  EventPitchBendSensitivity,
+  EventReset,
+  EventAllSoundOff,
+  EventAllNoteOff,
   EventOther,
 ] = [...Array(8)].map((_, i) => i);
 const PARAM_SET_LUT = [
@@ -25,25 +30,22 @@ export default class SequenceMsg {
   #instrument = "";
   #sq_event = EventOther;
   #ch = 0;
+  /**
+   *
+   * @param {} sequence_msg
+   */
   constructor(sequence_msg) {
     let flag = sequence_msg.sq_event;
     const ch = sequence_msg.channel;
     switch (flag) {
       case EventKeyEvent:
-        {
-          this.#note = new Note(sequence_msg.data[0], sequence_msg.data[1]);
-        }
+        this.#note = new Note(sequence_msg.data[0], sequence_msg.data[1]);
         break;
       case EventTempo:
-        {
-          this.#tempo =
-            sequence_msg.data[0] |
-            (sequence_msg.data[1] << 8) |
-            (sequence_msg.data[2] << 16);
-        }
-        break;
-      case EventEnd:
-        // this = null;
+        this.#tempo =
+          sequence_msg.data[0] |
+          (sequence_msg.data[1] << 8) |
+          (sequence_msg.data[2] << 16);
         break;
       case EventProgramChange:
         {
@@ -54,13 +56,23 @@ export default class SequenceMsg {
           this.#instrument = name;
         }
         break;
+      case EventEnd:
+      case EventReset:
+      case EventAllSoundOff:
+      case EventAllNoteOff:
+        // 値を持たないメッセージ
+        break;
       default:
         flag = EventOther;
         // 未対応イベント
+        // フロント未実装の物はすべてこことなる。
         break;
     }
     this.#sq_event = flag; // イベントタイプ
     this.#ch = ch; // チャンネル番号
+  }
+  static nop() {
+    return new SequenceMsg({ sq_event: EventNop, channel: 0 });
   }
   is_key_event() {
     return this.#sq_event === EventKeyEvent;
@@ -82,6 +94,14 @@ export default class SequenceMsg {
   }
   is_end() {
     return this.#sq_event === EventEnd;
+  }
+  is_reset() {
+    return this.#sq_event === EventReset;
+  }
+  is_all_stop() {
+    return (
+      this.#sq_event === EventAllNoteOff || this.#sq_event === EventAllSoundOff
+    );
   }
   get_channel() {
     return this.#ch;
