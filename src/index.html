@@ -8,73 +8,85 @@
     <title>Tauri File Selector</title>
     <link rel="stylesheet"
           href="styles.css">
-    <script type="module" src="main.mjs"></script>
+    <script type="module"
+            src="main.mjs"></script>
   </head>
 
   <body>
     <div class="container">
       <header>
-        <div class="header-container">
-          PearLab, Utsunomiya Univ.
-        </div>
+        <h1 class="header-container">
+          <!-- PearLab, Utsunomiya Univ. -->
+          Midi Send and Sequence Visualizer
+        </h1>
       </header>
 
-      <div id="main">
-        <!--シリアルポートUI-->
-        
-        <input type="checkbox" name="" id="control-serialport-selector" >
-        <div id="serialPortSelector"
-             class="content-card">
-          <label for="serialPortInput">Serial Port:</label>
-          <input type="text"
-                 id="serialPortInput"
-                 placeholder="/dev/pts/4">
-          <div class="row-container" id="port-control-buttons">
-            <button id="setSerialPortButton">Set Serial Port</button>
-          <button id="disconnectButton">Disconnect</button>
+      <main>
+        <!-- <h1>Welcome to Fm_Sequencer by MIQS!</h1> -->
+        <section id="control-panel">
+          <h2>Control Panel</h2>
+          <section>
+            <h3>Serial Port</h3>
+            <div class="row-container">
+              <label for="serialPortInput">Serial Port:</label>
+              <input type="text"
+                     id="serialPortInput"
+                     placeholder="Input Serial Port. e.g. /dev/ttyS0 ">
+            </div>
+            <div class="row-container">
+              <button id="setSerialPortButton">Connect</button>
+              <button id="disconnectButton">Disconnect</button>
+            </div>
+          </section>
+          <hr />
+          <section>
+            <h3>Send Midi File</h3>
+            <div class="row-container">
+              <label for="midiFileInput">Midi File:</label>
+              <div class="pseudo-input-file tool-chip"
+                   data-tooltip="ファイルが選択されていません">
+                <input type="button"
+                       id="fileOpen"
+                       value="ファイルを選択">
+                <label for="fileOpen"
+                       id="fname-display">ファイルが選択されていません</label>
+              </div>
+            </div>
+
+            <button id="sendButton"
+                    disabled>送信</button>
+          </section>
+          <hr />
+          <section>
+            <h2>Log</h2>
+            <textarea readonly
+                      id="console"></textarea>
+          </section>
+
+          <div>
+            <button id="swichPlayerBtn">Goto Visualizer</button>
           </div>
-          
-        </div>
-        <label for="control-serialport-selector" id="selector-toggle-button"><span>Setting</span></label>
-        <h1>Welcome to Fm_Sequencer by MIQS!</h1>
-        <h2>ファイルを選択してください</h2>
-        <!-- <input type="file"
-               id="fileInput"> -->
-        <div>
-          <input type="button" id="fileOpen" value="ファイルを選択">
-          <label for="fileOpen" id="fname-display">選択されていません</label>
-        </div>
+        </section>
 
-        <!-- <p id="fileSize">ファイルサイズ: N/A</p> -->
-        <button id="sendButton"
-                disabled>送信</button>
-        <textarea readonly
-                  id="console"></textarea>
-        <div>
-          <button id="swichPlayerBtn">Player</button>
-        </div>
-      </div>
-
-      <div id="player"
-           style="display: none;">
-        <h1>Player</h1>
-        <!-- <p id="tempoDisplay">Tempo: </p> -->
-        <div>
-          <button id="swichMainBtn">ファイル読み込み画面に戻る</button>
-        </div>
-        <!-- <textarea readonly
-                  id="playerConsole"></textarea> -->
-        <div id="playerStateDisplay">
-          <div>Tempo:<span id="bpm"></span></div>
-          <table id="currentPlayState"></table>
-        </div>
-        <canvas id="pianoRoll"
-                width="900"
-                height="400"
-                style="border: 1px solid black;"></canvas>
-      </div>
-    </div>
-
+        <section id="player"
+                 class="hide">
+          <h1>Visualizer</h1>
+          <div>
+            <button id="swichMainBtn">Goto Control Panel</button>
+          </div>
+          <div id="playerStateDisplay">
+            <div>Tempo:<span id="bpm"></span></div>
+            <table id="currentPlayState"></table>
+          </div>
+          <canvas id="pianoRoll"
+                  width="900"
+                  height="400"
+                  style="border: 1px solid black;"></canvas>
+        </section>
+      </main>
+      <footer>
+        <p>(c) 2024 PearLab, Utsunomiya Univ.</p>
+      </footer>
   </body>
 
 </html>

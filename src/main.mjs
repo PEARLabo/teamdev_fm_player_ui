@@ -108,13 +108,16 @@ window.onload = () => {
 
 // div.playerを表示し、div.mainを非表示にする関数
 function switchPlayer() {
-  const main = document.getElementById("main");
+  const main = document.getElementById("control-panel");
   const player = document.getElementById("player");
-  main.style.display = "none";
-  player.style.display = "block";
+  main.classList.toggle("hide");
+  player.classList.toggle("hide");
   // ピアノロールの描画
-  piano_roll = new PianoRoll("pianoRoll");
-  piano_roll.draw();
+  if(!piano_roll) {
+    piano_roll = new PianoRoll("pianoRoll");
+    piano_roll.draw();
+  }
+  
   // #console をクリア
   // document.getElementById("console").value = null;
   // document.getElementById("playerConsole").value = null;
@@ -122,18 +125,16 @@ function switchPlayer() {
 
 // div.mainを表示し、div.playerを非表示にする関数
 function switchMain() {
-  const main = document.getElementById("main");
+  const main = document.getElementById("control-panel");
   const player = document.getElementById("player");
-  main.style.display = "block";
-  player.style.display = "none";
+  main.classList.toggle("hide");
+  player.classList.toggle("hide");
   // #console をクリア
-  document.getElementById("console").value = null;
-
   // イベントリスナを解除
-  if (playbackListenerId) {
-    playbackListenerId();
-    playbackListenerId = null;
-  }
+  // if (playbackListenerId) {
+  //   playbackListenerId();
+  //   playbackListenerId = null;
+  // }
 }
 
 // ファイルの内容をArrayBufferとして読み込む関数
