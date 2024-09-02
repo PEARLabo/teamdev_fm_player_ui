@@ -28,8 +28,8 @@ export function init_play_state_display(max_ch = 6) {
 }
 
 /**
- * 
- * @param {SequenceMsg} msg 
+ *
+ * @param {SequenceMsg} msg
  */
 export function update_play_state_display(msg) {
   if (msg.is_tempo()) {
@@ -42,7 +42,8 @@ export function update_play_state_display(msg) {
     const note = msg.get_note();
     document.getElementById(
       `ch${msg.get_channel() + 1}_${player_header_items[NOTE_INDEX]}`,
-    ).innerHTML = `${note.is_key_on() ? "ON" : "OFF"} ${note.note_name}(${note.note_number})`;
+    ).innerHTML =
+      `${note.is_key_on() ? "ON" : "OFF"} ${note.note_name}(${note.note_number})`;
   } else if (msg.is_end()) {
     // TODO: 表示のクリアの実装
   }

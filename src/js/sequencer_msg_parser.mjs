@@ -31,7 +31,7 @@ export default class SequenceMsg {
     switch (flag) {
       case EventKeyEvent:
         {
-          this.#note = new Note(sequence_msg.data[0],sequence_msg.data[1])
+          this.#note = new Note(sequence_msg.data[0], sequence_msg.data[1]);
         }
         break;
       case EventTempo:
@@ -90,7 +90,7 @@ export default class SequenceMsg {
     return this.#tempo;
   }
   /**
-   * 
+   *
    * @returns {Note}
    */
   get_note() {

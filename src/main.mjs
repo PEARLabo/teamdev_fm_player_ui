@@ -1,12 +1,11 @@
 const { open, message } = window.__TAURI__.dialog;
 const { invoke } = window.__TAURI__.tauri;
-import SequenceMsg from "./js/sequencer_msg_parser.mjs";
+import PianoRoll from "./js/pianoroll.mjs";
 import {
   init_play_state_display,
   update_play_state_display,
 } from "./js/play_state.mjs";
-// import { updatePianoRoll, drawPianoRoll } from "./player.mjs";
-import PianoRoll from "./js/pianoroll.mjs";
+import SequenceMsg from "./js/sequencer_msg_parser.mjs";
 let playbackListenerId = null;
 let portName = "/dev/pts/4"; //デフォルトのシリアルポート名
 
@@ -27,7 +26,6 @@ window.__TAURI__.event.listen("sequencer-msg", (data) => {
 });
 
 window.onload = () => {
-  console.log("test")
   init_play_state_display();
   // Fileを開くイベント(ダイアログから取得したパスをバックエンドへ送る)
   document.getElementById("fileOpen").onclick = async () => {
@@ -150,8 +148,8 @@ async function readFileAsArrayBuffer(file) {
 
 // ファイルサイズを表示する関数
 function displayFileSize(size) {
-  const fileSizeElemnt = document.getElementById("fileSize");
-  fileSizeElemnt.textContent = `ファイルサイズ: ${size} byte`;
+  const fileSizeElement = document.getElementById("fileSize");
+  fileSizeElement.textContent = `ファイルサイズ: ${size} byte`;
 }
 
 // 送信ボタンを表示する関数

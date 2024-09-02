@@ -1,6 +1,6 @@
 /**
- * 
- * @param {[number] | number} colors 
+ *
+ * @param {[number] | number} colors
  * @returns {number} mixed color
  */
 export function color_mixer(colors) {
@@ -23,17 +23,17 @@ export function color_mixer(colors) {
   return (r << 16) | (g << 8) | b;
 }
 /**
- * 
- * @param {number} color 
+ *
+ * @param {number} color
  * @returns {String} color code
  */
 export function into_color_code(color) {
-  return `#${color.toString(16).padStart(6,'0')}`;
+  return `#${color.toString(16).padStart(6, "0")}`;
 }
 /**
- * 
- * @param {number} color 
- * @param {number} darkness 
+ *
+ * @param {number} color
+ * @param {number} darkness
  * @returns {number} Darkened color
  */
 export function darken(color, darkness) {

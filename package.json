@@ -5,6 +5,6 @@
   "scripts": {
     "fmt": "npx @biomejs/biome format --write src",
     "lint": "npx @biomejs/biome lint src",
-    "lint-apply": "npx @biomejs/biome check  --fix --unsafe"
+    "apply-lint": "npx @biomejs/biome check  --fix --unsafe"
   }
 }
