@@ -19,8 +19,8 @@ impl std::fmt::Display for InternalCommand {
 }
 
 #[tauri::command]
-pub async fn open_file(path: String, state: State<'_, AppState>) -> Result<bool, String> {
-    let mut file = File::open(path).map_err(|e| e.to_string())?;
+pub async fn open_file(path: String, state: State<'_, AppState>) -> Result<(), String> {
+    let mut file = File::open(&path).map_err(|e| e.to_string())?;
     let mut buf = Vec::with_capacity(file.metadata().unwrap().len() as usize);
     let _ = file.read_to_end(&mut buf).map_err(|e| e.to_string())?;
     let is_midi = check_midi_format(&buf);
@@ -28,10 +28,13 @@ pub async fn open_file(path: String, state: State<'_, AppState>) -> Result<bool,
         // Set File Data
         let mut dst = state.file_data.lock().await;
         *dst = Some(buf);
+        Ok(())
+    } else {
+      Err(format!("Invalid File Format: {path} is not Standard MIDI Format."))
     }
-    Ok(is_midi)
 }
-// //ファイルサイズと形式を判定するtauriコマンド
+//ファイルサイズと形式を判定するtauriコマンド
+// Maybe unused?
 #[tauri::command]
 pub fn read_file(contents: Vec<u8>, _state: State<'_, AppState>) -> Result<FileInfo, String> {
     println!("Reading file with contents of length: {}", contents.len()); // デバッグ用ログ
@@ -41,6 +44,7 @@ pub fn read_file(contents: Vec<u8>, _state: State<'_, AppState>) -> Result<FileI
 
     Ok(FileInfo { size, is_midi })
 }
+
 #[tauri::command]
 pub async fn set_serial_port(
     port_name: String,
@@ -86,7 +90,7 @@ pub async fn handle_internal_control<R: tauri::Runtime>(
                 .await
             {
                 Ok(_) => {
-                    println!("Send File Data");
+                    println!("Success: Send File Data");
                 }
                 Err(msg) => {
                     println!("Error: {}", msg);
