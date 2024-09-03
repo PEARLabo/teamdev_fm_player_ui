@@ -160,8 +160,10 @@ button {
 	margin: 10px auto;
 	transition: background-color 0.3s;
 }
-
 button#sendButton {
+  background-color: #333;
+}
+button#sendButton:disabled {
 	background-color: #1d5ea8;
 	cursor: not-allowed;
 }

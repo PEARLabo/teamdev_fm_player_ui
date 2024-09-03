@@ -63,7 +63,7 @@ pub async fn disconnect_serial_port(state: tauri::State<'_, AppState>) -> Result
 }
 
 #[tauri::command]
-pub async fn send_file_size(state: tauri::State<'_, AppState>) -> Result<(), String> {
+pub async fn send_midi_file(state: tauri::State<'_, AppState>) -> Result<(), String> {
     let async_proc_input_tx = state.inner.lock().await;
     async_proc_input_tx
         .send((InternalCommand::Send, String::from("")))

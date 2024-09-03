@@ -129,7 +129,7 @@ fn main() {
             .invoke_handler(tauri::generate_handler![
                 read_file,
                 // process_event,
-                send_file_size, // 本番用
+                send_midi_file, // 本番用
                 open_file,
                 set_serial_port,
                 disconnect_serial_port,
