@@ -3,8 +3,8 @@ import console_override from "./js/console.mjs";
 import { open, warningDialog } from "./js/dialog.mjs";
 import PeriodicTask from "./js/periodic.mjs";
 import PianoRoll from "./js/pianoroll.mjs";
-import PerformanceMonitor from "./js/play_state.mjs";
-import SequenceMsg from "./js/sequencer_msg_parser.mjs";
+import PerformanceMonitor from "./js/performMonitor.mjs";
+import SequenceMsg from "./js/seqMsgParser.mjs";
 
 let piano_roll;
 let performance_monitor;

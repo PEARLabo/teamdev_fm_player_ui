@@ -1,4 +1,4 @@
-import SequenceMsg from "./sequencer_msg_parser.mjs";
+import SequenceMsg from "./seqMsgParser.mjs";
 
 const PLAYER_HEADER_ITEMS = ["channel", "instrument", "note", "pitch", "Expr"];
 const [CHANNEL_INDEX, INSTRUMENT_INDEX, NOTE_INDEX, PITCH_INDEX, Expr_INDEX] = [
@@ -64,7 +64,6 @@ export default class PerformanceMonitor {
             this.#tempo = msg.get_tempo();
             this.#tempo_is_change = true;
         } else if (msg.is_key_event()) {
-            console.log();
             const note = msg.get_note();
             state.items[NOTE_INDEX] =
                 `${note.is_key_on() ? "ON" : "OFF"} ${note.note_name}(${note.note_number})`;
@@ -93,7 +92,6 @@ export default class PerformanceMonitor {
     }
     #reset_ch(channel) {
         for (let i = 1; i < PLAYER_HEADER_ITEMS.length; ++i) {
-            console.log(this.#state[channel]);
             this.#state[channel].items[i] = DEFAULT_VALUE[i];
             this.#state[channel].is_change[i] = true;
         }

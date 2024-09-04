@@ -5,7 +5,7 @@ import {
     is_accidental,
     is_natural,
 } from "./note.mjs";
-import SequenceMsg from "./sequencer_msg_parser.mjs";
+import SequenceMsg from "./seqMsgParser.mjs";
 const WHITE_KEY_WIDTH = 45;
 const WHITE_KEY_HEIGHT = 200;
 const BLACK_KEY_WIDTH = WHITE_KEY_WIDTH * 0.6;
