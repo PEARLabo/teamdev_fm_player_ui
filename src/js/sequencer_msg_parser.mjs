@@ -9,7 +9,7 @@ const [
     EventExpression,
     EventPitchBend,
     EventPitchBendSensitivity,
-    EventReset,
+    EventControllerReset,
     EventAllSoundOff,
     EventAllNoteOff,
     EventOther,
@@ -98,8 +98,8 @@ export default class SequenceMsg {
     is_end() {
         return this.#sq_event === EventEnd;
     }
-    is_reset() {
-        return this.#sq_event === EventReset;
+    is_reset_controller() {
+        return this.#sq_event === EventControllerReset;
     }
     is_all_stop() {
         return (

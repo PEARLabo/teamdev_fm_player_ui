@@ -1,42 +1,42 @@
 {
-  "build": {
-    "devPath": "../src",
-    "distDir": "../src",
-    "withGlobalTauri": true
-  },
-  "package": {
-    "productName": "miqs_music_prot",
-    "version": "0.0.0"
-  },
-  "tauri": {
-    "allowlist": {
-      "all": false,
-      "dialog": {
-        "message": true,
-        "open": true
-      }
+    "build": {
+        "devPath": "../src",
+        "distDir": "../src",
+        "withGlobalTauri": true
     },
-    "windows": [
-      {
-        "title": "miqs_music_prot",
-        "width": 960,
-        "height": 720
-      }
-    ],
-    "security": {
-      "csp": "default-src blob: data: filesystem: ws: wss: http: https: tauri: 'unsafe-eval' 'unsafe-inline' 'self' img-src: 'self'; connect-src ipc: http://ipc.localhost"
+    "package": {
+        "productName": "miqs_music_prot",
+        "version": "0.0.0"
     },
-    "bundle": {
-      "active": true,
-      "targets": "all",
-      "identifier": "com.miqsmusicprot.dev",
-      "icon": [
-        "./icons/32x32.png",
-        "./icons/128x128.png",
-        "./icons/128x128@2x.png",
-        "./icons/icon.icns",
-        "./icons/icon.ico"
-      ]
+    "tauri": {
+        "allowlist": {
+            "all": false,
+            "dialog": {
+                "message": true,
+                "open": true
+            }
+        },
+        "windows": [
+            {
+                "title": "miqs_music_prot",
+                "width": 960,
+                "height": 720
+            }
+        ],
+        "security": {
+            "csp": "default-src blob: data: filesystem: ws: wss: http: https: tauri: 'unsafe-eval' 'unsafe-inline' 'self' img-src: 'self'; connect-src ipc: http://ipc.localhost"
+        },
+        "bundle": {
+            "active": true,
+            "targets": "all",
+            "identifier": "com.miqsmusicprot.dev",
+            "icon": [
+                "./icons/32x32.png",
+                "./icons/128x128.png",
+                "./icons/128x128@2x.png",
+                "./icons/icon.icns",
+                "./icons/icon.ico"
+            ]
+        }
     }
-  }
 }

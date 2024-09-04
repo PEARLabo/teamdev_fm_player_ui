@@ -81,9 +81,6 @@ export default class PianoRoll {
                 : 0x000000;
         }
         const draw_canvas = () => {
-            // if(is_rewrite) {
-            //   ctx.clearRect(x,y,key_width, key_height)
-            // }
             ctx.fillStyle = into_color_code(color);
             ctx.fillRect(x, y, key_width, key_height);
             ctx.strokeStyle = "black";
@@ -110,12 +107,12 @@ export default class PianoRoll {
             queueMicrotask(draw_canvas);
         }
     }
-    #init_draw() {
+    init_draw() {
         for (let i = 24, _end = this.#num_octaves * 12 + i; i < _end; i++) {
             this.#draw_key(i, false);
         }
     }
-    #animate() {
+    draw() {
         if (this.#canvas_is_update_frame && this.#change_keys.size) {
             // 再描画
             this.#change_keys.forEach(this.#draw_key.bind(this));
@@ -123,7 +120,7 @@ export default class PianoRoll {
         }
 
         this.#canvas_is_update_frame = !this.#canvas_is_update_frame;
-        requestAnimationFrame(this.#animate.bind(this));
+        // requestAnimationFrame(this.#animate.bind(this));
     }
     /**
      *
@@ -173,11 +170,4 @@ export default class PianoRoll {
         this.#change_keys.add(note);
     }
     reset() {}
-    draw() {
-        this.#init_draw();
-        this.#animate_id = requestAnimationFrame(this.#animate.bind(this));
-    }
-    stop_draw() {
-        // TODO: impl
-    }
 }

@@ -1,19 +1,21 @@
 const { invoke } = window.__TAURI__.tauri;
-import { open, warningDialog } from "./js/dialog.mjs";
-import PianoRoll from "./js/pianoroll.mjs";
 import console_override from "./js/console.mjs";
-import {
-    init_play_state_display,
-    update_play_state_display,
-} from "./js/play_state.mjs";
+import { open, warningDialog } from "./js/dialog.mjs";
+import PeriodicTask from "./js/periodic.mjs";
+import PianoRoll from "./js/pianoroll.mjs";
+import PerformanceMonitor from "./js/play_state.mjs";
 import SequenceMsg from "./js/sequencer_msg_parser.mjs";
 
 let piano_roll;
+let performance_monitor;
+let periodic_task_manager;
 // TODO: いい感じに実装を移す
 window.__TAURI__.event.listen("sequencer-msg", (data) => {
     const parsed = new SequenceMsg(data.payload);
     if (!parsed.is_ignore_msg()) {
-        update_play_state_display(parsed);
+        if (performance_monitor) {
+            performance_monitor.update(parsed);
+        }
         if (piano_roll) {
             piano_roll.updatePianoRoll(parsed);
         }
@@ -21,7 +23,17 @@ window.__TAURI__.event.listen("sequencer-msg", (data) => {
 });
 
 window.onload = () => {
-    init_play_state_display();
+    piano_roll = new PianoRoll("pianoRoll");
+    performance_monitor = new PerformanceMonitor("currentPlayState");
+    performance_monitor.init();
+    // 描画を定期タスクで管理
+    periodic_task_manager = new PeriodicTask(
+        [
+            piano_roll.draw.bind(piano_roll),
+            performance_monitor.commit.bind(performance_monitor),
+        ],
+        piano_roll.init_draw.bind(piano_roll),
+    );
     console_override("console");
     // Fileを開くイベント(ダイアログから取得したパスをバックエンドへ送る)
     document.getElementById("fileOpen").onclick = async () => {
@@ -65,20 +77,20 @@ window.onload = () => {
     };
     // 利用可能なシリアルポートのサジェストを作成
     document.getElementById("serialPortInput").onfocus = async () => {
-      invoke("get_available_serial_ports", {}).then((ports) => {
-        if(ports) {
-          const datalist =  document.getElementById("active-serialports");
-          const fragment = document.createDocumentFragment();
-          for (const port of ports) {
-            const item = document.createElement("option");
-            item.value = port;
-            fragment.appendChild(item)
-          }
-          datalist.innerHTML = null;
-          datalist.appendChild(fragment);
-        }
-      });
-    }
+        invoke("get_available_serial_ports", {}).then((ports) => {
+            if (ports) {
+                const datalist = document.getElementById("active-serialports");
+                const fragment = document.createDocumentFragment();
+                for (const port of ports) {
+                    const item = document.createElement("option");
+                    item.value = port;
+                    fragment.appendChild(item);
+                }
+                datalist.innerHTML = null;
+                datalist.appendChild(fragment);
+            }
+        });
+    };
     // Disconnectボタンのクリックイベントリスナーを追加
     document.getElementById("disconnectButton").onclick = async () => {
         try {
@@ -109,16 +121,9 @@ function togglePlayer() {
     // ピアノロールの描画
     if (is_current_player) {
         // 描画停止
-        // TODO: Implement
+        periodic_task_manager.stop();
     } else {
-        if (!piano_roll) {
-            // 初期化
-            piano_roll = new PianoRoll("pianoRoll");
-            piano_roll.draw();
-        } else {
-            // 描画再開
-            // TODO: Implement
-        }
+        periodic_task_manager.start();
     }
 }
 
