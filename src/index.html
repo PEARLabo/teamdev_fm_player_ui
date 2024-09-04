@@ -31,7 +31,11 @@
               <label for="serialPortInput">Serial Port:</label>
               <input type="text"
                      id="serialPortInput"
+                     list="active-serialports"
                      placeholder="Input Serial Port. e.g. /dev/ttyS0 ">
+              <datalist id="active-serialports">
+
+              </datalist>
             </div>
             <div class="row-container">
               <button id="setSerialPortButton">Connect</button>

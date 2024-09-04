@@ -63,7 +63,22 @@ window.onload = () => {
             console.error("Invalid serial port input.");
         }
     };
-
+    // 利用可能なシリアルポートのサジェストを作成
+    document.getElementById("serialPortInput").onfocus = async () => {
+      invoke("get_available_serial_ports", {}).then((ports) => {
+        if(ports) {
+          const datalist =  document.getElementById("active-serialports");
+          const fragment = document.createDocumentFragment();
+          for (const port of ports) {
+            const item = document.createElement("option");
+            item.value = port;
+            fragment.appendChild(item)
+          }
+          datalist.innerHTML = null;
+          datalist.appendChild(fragment);
+        }
+      });
+    }
     // Disconnectボタンのクリックイベントリスナーを追加
     document.getElementById("disconnectButton").onclick = async () => {
         try {

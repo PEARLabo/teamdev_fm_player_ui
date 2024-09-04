@@ -133,6 +133,7 @@ fn main() {
                 open_file,
                 set_serial_port,
                 disconnect_serial_port,
+                get_available_serial_ports,
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");

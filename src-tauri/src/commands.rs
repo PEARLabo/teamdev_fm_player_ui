@@ -74,6 +74,10 @@ pub async fn send_midi_file(state: tauri::State<'_, AppState>) -> Result<(), Str
         .await
         .map_err(|e| e.to_string())
 }
+#[tauri::command]
+pub fn get_available_serial_ports() -> Vec<String> {
+  crate::utils::get_serial_port_list().unwrap_or_default()
+}
 
 // JSの世界からのイベント分岐(trueを返すとシリアル通信を閉じる)
 // TODO: フロントへのイベント発行の実装/関数名をいい感じに
