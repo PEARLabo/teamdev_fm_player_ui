@@ -1,5 +1,5 @@
 /**
- * @description 周期タスクを発行するクラス
+ * @description 周期タスクを発行するクラス。ブラウザのレンダリングに同期して
  */
 export default class PeriodicTask {
     #initialize = [];
@@ -7,7 +7,8 @@ export default class PeriodicTask {
     #animate_id;
     /**
      *
-     * @param {()=>void | [()=>void] | undefined} tasks 定期的に実行するタスクの登録
+     * @param {()=>void | [()=>void] | undefined} tasks 定期的に実行するタスク
+     * @param {()=>void  |  [()=>void]  | undefined} init 定期タスクを開始する前に実行する処理
      */
     constructor(tasks, init) {
         if (!tasks) return;
@@ -17,7 +18,6 @@ export default class PeriodicTask {
             for (const task of tasks) {
                 this.#tasks.push(task);
             }
-            console.log(this.#tasks);
         }
         if (!init) return;
         if (!Array.isArray(init)) {

@@ -53,8 +53,11 @@ window.onload = () => {
         if (selected) {
             try {
                 await invoke("open_file", { path: selected });
-                const fname = selected.split("/").at(-1);
+                // ファイル名(と拡張子)のみを抽出
+                const fname = selected.split(/\/|\\/).at(-1);
+                // 表示の変更
                 document.getElementById("fname-display").innerHTML = fname;
+                document.getElementById("midi-file-open-container").dataset.tooltip = fname;
                 enableSendButton();
             } catch (err) {
                 warningDialog(err);
@@ -122,8 +125,10 @@ function togglePlayer() {
     if (is_current_player) {
         // 描画停止
         periodic_task_manager.stop();
+        console.log("Move to Control Panel");
     } else {
         periodic_task_manager.start();
+        console.log("Move to Visualizer Panel");
     }
 }
 
