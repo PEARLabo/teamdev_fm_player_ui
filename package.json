@@ -1,8 +1,10 @@
 {
     "devDependencies": {
-        "@biomejs/biome": "1.8.3"
+        "@biomejs/biome": "1.8.3",
+        "typescript": "^5.5.4"
     },
     "scripts": {
+        "build": "npx tsc",
         "fmt": "npx @biomejs/biome format --write src",
         "lint": "npx @biomejs/biome lint src",
         "apply-lint": "npx @biomejs/biome check  --fix --unsafe"

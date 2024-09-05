@@ -1,19 +1,20 @@
 const { invoke } = window.__TAURI__.tauri;
 class TauriBackEnd {
+    serialport:SerialPort;
     constructor() {
         this.serialport = new SerialPort();
         window.__TAURI__.event.listen("error", console.error);
     }
-    set onerror(callback) {
+    set onerror(callback:EventCallback<unknown>) {
         window.__TAURI__.event.listen("error", callback);
     }
-    set onmessage(callback) {
+    set onmessage(callback:EventCallback<unknown>) {
         window.__TAURI__.event.listen("message", callback);
     }
-    set onseq_msg(callback) {
+    set onseq_msg(callback:EventCallback<SequencerInfo>) {
         window.__TAURI__.event.listen("sequencer-msg", callback);
     }
-    file_open(path) {
+    file_open(path:string) {
         return invoke("open_file", { path });
     }
     send_file() {
@@ -25,7 +26,7 @@ class SerialPort {
      * @description This function does not return success or failure.
      * @returns
      */
-    open(portName) {
+    open(portName:string) {
         return invoke("serialport_open", { portName });
     }
     /**

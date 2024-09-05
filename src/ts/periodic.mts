@@ -2,15 +2,15 @@
  * @description 周期タスクを発行するクラス。ブラウザのレンダリングに同期して
  */
 export default class PeriodicTask {
-    #initialize = [];
-    #tasks = [];
-    #animate_id;
+    #initialize:Array<()=>void> = [];
+    #tasks:Array<()=>void> = [];
+    #animate_id?:number;
     /**
      *
      * @param {()=>void | [()=>void] | undefined} tasks 定期的に実行するタスク
      * @param {()=>void  |  [()=>void]  | undefined} init 定期タスクを開始する前に実行する処理
      */
-    constructor(tasks, init) {
+    constructor(tasks?:()=>void|Array<()=>void>, inits?:()=>void|Array<()=>void>) {
         if (!tasks) return;
         if (!Array.isArray(tasks)) {
             this.#tasks.push(tasks);
@@ -19,16 +19,16 @@ export default class PeriodicTask {
                 this.#tasks.push(task);
             }
         }
-        if (!init) return;
-        if (!Array.isArray(init)) {
-            this.#initialize.push(init);
+        if (!inits) return;
+        if (!Array.isArray(inits)) {
+            this.#initialize.push(inits);
         } else {
-            for (const init of init) {
+            for (const init of inits) {
                 this.#initialize.push(init);
             }
         }
     }
-    push(task, init) {
+    push(task:()=>void, init:()=>void) {
         this.#tasks.push(task);
         if (init) {
             this.#initialize.push(init);

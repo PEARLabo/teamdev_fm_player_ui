@@ -29,3 +29,4 @@ Cargo.lock
 *.sln
 *.sw?
 package-lock.json
+js/

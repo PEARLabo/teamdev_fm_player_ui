@@ -32,7 +32,7 @@ const NOTE_NAME = [
  * @param {number} note
  * @returns {boolean} true if note is natural
  */
-export function is_natural(note) {
+export function is_natural(note:number) {
     let tmp = note;
     if (tmp >= 12) tmp %= 12;
     else if (tmp < 0) tmp += 12;
@@ -43,7 +43,7 @@ export function is_natural(note) {
  * @param {number} note
  * @returns {number} distance from C stepped by  natural note
  */
-export function distance_from_c(note) {
+export function distance_from_c(note:number) {
     let tmp = note;
     if (tmp >= 12) tmp %= 12;
     else if (tmp < 0) tmp += 12;
@@ -54,7 +54,7 @@ export function distance_from_c(note) {
  * @param {number} note
  * @returns {number} distance from C# stepped by accidental note
  */
-export function distance_from_c_sharp(note) {
+export function distance_from_c_sharp(note:number) {
     let tmp = note;
     if (tmp >= 12) tmp %= 12;
     else if (tmp < 0) tmp += 12;
@@ -65,7 +65,7 @@ export function distance_from_c_sharp(note) {
  * @param {number} note
  * @returns {boolean} true if note is accidental
  */
-export function is_accidental(note) {
+export function is_accidental(note:number) {
     let tmp = note;
     if (tmp >= 12) tmp %= 12;
     else if (tmp < 0) tmp += 12;
@@ -77,7 +77,7 @@ export default class Note {
     #octave;
     #interval;
     #velocity;
-    constructor(note, vel) {
+    constructor(note:number, vel:number) {
         const div = note / 12;
         const mod = note % 12;
         this.#note_number = note;
@@ -85,9 +85,6 @@ export default class Note {
         this.#interval = mod;
         this.#velocity = vel;
     }
-    /**
-     * @returns {number}
-     */
     get note_number() {
         return this.#note_number;
     }
@@ -97,9 +94,6 @@ export default class Note {
     get note_name() {
         return NOTE_NAME[this.#interval] + this.#octave;
     }
-    /**
-     * @returns {number} Intervals with C as the base
-     */
     get interval() {
         return this.#interval;
     }
@@ -107,6 +101,6 @@ export default class Note {
         return this.#velocity !== 0;
     }
     is_natural() {
-        return NATURAL_LUT[interval];
+        return NATURAL_LUT[this.#interval];
     }
 }

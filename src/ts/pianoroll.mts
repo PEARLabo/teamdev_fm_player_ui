@@ -14,25 +14,24 @@ const BLACK_KEY_HEIGHT = WHITE_KEY_HEIGHT * 0.6;
 // Note: 適当な色を設定。いい感じに変更求ム
 const COLOR_LUT = [0xf08080, 0xfffacd, 0xe6e6fa, 0xd6efff, 0xcfffe5, 0xffd1dc];
 
-function get_key_color(current_on) {
-    const color_array = [];
+function get_key_color(current_on:Set<number>) {
+    const color_array:number[] = [];
     for (const ch of current_on) {
         color_array.push(COLOR_LUT[ch]);
     }
-    return color_mixer(color_array);
+    return color_mixer(color_array as [number]);
 }
 
 export default class PianoRoll {
-    #activeNotes = new Map(); // Active Note
-    #change_keys = new Set(); // State Changed Note
+    #activeNotes:Map<number,Set<number>> = new Map(); // Active Note
+    #change_keys:Set<number> = new Set(); // State Changed Note
     #canvas_is_update_frame = true; //
     #canvas;
     #num_octaves = 6;
     #row_octaves = 3;
-    #animate_id;
 
-    constructor(id) {
-        this.#canvas = document.getElementById(id);
+    constructor(id:string) {
+        this.#canvas = document.getElementById(id) as HTMLCanvasElement;
         const rows = Math.ceil(this.#num_octaves / this.#row_octaves);
         this.#canvas.width = WHITE_KEY_WIDTH * this.#row_octaves * 7;
         this.#canvas.height = WHITE_KEY_HEIGHT * rows;
@@ -43,8 +42,8 @@ export default class PianoRoll {
      * @param {boolean} is_rewrite
      * @returns
      */
-    #draw_key(note, is_rewrite = true) {
-        const ctx = this.#canvas.getContext("2d");
+    #draw_key(note:number, is_rewrite = true) {
+        const ctx = this.#canvas.getContext("2d") as CanvasRenderingContext2D;
         const div_12 = note / 12;
         const key = note % 12;
         const octave = Math.floor(div_12) - 2;
@@ -66,7 +65,7 @@ export default class PianoRoll {
             key_width = WHITE_KEY_WIDTH;
             key_height = WHITE_KEY_HEIGHT;
             color = isActive
-                ? get_key_color(this.#activeNotes.get(note))
+                ? get_key_color(this.#activeNotes.get(note) as Set<number>)
                 : 0xffffff;
         } else {
             i = distance_from_c_sharp(key);
@@ -77,7 +76,7 @@ export default class PianoRoll {
             key_width = BLACK_KEY_WIDTH;
             key_height = BLACK_KEY_HEIGHT;
             color = isActive
-                ? darken(get_key_color(this.#activeNotes.get(note)), 0.8)
+                ? darken(get_key_color(this.#activeNotes.get(note) as Set<number>), 0.8)
                 : 0x000000;
         }
         const draw_canvas = () => {
@@ -115,7 +114,8 @@ export default class PianoRoll {
     draw() {
         if (this.#canvas_is_update_frame && this.#change_keys.size) {
             // 再描画
-            this.#change_keys.forEach(this.#draw_key.bind(this));
+            // 強制的に型変換(動作は確認済み)
+            this.#change_keys.forEach(this.#draw_key.bind(this) as any);
             this.#change_keys.clear();
         }
 
@@ -127,7 +127,7 @@ export default class PianoRoll {
      * @param {SequenceMsg} msg
      * @returns
      */
-    updatePianoRoll(msg) {
+    updatePianoRoll(msg:SequenceMsg) {
         if (msg.is_end()) {
             this.reset();
             return;
@@ -135,10 +135,10 @@ export default class PianoRoll {
         if (!msg.is_key_event()) return;
         const ch = msg.get_channel();
         const note = msg.get_note();
-        if (note.is_key_on()) {
-            this.noteOn(ch, note.note_number);
+        if (note?.is_key_on()) {
+            this.noteOn(ch, note.note_number as number);
         } else {
-            this.noteOff(ch, note.note_number);
+            this.noteOff(ch, note?.note_number as number);
         }
     }
     /**
@@ -146,9 +146,9 @@ export default class PianoRoll {
      * @param {number} ch
      * @param {number} note
      */
-    noteOn(ch, note) {
+    noteOn(ch:number, note:number) {
         if (this.#activeNotes.has(note)) {
-            this.#activeNotes.get(note).add(ch);
+            this.#activeNotes.get(note)?.add(ch);
         } else {
             this.#activeNotes.set(note, new Set([ch]));
         }
@@ -160,11 +160,11 @@ export default class PianoRoll {
      * @param {number} note
      * @returns
      */
-    noteOff(ch, note) {
+    noteOff(ch:number, note:number) {
         if (!this.#activeNotes.has(note)) return;
         const set = this.#activeNotes.get(note);
-        set.delete(ch);
-        if (set.size === 0) {
+        set?.delete(ch);
+        if (set?.size === 0) {
             this.#activeNotes.delete(note);
         }
         this.#change_keys.add(note);

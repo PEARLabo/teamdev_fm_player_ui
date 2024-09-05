@@ -6,13 +6,18 @@ const [CHANNEL_INDEX, INSTRUMENT_INDEX, NOTE_INDEX, PITCH_INDEX, Expr_INDEX] = [
 ].map((_, i) => i);
 // TODO: Expressionのdefault値を確認する。
 const DEFAULT_VALUE = ["", "unknown", "OFF", "0", "128"];
+interface PerformanceState {
+  ch:number,
+  is_change: boolean[],
+  items: string[],
+}
 export default class PerformanceMonitor {
     #dst;
     #max_ch;
-    #state = [];
-    #tempo;
+    #state:PerformanceState[] = [];
+    #tempo?:number;
     #tempo_is_change = false;
-    constructor(id, max_ch = 6) {
+    constructor(id:string, max_ch = 6) {
         this.#dst = document.getElementById(id);
         this.#max_ch = max_ch;
         for (let i = 0; i < max_ch; i++) {
@@ -47,13 +52,13 @@ export default class PerformanceMonitor {
             // パラメータの初期化
             this.#reset_ch(i);
         }
-        this.#dst.appendChild(fragment);
+        this.#dst?.appendChild(fragment);
     }
     /**
      *
      * @param {SequenceMsg} msg
      */
-    update(msg) {
+    update(msg:SequenceMsg) {
         if (msg.is_ignore_msg()) return;
         const ch = msg.get_channel();
         const state = this.#state[ch];
@@ -66,31 +71,33 @@ export default class PerformanceMonitor {
         } else if (msg.is_key_event()) {
             const note = msg.get_note();
             state.items[NOTE_INDEX] =
-                `${note.is_key_on() ? "ON" : "OFF"} ${note.note_name}(${note.note_number})`;
+                `${note?.is_key_on() ? "ON" : "OFF"} ${note?.note_name}(${note?.note_number})`;
             state.is_change[NOTE_INDEX] = true;
         } else if (msg.is_all_stop()) {
             state.items[NOTE_INDEX] = "Off";
         } else if (msg.is_reset_controller()) {
-            state.items[PITCH_INDEX] = 0;
-            state.items[Expr_INDEX] = 127;
+            state.items[PITCH_INDEX] = "0";
+            state.items[Expr_INDEX] = "127";
         }
     }
     commit() {
         if (this.#tempo_is_change) {
-            document.getElementById("bpm").innerHTML = this.#tempo;
+          let dst = document.getElementById("bpm") as HTMLElement;
+          dst.innerHTML = this.#tempo?.toString() as string;
         }
         const items = PLAYER_HEADER_ITEMS.length;
         for (const ch of this.#state) {
             for (let i = 1; i < items; ++i) {
                 if (!ch.is_change[i]) continue;
-                document.getElementById(
+                let dst = document.getElementById(
                     `ch${ch.ch}_${PLAYER_HEADER_ITEMS[i]}`,
-                ).innerHTML = ch.items[i];
+                ) as HTMLElement;
+                dst.innerHTML = ch.items[i];
                 ch.is_change[i] = false;
             }
         }
     }
-    #reset_ch(channel) {
+    #reset_ch(channel:number) {
         for (let i = 1; i < PLAYER_HEADER_ITEMS.length; ++i) {
             this.#state[channel].items[i] = DEFAULT_VALUE[i];
             this.#state[channel].is_change[i] = true;

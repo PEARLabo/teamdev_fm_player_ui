@@ -34,17 +34,19 @@ export default class SequenceMsg {
      *
      * @param {} sequence_msg
      */
-    constructor(sequence_msg) {
+    constructor(sequence_msg:SequencerInfo) {
         let flag = sequence_msg.sq_event;
         const ch = sequence_msg.channel;
         switch (flag) {
             case EventKeyEvent:
+              if (!sequence_msg.data) return;
                 this.#note = new Note(
                     sequence_msg.data[0],
                     sequence_msg.data[1],
                 );
                 break;
             case EventTempo:
+                if (!sequence_msg.data) return;
                 this.#tempo =
                     sequence_msg.data[0] |
                     (sequence_msg.data[1] << 8) |
@@ -53,6 +55,7 @@ export default class SequenceMsg {
             case EventProgramChange:
                 {
                     let name = "";
+                    if (!sequence_msg.data) return;
                     for (let i = 0; i < 6; i++) {
                         name += String.fromCharCode(sequence_msg.data[i]);
                     }
@@ -60,7 +63,7 @@ export default class SequenceMsg {
                 }
                 break;
             case EventEnd:
-            case EventReset:
+            case EventControllerReset:
             case EventAllSoundOff:
             case EventAllNoteOff:
                 // 値を持たないメッセージ

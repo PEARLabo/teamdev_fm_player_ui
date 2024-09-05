@@ -3,7 +3,7 @@
  * @param {[number] | number} colors
  * @returns {number} mixed color
  */
-export function color_mixer(colors) {
+export function color_mixer(colors:[number]|number) {
     const is_array = Array.isArray(colors);
     if (!is_array) {
         return colors;
@@ -27,7 +27,7 @@ export function color_mixer(colors) {
  * @param {number} color
  * @returns {String} color code
  */
-export function into_color_code(color) {
+export function into_color_code(color:number) {
     return `#${color.toString(16).padStart(6, "0")}`;
 }
 /**
@@ -36,7 +36,7 @@ export function into_color_code(color) {
  * @param {number} darkness
  * @returns {number} Darkened color
  */
-export function darken(color, darkness) {
+export function darken(color:number, darkness:number) {
     if (darkness >= 1) return color;
     if (darkness <= 0) return 0;
     const r = (color >> 16) & 255;
