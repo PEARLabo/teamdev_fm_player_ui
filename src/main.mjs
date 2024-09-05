@@ -1,28 +1,31 @@
-const { invoke } = window.__TAURI__.tauri;
 import console_override from "./js/console.mjs";
 import { open, warningDialog } from "./js/dialog.mjs";
 import PeriodicTask from "./js/periodic.mjs";
 import PianoRoll from "./js/pianoroll.mjs";
 import PerformanceMonitor from "./js/performMonitor.mjs";
 import SequenceMsg from "./js/seqMsgParser.mjs";
-
+import { BackEnd } from "./js/backendProcess.mjs";
 let piano_roll;
 let performance_monitor;
 let periodic_task_manager;
-// TODO: いい感じに実装を移す
-window.__TAURI__.event.listen("sequencer-msg", (data) => {
-    const parsed = new SequenceMsg(data.payload);
-    if (!parsed.is_ignore_msg()) {
-        if (performance_monitor) {
-            performance_monitor.update(parsed);
-        }
-        if (piano_roll) {
-            piano_roll.updatePianoRoll(parsed);
-        }
-    }
-});
 
 window.onload = () => {
+    // バックエンドからのイベントに対する動作定義
+    BackEnd.onseq_msg = (data) => {
+        const parsed = new SequenceMsg(data.payload);
+        if (!parsed.is_ignore_msg()) {
+            if (performance_monitor) {
+                performance_monitor.update(parsed);
+            }
+            if (piano_roll) {
+                piano_roll.updatePianoRoll(parsed);
+            }
+        }
+    };
+    BackEnd.onerror = (msg) => {
+        warningDialog(msg);
+    };
+    // 描画に関する初期化
     piano_roll = new PianoRoll("pianoRoll");
     performance_monitor = new PerformanceMonitor("currentPlayState");
     performance_monitor.init();
@@ -34,6 +37,7 @@ window.onload = () => {
         ],
         piano_roll.init_draw.bind(piano_roll),
     );
+    // コンソールの機能をオーバーライド
     console_override("console");
     // Fileを開くイベント(ダイアログから取得したパスをバックエンドへ送る)
     document.getElementById("fileOpen").onclick = async () => {
@@ -50,19 +54,23 @@ window.onload = () => {
                 },
             ],
         });
-        if (selected) {
-            try {
-                await invoke("open_file", { path: selected });
-                // ファイル名(と拡張子)のみを抽出
+        if (!selected) return;
+        // ファイルオープン/ファイル形式確認
+        BackEnd.file_open(selected)
+            .then(() => {
+                // receipt
                 const fname = selected.split(/\/|\\/).at(-1);
                 // 表示の変更
                 document.getElementById("fname-display").innerHTML = fname;
-                document.getElementById("midi-file-open-container").dataset.tooltip = fname;
+                document.getElementById(
+                    "midi-file-open-container",
+                ).dataset.tooltip = fname;
                 enableSendButton();
-            } catch (err) {
+            })
+            .catch((err) => {
+                // failed or reject
                 warningDialog(err);
-            }
-        }
+            });
     };
     document.getElementById("swichPlayerBtn").onclick = document.getElementById(
         "swichMainBtn",
@@ -72,15 +80,18 @@ window.onload = () => {
         const serialPortInput =
             document.getElementById("serialPortInput").value;
         if (serialPortInput) {
-            await invoke("set_serial_port", { portName: serialPortInput });
-            console.log(`Serial port set to: ${serialPortInput}`); // デバッグ用ログ
+            // Note: This function does not return success or failure.
+            BackEnd.serialport.open(serialPortInput).catch((err) => {
+                warningDialog(err);
+            });
+            // console.log(`Success Open Serial port : ${serialPortInput}`)
         } else {
-            console.error("Invalid serial port input.");
+            console.error("Serial Port is undefined.");
         }
     };
     // 利用可能なシリアルポートのサジェストを作成
     document.getElementById("serialPortInput").onfocus = async () => {
-        invoke("get_available_serial_ports", {}).then((ports) => {
+        BackEnd.serialport.get_available_ports().then((ports) => {
             if (ports) {
                 const datalist = document.getElementById("active-serialports");
                 const fragment = document.createDocumentFragment();
@@ -96,21 +107,16 @@ window.onload = () => {
     };
     // Disconnectボタンのクリックイベントリスナーを追加
     document.getElementById("disconnectButton").onclick = async () => {
-        try {
-            // Rust側のdisconnect関数を呼び出す
-            await invoke("disconnect_serial_port");
-            console.log("Serial port disconnected successfully");
-        } catch (error) {
-            console.error(`Failed during disconnect: ${error}`);
-        }
+        // Note: This function does not return success or failure.
+        BackEnd.serialport.close().catch((err) => {
+            warningDialog(err);
+        });
     };
     // 送信ボタンがクリックされたときのイベントリスナー
     document.getElementById("sendButton").onclick = async () => {
-        try {
-            await invoke("send_midi_file"); // Rust側のsend_file_sizeコマンドを呼び出し
-        } catch (error) {
-            warningDialog(error);
-        }
+        BackEnd.send_file().catch((err) => {
+            warningDialog(err);
+        });
     };
 };
 

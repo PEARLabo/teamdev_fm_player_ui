@@ -6,9 +6,6 @@ body {
 	font-family: 'Arial', sans-serif;
 	padding: 0;
 	margin: 0;
-	/* display: flex;
-	justify-content: center;
-	align-items: center; */
 	height: 100vh;
 	background-color: #f0f0f0;
   user-select: none;
@@ -22,8 +19,6 @@ main hr {
 	height: var(--body-height);
 	background: url('assets/miqs.webp') no-repeat center center;
 	background-size: cover;
-	/* box-shadow: 0 0 15px rgba(0, 0, 0, 0.2); */
-	/* border-radius: 10px; */
 	overflow: hidden;
 	position: absolute;
   top: 0;
@@ -58,10 +53,10 @@ main hr {
 .hide {
   display:none !important;
 }
-.tool-chip {
+.tool-tip {
   position: relative;
 }
-.tool-chip:hover::after {
+.tool-tip:hover::after {
   position: absolute;
   content: attr(data-tooltip);
   display: block;
@@ -85,7 +80,6 @@ header {
 	text-align: center;
 	color: white;
 	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-	/* border-radius: 10px 10px 0 0; */
 }
 footer {
   background: #ddd;
@@ -119,14 +113,6 @@ header h1 {
 	margin: 10px;
 }
 
-h1 {
-	/* font-size: 1.5em;
-	text-align: center;
-	font-weight: bold;
-	color: #333;
-	margin: 10px 0; */
-}
-
 h2 {
 	font-size: 1.3em;
 	text-align: center;
@@ -138,15 +124,6 @@ h3 {
 	text-align: center;
 	margin-top: 15px;
 }
-
-/* input[type="file"] {
-	display: block;
-	margin: 10px auto;
-	padding: 8px;
-	border: 1px solid #ccc;
-	border-radius: 4px;
-	width: 90%;
-} */
 
 button {
 	background-color: #333;
@@ -187,9 +164,6 @@ textarea {
 	resize: none;
 }
 
-/* #fileSize {
-	text-align: center;
-} */
 
 #pianoRoll {
 	display: block;
@@ -206,13 +180,6 @@ textarea {
 	justify-content: center;
 	height: calc(100% - 50px);
 }
-
-/* #tempoDisplay {
-	position: absolute;
-	top: 40px;
-	right: 120px;
-	width: 120px;
-} */
 
 #serialPortInput {
 	padding: 10px;

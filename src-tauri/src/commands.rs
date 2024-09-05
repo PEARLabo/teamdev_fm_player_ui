@@ -46,7 +46,7 @@ pub fn read_file(contents: Vec<u8>, _state: State<'_, AppState>) -> Result<FileI
 }
 
 #[tauri::command]
-pub async fn set_serial_port(
+pub async fn serialport_open(
     port_name: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<(), String> {
@@ -58,7 +58,7 @@ pub async fn set_serial_port(
 }
 
 #[tauri::command]
-pub async fn disconnect_serial_port(state: tauri::State<'_, AppState>) -> Result<(), String> {
+pub async fn serialport_close(state: tauri::State<'_, AppState>) -> Result<(), String> {
     let async_proc_input_tx = state.inner.lock().await;
     async_proc_input_tx
         .send((InternalCommand::Close, String::from("")))

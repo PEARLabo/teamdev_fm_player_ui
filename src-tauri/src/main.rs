@@ -131,8 +131,8 @@ fn main() {
                 // process_event,
                 send_midi_file, // 本番用
                 open_file,
-                set_serial_port,
-                disconnect_serial_port,
+                serialport_open,
+                serialport_close,
                 get_available_serial_ports,
             ])
             .run(tauri::generate_context!())
