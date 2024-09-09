@@ -68,9 +68,20 @@ pub async fn receive_sequence_msg(
         // End Event(継続するデータなし)
         return Some(SequenceMsg::new(0, SequenceEventFlag::End, None));
     }
+    let len = if (msg_flag & 0xf) == 0x7 {
+      let low_byte = crate::serial_com::receive_byte(port).await.unwrap();
+      let high_byte = crate::serial_com::receive_byte(port).await.unwrap();
+      ((high_byte as usize) << 8) | (low_byte as usize)
+    } else {
+      len
+    };
     let mut buf = vec![0; len];
     port.read_exact(&mut buf).await.unwrap();
-    if msg_flag != 1 {
+    if msg_flag == 5 {
+        // Printfのメッセージ
+        println!("{}", std::str::from_utf8(&buf).unwrap());
+        return None;
+    } else if msg_flag != 1 {
         println!("receive: {:#02x}", msg_flag);
         return None;
     }
