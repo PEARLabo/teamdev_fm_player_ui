@@ -77,7 +77,7 @@ pub async fn receive_sequence_msg(
     };
     let mut buf = vec![0; len];
     port.read_exact(&mut buf).await.unwrap();
-    if msg_flag == 5 {
+    if msg_flag == 0x7 {
         // Printfのメッセージ
         println!("{}", std::str::from_utf8(&buf).unwrap());
         return None;
