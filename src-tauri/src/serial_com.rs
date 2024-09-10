@@ -69,11 +69,11 @@ pub async fn receive_sequence_msg(
         return Some(SequenceMsg::new(0, SequenceEventFlag::End, None));
     }
     let len = if (msg_flag & 0xf) == 0x7 {
-      let low_byte = crate::serial_com::receive_byte(port).await.unwrap();
-      let high_byte = crate::serial_com::receive_byte(port).await.unwrap();
-      ((high_byte as usize) << 8) | (low_byte as usize)
+        let low_byte = crate::serial_com::receive_byte(port).await.unwrap();
+        let high_byte = crate::serial_com::receive_byte(port).await.unwrap();
+        ((high_byte as usize) << 8) | (low_byte as usize)
     } else {
-      len
+        len
     };
     let mut buf = vec![0; len];
     port.read_exact(&mut buf).await.unwrap();
@@ -92,4 +92,11 @@ pub async fn receive_sequence_msg(
 pub fn clear_buffer(port: &mut SerialPort) {
     port.discard_input_buffer().unwrap();
     port.discard_output_buffer().unwrap();
+}
+async fn send_text(port: &mut SerialPort, text: &str) {
+    port.write_all(text.as_bytes()).await.unwrap()
+}
+pub async fn send_raw_text_file(port: &mut SerialPort, fname: impl AsRef<std::path::Path>) {
+    let file = std::fs::read_to_string(fname).unwrap();
+    send_text(port, &file).await;
 }

@@ -7,13 +7,16 @@ pub enum InternalCommand {
     Open,
     Close,
     Send,
+    SendExec,
 }
+
 impl std::fmt::Display for InternalCommand {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Open => write!(f, "Port Open"),
             Self::Close => write!(f, "Port Close"),
             Self::Send => write!(f, "Send File"),
+            Self::SendExec => write!(f, "Send Exec"),
         }
     }
 }
@@ -30,7 +33,9 @@ pub async fn open_file(path: String, state: State<'_, AppState>) -> Result<(), S
         *dst = Some(buf);
         Ok(())
     } else {
-      Err(format!("Invalid File Format: {path} is not Standard MIDI Format."))
+        Err(format!(
+            "Invalid File Format: {path} is not Standard MIDI Format."
+        ))
     }
 }
 //ファイルサイズと形式を判定するtauriコマンド
@@ -74,9 +79,23 @@ pub async fn send_midi_file(state: tauri::State<'_, AppState>) -> Result<(), Str
         .await
         .map_err(|e| e.to_string())
 }
+
 #[tauri::command]
 pub fn get_available_serial_ports() -> Vec<String> {
-  crate::utils::get_serial_port_list().unwrap_or_default()
+    crate::utils::get_serial_port_list().unwrap_or_default()
+}
+
+#[tauri::command]
+pub async fn send_srec_file(
+    state: tauri::State<'_, AppState>,
+    fname: String,
+) -> Result<(), String> {
+    state.srec_file.lock().await.replace(fname);
+    let async_proc_input_tx = state.inner.lock().await;
+    async_proc_input_tx
+        .send((InternalCommand::SendExec, String::from("")))
+        .await
+        .map_err(|e| e.to_string())
 }
 
 // JSの世界からのイベント分岐(trueを返すとシリアル通信を閉じる)
@@ -100,6 +119,19 @@ pub async fn handle_internal_control<R: tauri::Runtime>(
                     println!("Error: {}", msg);
                 }
             }
+            false
+        }
+        InternalCommand::SendExec => {
+            let fname = if let Some(srec_fname) = state.srec_file.lock().await.as_ref() {
+                srec_fname.to_string()
+            } else {
+                "".to_string()
+            };
+            if fname.is_empty() {
+                println!("file is not ...");
+                return false;
+            }
+            send_srec_file(state, fname).await;
             false
         }
         InternalCommand::Close => true,

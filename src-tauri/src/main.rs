@@ -29,6 +29,7 @@ struct Args {
 // #[derive(Default)]
 struct AppState {
     inner: Mutex<mpsc::Sender<(InternalCommand, String)>>,
+    srec_file: Mutex<Option<String>>,
     file_data: Mutex<Option<Vec<u8>>>,
 }
 
@@ -84,6 +85,7 @@ fn main() {
         tauri::Builder::default()
             .manage(AppState {
               inner: Mutex::new(async_proc_input_tx),
+              srec_file: Mutex::new(None),
               file_data: Mutex::new(None),
             })
             .setup(|app| {
@@ -134,6 +136,7 @@ fn main() {
                 serialport_open,
                 serialport_close,
                 get_available_serial_ports,
+                send_srec_file, // srec fileの転送
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");
