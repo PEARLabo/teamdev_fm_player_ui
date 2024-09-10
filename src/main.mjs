@@ -140,11 +140,12 @@ window.onload = () => {
     // 表示の変更
     document.getElementById("srecFname-display").innerHTML = fname;
     document.getElementById(
-        "srec-file-open-container",
+        "srec-file-file-open-container",
     ).dataset.tooltip = fname;
     srec_fname = selected;
   }
   document.getElementById("srec-send-button").onclick = async () => {
+    console.log(srec_fname)
     BackEnd.send_srec(srec_fname).catch((err) => {
       console.error(err);
     });
