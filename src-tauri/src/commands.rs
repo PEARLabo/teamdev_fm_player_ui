@@ -132,7 +132,7 @@ pub async fn handle_internal_control<R: tauri::Runtime>(
                 return false;
             }
             println!("{}",fname);
-            send_srec_file(state, fname).await.unwrap();
+            serial_com::send_raw_text_file(port, fname).await;
             false
         }
         InternalCommand::Close => true,
