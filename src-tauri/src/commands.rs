@@ -131,7 +131,8 @@ pub async fn handle_internal_control<R: tauri::Runtime>(
                 println!("file is not ...");
                 return false;
             }
-            send_srec_file(state, fname).await;
+            println!("{}",fname);
+            send_srec_file(state, fname).await.unwrap();
             false
         }
         InternalCommand::Close => true,
