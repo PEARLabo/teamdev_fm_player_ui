@@ -37,6 +37,8 @@ window.onload = () => {
         ],
         piano_roll.init_draw.bind(piano_roll),
     );
+    // srec file name
+    let srec_fname = "";
     // コンソールの機能をオーバーライド
     console_override("console");
     // Fileを開くイベント(ダイアログから取得したパスをバックエンドへ送る)
@@ -118,6 +120,35 @@ window.onload = () => {
             warningDialog(err);
         });
     };
+    document.getElementById("srecFileOpen").onclick = async ()  => {
+      const selected = await open({
+        multiple: false,
+        filters: [
+            {
+                name: "Srec",
+                extensions: ["srec"],
+            },
+            {
+                name: "All",
+                extensions: ["*"],
+            },
+        ],
+    });
+    if (!selected) return;
+    // receipt
+    const fname = selected.split(/\/|\\/).at(-1);
+    // 表示の変更
+    document.getElementById("srecFname-display").innerHTML = fname;
+    document.getElementById(
+        "srec-file-open-container",
+    ).dataset.tooltip = fname;
+    srec_fname = selected;
+  }
+  document.getElementById("srec-send-button").onclick = async () => {
+    BackEnd.send_srec(srec_fname).catch((err) => {
+      console.error(err);
+    });
+  }
 };
 
 // playerの表示切替

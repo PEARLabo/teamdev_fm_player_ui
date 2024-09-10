@@ -34,6 +34,7 @@ impl<'a> From<&'a [u8]> for SequenceMsg {
         }
     }
 }
+
 impl std::fmt::Display for SequenceMsg {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let data = self.get_data().unwrap_or(&[0; 1]);

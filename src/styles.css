@@ -223,4 +223,13 @@ textarea {
 #currentPlayState {
   width: 100%;
 }
-
+.row-container.fullsize-container {
+  width: 100%;
+  margin: 0;
+}
+.row-container > section {
+  width: 50%;
+}
+.row-container > section >.row-container{
+  width: 100%;
+}
