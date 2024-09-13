@@ -1,5 +1,3 @@
-use tokio::io::AsyncReadExt;
-
 fn convert_to_bpm(data: &[u8]) -> u32 {
     let usec_per_beat =
         ((data[0] as u32) | ((data[1] as u32) << 8) | ((data[2] as u32) << 16)) as usize;

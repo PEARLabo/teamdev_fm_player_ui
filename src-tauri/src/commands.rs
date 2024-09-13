@@ -1,5 +1,5 @@
 // src/commands.rs
-use crate::{sequence_msg::SequenceMsg, serial_com, utils::check_midi_format, AppState, FileInfo};
+use crate::{serial_com, utils::check_midi_format, AppState, FileInfo};
 use std::{fs::File, io::Read};
 use tauri::State;
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -131,7 +131,7 @@ pub async fn handle_internal_control<R: tauri::Runtime>(
                 println!("file is not ...");
                 return false;
             }
-            println!("{}",fname);
+            println!("{}", fname);
             serial_com::send_raw_text_file(port, fname).await;
             false
         }
@@ -141,8 +141,19 @@ pub async fn handle_internal_control<R: tauri::Runtime>(
 }
 // TODO: フロントへの送信を実装
 // シーケンサからの演奏情報受け取り時に実行する関数
-pub fn handle_sequence_msg<R: tauri::Runtime>(msg: SequenceMsg, manager: &impl tauri::Manager<R>) {
-    println!("{}", msg);
-    println!("hogehoge");
-    manager.emit_all("sequencer-msg", msg).unwrap();
+pub fn handle_sequence_msg<R: tauri::Runtime>(
+    msg: serial_com::Message,
+    manager: &impl tauri::Manager<R>,
+) {
+    match msg {
+        serial_com::Message::Sequence(msg) => {
+            // 演奏情報
+            println!("{}", msg);
+            manager.emit_all("sequencer-msg", msg).unwrap();
+        }
+        serial_com::Message::Printf(msg) => {
+            // Printfの内容
+            println!("{msg}");
+        }
+    }
 }

@@ -2,7 +2,20 @@ use crate::sequence_msg::{SequenceEventFlag, SequenceMsg};
 use serial2_tokio::SerialPort;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use ymodem_send_rs::{YmodemAsyncSend, YmodemSender};
-
+pub enum Message {
+    Sequence(SequenceMsg),
+    Printf(String),
+}
+impl From<SequenceMsg> for Message {
+    fn from(value: SequenceMsg) -> Self {
+        Message::Sequence(value)
+    }
+}
+impl From<String> for Message {
+    fn from(value: String) -> Self {
+        Message::Printf(value)
+    }
+}
 pub async fn file_size(port: &mut SerialPort, buf: &[u8]) -> Result<(), String> {
     let f_size = buf.len().to_le_bytes();
     let bit4_header = 0x2F; //リトルエンディアンに対応させる
@@ -61,12 +74,16 @@ pub async fn send_midi_file(port: &mut SerialPort, buf: &[u8]) -> Result<(), Str
 pub async fn receive_sequence_msg(
     first_byte: u8,
     port: &mut serial2_tokio::SerialPort,
-) -> Option<SequenceMsg> {
+) -> Option<Message> {
     let msg_flag = first_byte & 0xf;
     let len = (first_byte >> 4) as usize;
     if len == 0 && msg_flag == 1 {
         // End Event(継続するデータなし)
-        return Some(SequenceMsg::new(0, SequenceEventFlag::End, None));
+        return Some(Message::from(SequenceMsg::new(
+            0,
+            SequenceEventFlag::End,
+            None,
+        )));
     }
     let len = if (msg_flag & 0xf) == 0x7 {
         let low_byte = crate::serial_com::receive_byte(port).await.unwrap();
@@ -79,14 +96,14 @@ pub async fn receive_sequence_msg(
     port.read_exact(&mut buf).await.unwrap();
     if msg_flag == 0x7 {
         // Printfのメッセージ
-        println!("{}", std::str::from_utf8(&buf).unwrap());
-        return None;
+        let str = std::str::from_utf8(&buf).unwrap().to_string();
+        return Some(Message::from(str));
     } else if msg_flag != 1 {
         println!("receive: {:#02x}", msg_flag);
         return None;
     }
 
-    Some(SequenceMsg::from(buf.as_slice()))
+    Some(Message::from(SequenceMsg::from(buf.as_slice())))
 }
 
 pub fn clear_buffer(port: &mut SerialPort) {
