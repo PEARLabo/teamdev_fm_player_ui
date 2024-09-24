@@ -13,20 +13,20 @@ pub struct SequenceMsg {
 }
 impl<'a> From<&'a [u8]> for SequenceMsg {
     fn from(data: &'a [u8]) -> Self {
-        let event_flag = SequenceEventFlag::from(data[0] & 0xf);
-        let ch = (data[0] >> 4) & 0xf;
+        let event_flag = SequenceEventFlag::from(data[0]);
+        let ch = data[1];
         if event_flag == SequenceEventFlag::Param {
-            Self::new_param_change(ch, ParamChangeFlag::from(data[1] & 0xf), data[2..].to_vec())
+            Self::new_param_change(ch, ParamChangeFlag::from(data[2] & 0xf), data[3..].to_vec())
         } else {
             let data = if event_flag == SequenceEventFlag::Tempo {
                 // Convert u32 to u8x4
-                let bpm = convert_to_bpm(&data[1..]);
+                let bpm = convert_to_bpm(&data[2..]);
                 unsafe {
                     let ptr = ((&bpm) as *const u32) as *const u8;
                     std::slice::from_raw_parts(ptr, 4).to_vec()
                 }
             } else {
-                data[1..].to_vec()
+                data[2..].to_vec()
             };
             Self::new(ch, event_flag, Some(data))
         }
@@ -73,6 +73,9 @@ impl std::fmt::Display for SequenceMsg {
             SequenceEventFlag::Expression => {
                 write!(f, "Ch{:2}: Expression     {}", self.channel, data[0])
             }
+            SequenceEventFlag::PitchBend  => {
+                write!(f, "Ch{:2}: Pitch Bend      {}", self.channel, ((data[0] as i32) | ((data[1] as i32)<< 8)) - 8192)
+            }
 
             _ => write!(f, ""),
         }
@@ -114,6 +117,7 @@ pub enum SequenceEventFlag {
     Param,
     ProgramChange,
     Expression,
+    PitchBend,
     Other, // これhあ値不定。イベント追加で変動
 }
 
@@ -127,6 +131,7 @@ impl From<u8> for SequenceEventFlag {
             4 => Self::Param,
             5 => Self::ProgramChange,
             6 => Self::Expression,
+            7  => Self::PitchBend,
             _ => Self::Other,
         }
     }
@@ -142,6 +147,7 @@ impl SequenceEventFlag {
             Self::Param => 4,
             Self::ProgramChange => 5,
             Self::Expression => 6,
+            Self::PitchBend => 7,
             _ => 0xff,
         }
     }

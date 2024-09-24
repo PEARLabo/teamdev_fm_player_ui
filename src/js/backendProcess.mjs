@@ -20,7 +20,7 @@ class TauriBackEnd {
         return invoke("send_midi_file");
     }
     send_srec(fname) {
-      return invoke("send_srec_file", { fname });
+        return invoke("send_srec_file", { fname });
     }
 }
 class SerialPort {

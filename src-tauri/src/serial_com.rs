@@ -79,19 +79,30 @@ pub async fn receive_sequence_msg(
     let len = (first_byte >> 4) as usize;
     if len == 0 && msg_flag == 1 {
         // End Event(継続するデータなし)
+        println!("NOP OR END");
         return Some(Message::from(SequenceMsg::new(
             0,
             SequenceEventFlag::End,
             None,
         )));
+    } else if msg_flag != 0x1 && msg_flag != 0x07 {
+      // 読み捨てコード
+      // let mut buf = vec![0u8; len];
+      // port.read_exact(&mut buf).await.unwrap();
+      println!("receive: {:#02x}", msg_flag);
+      return None
     }
     let len = if (msg_flag & 0xf) == 0x7 {
+        // Printf protocol length
         let low_byte = crate::serial_com::receive_byte(port).await.unwrap();
         let high_byte = crate::serial_com::receive_byte(port).await.unwrap();
         ((high_byte as usize) << 8) | (low_byte as usize)
     } else {
-        len
+      // Sequence msg Protocol
+        let high_byte = crate::serial_com::receive_byte(port).await.unwrap();
+        len | ((high_byte as usize) << 4)
     };
+    println!("len: {len}");
     let mut buf = vec![0; len];
     port.read_exact(&mut buf).await.unwrap();
     if msg_flag == 0x7 {

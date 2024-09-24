@@ -5,7 +5,7 @@ const [CHANNEL_INDEX, INSTRUMENT_INDEX, NOTE_INDEX, PITCH_INDEX, Expr_INDEX] = [
     ...Array(5),
 ].map((_, i) => i);
 // TODO: Expressionのdefault値を確認する。
-const DEFAULT_VALUE = ["", "unknown", "OFF", "0", "128"];
+const DEFAULT_VALUE = ["", "unknown", "OFF", "0", "127"];
 export default class PerformanceMonitor {
     #dst;
     #max_ch;
@@ -57,17 +57,24 @@ export default class PerformanceMonitor {
         if (msg.is_ignore_msg()) return;
         const ch = msg.get_channel();
         const state = this.#state[ch];
-        if (msg.is_program_change()) {
+        if (msg.is_key_event()) {
+            const note = msg.get_note();
+            state.items[NOTE_INDEX] =
+                `${note.is_key_on() ? "ON" : "OFF"} ${note.note_name}(${note.note_number})`;
+            state.is_change[NOTE_INDEX] = true;
+        } else if (msg.is_expression()) {
+            state.items[Expr_INDEX] = msg.get_value();
+            state.is_change[Expr_INDEX] = true;
+        } else if (msg.is_pitch_bend()) {
+            console.log(msg.get_value());
+            state.items[PITCH_INDEX] = msg.get_value();
+            state.is_change[PITCH_INDEX] = true;
+        } else if (msg.is_program_change()) {
             state.items[INSTRUMENT_INDEX] = msg.get_instrument();
             state.is_change[INSTRUMENT_INDEX] = true;
         } else if (msg.is_tempo()) {
             this.#tempo = msg.get_tempo();
             this.#tempo_is_change = true;
-        } else if (msg.is_key_event()) {
-            const note = msg.get_note();
-            state.items[NOTE_INDEX] =
-                `${note.is_key_on() ? "ON" : "OFF"} ${note.note_name}(${note.note_number})`;
-            state.is_change[NOTE_INDEX] = true;
         } else if (msg.is_all_stop()) {
             state.items[NOTE_INDEX] = "Off";
         } else if (msg.is_reset_controller()) {

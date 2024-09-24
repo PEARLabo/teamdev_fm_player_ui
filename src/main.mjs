@@ -120,36 +120,36 @@ window.onload = () => {
             warningDialog(err);
         });
     };
-    document.getElementById("srecFileOpen").onclick = async ()  => {
-      const selected = await open({
-        multiple: false,
-        filters: [
-            {
-                name: "Srec",
-                extensions: ["srec"],
-            },
-            {
-                name: "All",
-                extensions: ["*"],
-            },
-        ],
-    });
-    if (!selected) return;
-    // receipt
-    const fname = selected.split(/\/|\\/).at(-1);
-    // 表示の変更
-    document.getElementById("srecFname-display").innerHTML = fname;
-    document.getElementById(
-        "srec-file-file-open-container",
-    ).dataset.tooltip = fname;
-    srec_fname = selected;
-  }
-  document.getElementById("srec-send-button").onclick = async () => {
-    console.log(srec_fname)
-    BackEnd.send_srec(srec_fname).catch((err) => {
-      console.error(err);
-    });
-  }
+    document.getElementById("srecFileOpen").onclick = async () => {
+        const selected = await open({
+            multiple: false,
+            filters: [
+                {
+                    name: "Srec",
+                    extensions: ["srec"],
+                },
+                {
+                    name: "All",
+                    extensions: ["*"],
+                },
+            ],
+        });
+        if (!selected) return;
+        // receipt
+        const fname = selected.split(/\/|\\/).at(-1);
+        // 表示の変更
+        document.getElementById("srecFname-display").innerHTML = fname;
+        document.getElementById(
+            "srec-file-file-open-container",
+        ).dataset.tooltip = fname;
+        srec_fname = selected;
+    };
+    document.getElementById("srec-send-button").onclick = async () => {
+        console.log(srec_fname);
+        BackEnd.send_srec(srec_fname).catch((err) => {
+            console.error(err);
+        });
+    };
 };
 
 // playerの表示切替

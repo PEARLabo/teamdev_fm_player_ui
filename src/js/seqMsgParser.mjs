@@ -30,6 +30,7 @@ export default class SequenceMsg {
     #instrument = "";
     #sq_event = EventOther;
     #ch = 0;
+    #value = 0;
     /**
      *
      * @param {} sequence_msg
@@ -59,6 +60,13 @@ export default class SequenceMsg {
                     this.#instrument = name;
                 }
                 break;
+            case EventExpression:
+                this.#value = sequence_msg.data[0];
+                break;
+            case EventPitchBend:
+                this.#value =
+                    (sequence_msg.data[0] | (sequence_msg.data[1] << 8)) - 8192;
+                break;
             case EventEnd:
             case EventReset:
             case EventAllSoundOff:
@@ -82,6 +90,12 @@ export default class SequenceMsg {
     }
     is_nop() {
         return this.#sq_event === EventNop;
+    }
+    is_pitch_bend() {
+        return this.#sq_event === EventPitchBend;
+    }
+    is_expression() {
+        return this.#sq_event === EventExpression;
     }
     is_tempo() {
         return this.#sq_event === EventTempo;
@@ -122,5 +136,8 @@ export default class SequenceMsg {
     }
     get_instrument() {
         return this.#instrument;
+    }
+    get_value() {
+        return this.#value;
     }
 }
