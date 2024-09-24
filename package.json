@@ -1,0 +1,10 @@
+{
+    "devDependencies": {
+        "@biomejs/biome": "1.8.3"
+    },
+    "scripts": {
+        "fmt": "npx @biomejs/biome format --write src",
+        "lint": "npx @biomejs/biome lint src",
+        "apply-lint": "npx @biomejs/biome check  --fix --unsafe"
+    }
+}
