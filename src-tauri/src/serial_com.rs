@@ -75,6 +75,16 @@ pub async fn receive_sequence_msg(
     first_byte: u8,
     port: &mut serial2_tokio::SerialPort,
 ) -> Option<Message> {
+    if first_byte == 0xd {
+      println!("load success");
+      return None;
+    } else if first_byte == 0xa {
+      println!("load failed");
+      return None;
+    } else if first_byte == 0xE {
+      println!("Sequencer ready");
+      return None;
+    }
     let msg_flag = first_byte & 0xf;
     let len = (first_byte >> 4) as usize;
     if len == 0 && msg_flag == 1 {
@@ -94,6 +104,7 @@ pub async fn receive_sequence_msg(
     }
     let len = if (msg_flag & 0xf) == 0x7 {
         // Printf protocol length
+        println!("!printf protocol!");
         let low_byte = crate::serial_com::receive_byte(port).await.unwrap();
         let high_byte = crate::serial_com::receive_byte(port).await.unwrap();
         ((high_byte as usize) << 8) | (low_byte as usize)
