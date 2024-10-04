@@ -36,14 +36,16 @@
               <datalist id="active-serialports">
 
               </datalist>
+              <button id="setSerialPortButton" class="">Open</button>
             </div>
             <div class="row-container">
-              <button id="setSerialPortButton">Connect</button>
-              <button id="disconnectButton">Disconnect</button>
+              <!-- <button id="setSerialPortButton">Connect</button>
+              <button id="disconnectButton">Disconnect</button> -->
             </div>
           </section>
+          
           <hr />
-          <div class="row-container fullsize-container">
+          <div class="">
             <section>
               <h3>Send Midi File</h3>
               <div class="row-container">
@@ -59,27 +61,11 @@
                 </div>
               </div>
   
-              <button id="sendButton"
+              <button id="sendButton" class="send-btn"
                       disabled>送信</button>
             </section>
             <!-- <hr /> -->
-            <section>
-              <h3>Send SrecFile</h3>
-              <div class="row-container">
-                <label for="fileOpen">SrecFile:</label>
-                <div class="pseudo-input-file tool-tip"
-                     id="srec-file-file-open-container"
-                     data-tooltip="ファイルが選択されていません">
-                  <input type="button"
-                         id="srecFileOpen"
-                         value="ファイルを選択">
-                  <label for="srecFileOpen"
-                         id="srecFname-display">ファイルが選択されていません</label>
-                </div>
-              </div>
-  
-              <button id="srec-send-button">送信</button>
-            </section>
+            
           </div>
           
           <hr />
@@ -89,8 +75,9 @@
                       id="console"></textarea>
           </section>
 
-          <div>
+          <div class="row-container">
             <button id="swichPlayerBtn">Goto Visualizer</button>
+            <button id="config-window-opener" class="">More Config</button>
           </div>
         </section>
 
@@ -110,10 +97,36 @@
                   style="border: 1px solid black;"></canvas>
         </section>
       </main>
+      
       <footer>
         <p>(c) 2024 PearLab, Utsunomiya Univ.</p>
       </footer>
     </div>
+    <section class="floating-panel hide" id="config-window">
+      <h2>Configs</h2>
+      <section  id="srec-pannel">
+        <h3>Send SrecFile</h3>
+        <div class="row-container">
+          <label for="fileOpen">SrecFile:</label>
+          <div class="pseudo-input-file tool-tip"
+               id="srec-file-file-open-container"
+               data-tooltip="ファイルが選択されていません">
+            <input type="button"
+                   id="srecFileOpen"
+                   value="ファイルを選択">
+            <label for="srecFileOpen"
+                   id="srecFname-display">ファイルが選択されていません</label>
+                   
+          </div>
+          <button class="send-btn" id="srec-send-button">送信</button>
+        </div>
+        <div class="row-container btns">
+          
+        </div>
+        <button id="srec-panel-close">閉じる</button>
+      </section>
+    </section>
+    
   </body>
 
 </html>

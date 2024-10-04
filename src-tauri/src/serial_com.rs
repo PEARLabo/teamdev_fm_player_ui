@@ -5,6 +5,7 @@ use ymodem_send_rs::{YmodemAsyncSend, YmodemSender};
 pub enum Message {
     Sequence(SequenceMsg),
     Printf(String),
+    Message(String),
 }
 impl From<SequenceMsg> for Message {
     fn from(value: SequenceMsg) -> Self {
@@ -77,16 +78,16 @@ pub async fn receive_sequence_msg(
 ) -> Option<Message> {
     if first_byte == 0x0 {
       println!("Loader start wait.");
-      return None;
+      return Some(Message::Message("Loader start wait.".to_string()));
     } else if first_byte == 0xd {
       println!("load success");
-      return None;
+      return Some(Message::Message("load success".to_string()));
     } else if first_byte == 0xa {
       println!("load failed");
-      return None;
+      return Some(Message::Message("load failed".to_string()));
     } else if first_byte == 0xE {
       println!("Sequencer ready");
-      return None;
+      return Some(Message::Message("Sequencer ready".to_string()));
     }
     let msg_flag = first_byte & 0xf;
     let len = (first_byte >> 4) as usize;

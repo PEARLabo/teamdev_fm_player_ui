@@ -12,7 +12,7 @@ use commands::*;
 
 use serial2_tokio::SerialPort;
 use tokio::sync::{mpsc, Mutex};
-
+use tauri::Manager;
 #[derive(Parser, Debug)]
 struct Args {
     #[arg(long)]
@@ -32,7 +32,27 @@ struct AppState {
     srec_file: Mutex<Option<String>>,
     file_data: Mutex<Option<Vec<u8>>>,
 }
-
+#[derive(serde::Serialize,Clone)]
+struct ToFrontMsg {
+  msg: String,
+  id: Option<u16>,
+}
+impl<'a> From<&'a str> for ToFrontMsg {
+  fn from(msg: &'a str) -> Self {
+    return Self{
+      msg: msg.to_string(),
+      id: None,
+    }
+  }
+}
+impl ToFrontMsg {
+  fn port_opened() ->Self {
+    return Self{msg: "serial port opened".to_string(), id: Some(1)};
+  }
+  fn port_closed() ->Self {
+    return Self { msg: "serial port closed".to_string(), id: Some(2) };
+  }
+}
 // エラーメッセージを格納する構造体
 #[derive(serde::Serialize)]
 struct ErrorMessage {
@@ -100,6 +120,7 @@ fn main() {
                           if let Ok(mut port) = SerialPort::open(output.1, BAUD_RATE) {
                             // Todo: フロントへの接続成功通知の実装
                             println!("Connect Success.");
+                            app_handle.emit_all("message", ToFrontMsg::port_opened()).unwrap();
                             serial_com::clear_buffer(&mut port);
                             loop {
                               tokio::select!(
@@ -107,6 +128,7 @@ fn main() {
                                   // フロントからのイベント
                                   if handle_internal_control(output.0,&mut port,&app_handle).await {
                                     serial_com::clear_buffer(&mut port);
+                                    app_handle.emit_all("message", ToFrontMsg::port_closed()).unwrap();
                                     break;
                                   }
                                 }
@@ -121,6 +143,7 @@ fn main() {
                           } else {
                             // Todo: フロントへの接続失敗通知の実装
                             println!("faild open port");
+                            app_handle.emit_all("error", ToFrontMsg::from("failed to open Serial Port.")).unwrap();
                           }
                         }
                       }

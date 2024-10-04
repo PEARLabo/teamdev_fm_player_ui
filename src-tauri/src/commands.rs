@@ -1,5 +1,5 @@
 // src/commands.rs
-use crate::{serial_com, utils::check_midi_format, AppState, FileInfo};
+use crate::{serial_com, utils::check_midi_format, AppState, FileInfo, ToFrontMsg};
 use std::{fs::File, io::Read};
 use tauri::State;
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -109,14 +109,17 @@ pub async fn handle_internal_control<R: tauri::Runtime>(
     match control {
         InternalCommand::Send => {
             println!("start send file");
+            manager.emit_all("message",crate::ToFrontMsg::from("start send file"));
             match serial_com::send_midi_file(port, state.file_data.lock().await.as_ref().unwrap())
                 .await
             {
                 Ok(_) => {
                     println!("Success: Send File Data");
+                    manager.emit_all("message",crate::ToFrontMsg::from("Success: Send File Data"));
                 }
                 Err(msg) => {
                     println!("Error: {}", msg);
+                    manager.emit_all("error",crate::ToFrontMsg::from(format!("Failed to send midi file: {}",msg).as_str()));
                 }
             }
             false
@@ -154,6 +157,9 @@ pub fn handle_sequence_msg<R: tauri::Runtime>(
         serial_com::Message::Printf(msg) => {
             // Printfの内容
             println!("{msg}");
+        }
+        serial_com::Message::Message(msg) => {
+          manager.emit_all("message",crate::ToFrontMsg::from(msg.as_str()));
         }
     }
 }

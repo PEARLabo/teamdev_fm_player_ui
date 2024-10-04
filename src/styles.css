@@ -49,6 +49,7 @@ main hr {
 }
 .row-container {
   display: flex;
+  align-items: center;
 }
 .hide {
   display:none !important;
@@ -138,10 +139,10 @@ button {
 	margin: 10px auto;
 	transition: background-color 0.3s;
 }
-button#sendButton {
+/* button#sendButton {
   background-color: #333;
-}
-button#sendButton:disabled {
+} */
+.send-btn {
 	background-color: #1d5ea8;
 	cursor: not-allowed;
 }
@@ -190,8 +191,10 @@ textarea {
 	font-size: 1em;
 	margin-bottom: 10px;
 }
-
 #setSerialPortButton {
+  margin: 0;
+}
+/* #setSerialPortButton {
 	background-color: #4CAF50;
 	cursor: pointer;
 	transition: background-color 0.3s;
@@ -209,7 +212,7 @@ textarea {
 
 #disconnectButton:hover {
 	background-color: #e31b0c;
-}
+} */
 
 #playerStateDisplay {
   width: 60%;
@@ -233,4 +236,30 @@ textarea {
 }
 .row-container > section >.row-container{
   width: 100%;
+}
+
+.floating-panel {
+  margin: 0;
+  padding: 10px;
+  position: fixed;
+  width: 600px;
+  height: 400px;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  transform: translate(calc(50vw - 300px), calc(50vh - 200px));
+  background: #fff;
+  box-shadow: #000 0 0 5000px;
+}
+.floating-panel > h3 {
+  margin-bottom: 50px;
+}
+.floating-panel > .row-container {
+  margin: auto;
+  align-items: center;
+  justify-content: center;
+}
+.floating-panel > .btns {
+  margin-top: 20px;
 }
