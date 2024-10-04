@@ -75,7 +75,10 @@ pub async fn receive_sequence_msg(
     first_byte: u8,
     port: &mut serial2_tokio::SerialPort,
 ) -> Option<Message> {
-    if first_byte == 0xd {
+    if first_byte == 0x0 {
+      println!("Loader start wait.");
+      return None;
+    } else if first_byte == 0xd {
       println!("load success");
       return None;
     } else if first_byte == 0xa {
