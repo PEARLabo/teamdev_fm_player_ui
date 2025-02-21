@@ -77,47 +77,47 @@ pub async fn receive_sequence_msg(
     port: &mut serial2_tokio::SerialPort,
 ) -> Option<Message> {
     if first_byte == 0x0 {
-      println!("Loader start wait.");
-      return Some(Message::Message("Loader start wait.".to_string()));
+        // println!("Loader start wait.");
+        return Some(Message::Message("Loader start wait.".to_string()));
     } else if first_byte == 0xd {
-      println!("load success");
-      return Some(Message::Message("load success".to_string()));
+        // println!("load success");
+        return Some(Message::Message("load success".to_string()));
     } else if first_byte == 0xa {
-      println!("load failed");
-      return Some(Message::Message("load failed".to_string()));
+        // println!("load failed");
+        return Some(Message::Message("load failed".to_string()));
     } else if first_byte == 0xE {
-      println!("Sequencer ready");
-      return Some(Message::Message("Sequencer ready".to_string()));
+        // println!("Sequencer ready");
+        return Some(Message::Message("Sequencer ready".to_string()));
     }
     let msg_flag = first_byte & 0xf;
     let len = (first_byte >> 4) as usize;
     if len == 0 && msg_flag == 1 {
         // End Event(継続するデータなし)
-        println!("NOP OR END");
+        // println!("NOP OR END");
         return Some(Message::from(SequenceMsg::new(
             0,
             SequenceEventFlag::End,
             None,
         )));
     } else if msg_flag != 0x1 && msg_flag != 0x07 {
-      // 読み捨てコード
-      // let mut buf = vec![0u8; len];
-      // port.read_exact(&mut buf).await.unwrap();
-      println!("receive: {:#02x}", msg_flag);
-      return None
+        // 読み捨てコード
+        // let mut buf = vec![0u8; len];
+        // port.read_exact(&mut buf).await.unwrap();
+        // println!("receive: {:#02x}", msg_flag);
+        return None;
     }
     let len = if (msg_flag & 0xf) == 0x7 {
         // Printf protocol length
-        println!("!printf protocol!");
+        // println!("!printf protocol!");
         let low_byte = crate::serial_com::receive_byte(port).await.unwrap();
         let high_byte = crate::serial_com::receive_byte(port).await.unwrap();
         ((high_byte as usize) << 8) | (low_byte as usize)
     } else {
-      // Sequence msg Protocol
+        // Sequence msg Protocol
         let high_byte = crate::serial_com::receive_byte(port).await.unwrap();
         len | ((high_byte as usize) << 4)
     };
-    println!("len: {len}");
+    // println!("len: {len}");
     let mut buf = vec![0; len];
     port.read_exact(&mut buf).await.unwrap();
     if msg_flag == 0x7 {

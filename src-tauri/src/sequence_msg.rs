@@ -67,14 +67,19 @@ impl std::fmt::Display for SequenceMsg {
                     f,
                     "Ch{:2}: Program Change [{}]",
                     self.channel,
-                    std::str::from_utf8(data).unwrap_or("unknown")
+                    crate::char_code_lut::string_from_raw(data)
                 )
             }
             SequenceEventFlag::Expression => {
                 write!(f, "Ch{:2}: Expression     {}", self.channel, data[0])
             }
-            SequenceEventFlag::PitchBend  => {
-                write!(f, "Ch{:2}: Pitch Bend      {}", self.channel, ((data[0] as i32) | ((data[1] as i32)<< 8)) - 8192)
+            SequenceEventFlag::PitchBend => {
+                write!(
+                    f,
+                    "Ch{:2}: Pitch Bend      {}",
+                    self.channel,
+                    ((data[0] as i32) | ((data[1] as i32) << 8)) - 8192
+                )
             }
 
             _ => write!(f, ""),
@@ -99,12 +104,27 @@ impl SequenceMsg {
             data: Some(data),
         }
     }
-    fn get_data(&self) -> Option<&[u8]> {
+    pub fn get_data(&self) -> Option<&[u8]> {
         if let Some(data) = &self.data {
             Some(data.as_slice())
         } else {
             None
         }
+    }
+    pub fn get_event_name(&self) -> SequenceEventFlag {
+        self.sq_event.clone()
+    }
+    pub fn get_channel(&self) -> Option<u8> {
+        match self.sq_event {
+            SequenceEventFlag::End
+            | SequenceEventFlag::Nop
+            | SequenceEventFlag::Tempo
+            | SequenceEventFlag::Other => None,
+            _ => Some(self.channel),
+        }
+    }
+    pub fn is_tempo(&self) -> bool {
+        self.sq_event == SequenceEventFlag::Tempo
     }
 }
 #[derive(serde_repr::Serialize_repr, PartialEq, Clone)]
@@ -131,7 +151,7 @@ impl From<u8> for SequenceEventFlag {
             4 => Self::Param,
             5 => Self::ProgramChange,
             6 => Self::Expression,
-            7  => Self::PitchBend,
+            7 => Self::PitchBend,
             _ => Self::Other,
         }
     }
