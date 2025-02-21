@@ -150,6 +150,7 @@ pub async fn run(args: Args) {
         )
     }
 }
+
 fn open_serial_port(port: impl AsRef<str>) -> Result<SerialPort, String> {
     let baud_rate = 115200;
     let port_setting = SerialPort::open(port.as_ref(), baud_rate);

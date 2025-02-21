@@ -1,23 +1,49 @@
-# 開発の際に確認すること
-必要に応じて本番用とテスト用を切り替える  
-テスト用はフロントエンド開発用。
-## src-tauri/src/main.rs
-```rust
-637 | //send_file_size, // 本番用
-638 | send_file_test  // テスト用
+# FMプレイヤー
+
+## 依存ツール
+
+Linux(Debianベース)向けの依存ライブラリの導入について記載する
+
+### Rust
+
+一応公式ページを参照すること。
+
+```sh
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-## src/main.js
-```js
-6 | //let tauriFunctionName = tauriFunctionName; // 本番用
-7 | let tauriFunctionName = 'send_file_test'; // テスト用
+### tauri
+
+```sh
+cargo install tauri-cli
+sudo apt update
+sudo apt install libwebkit2gtk-4.0-dev \
+    build-essential \
+    curl \
+    wget \
+    file \
+    libssl-dev \
+    libgtk-3-dev \
+    libayatana-appindicator3-dev \
+    librsvg2-dev
 ```
 
-# Tauri + Vanilla
+## 実行方法
 
-This template should help get you started developing with Tauri in vanilla HTML, CSS and Javascript.
+1. リポジトリのクローン
+2. クローンしたディレクトリへ移動
+3. ビルドと実行:`cargo run -r`
 
-## Recommended IDE Setup
+物理的なシリアルポートが存在する場合は補完できる。
+仮想シリアルポートの場合は、補完機能が動かないため、信じて直打ちする。
+入力後、「接続」し、MIDIファイルを選択、送信する。
+送信完了後、シーケンサが音声再生を開始する。
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+Player画面へ移ると鍵盤上の表示ができる。
 
+## CLIモード
+
+cliブランチにCLIモードが存在します。
+
+個人的にはこちらの見た目のほうが好きなので、ぜひ。  
+使用方法は、`cargo run -r -- --help`でヘルプを参照してほしい。

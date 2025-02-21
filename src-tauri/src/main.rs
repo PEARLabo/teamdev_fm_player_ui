@@ -99,7 +99,7 @@ fn main() {
         } else {
             println!("No serial port found");
         }
-    } else if true {
+    } else if args.disable_gui {
         // Run CLI Tool
         tokio::runtime::Builder::new_multi_thread()
             .enable_all()
