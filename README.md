@@ -15,7 +15,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ### tauri
 
 ```sh
-cargo install tauri-cli
+cargo install tauri-cli --version 1.6.0 --locked
 sudo apt update
 sudo apt install libwebkit2gtk-4.0-dev \
     build-essential \
