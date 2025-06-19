@@ -12,7 +12,16 @@ Linux(Debianベース)向けの依存ライブラリの導入について記載�
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-### tauri
+## 実行方法
+
+1. リポジトリのクローン
+2. クローンしたディレクトリへ移動
+3. ビルドと実行:`cargo run -r -- --port-name <port name>`
+    * `<port name>`には、対象のシリアルポートを指定する。
+    * `--port-name`ではなく、`-p 番号`でも指定可能番号は`--list`で表示される物
+
+
+<!-- ### tauri
 
 ```sh
 cargo install tauri-cli --version 1.6.0 --locked
@@ -46,4 +55,4 @@ Player画面へ移ると鍵盤上の表示ができる。
 cliブランチにCLIモードが存在します。
 
 個人的にはこちらの見た目のほうが好きなので、ぜひ。  
-使用方法は、`cargo run -r -- --help`でヘルプを参照してほしい。
+使用方法は、`cargo run -r -- --help`でヘルプを参照してほしい。 -->

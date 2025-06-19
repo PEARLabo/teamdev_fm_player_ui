@@ -1,5 +1,4 @@
 use crate::{serial_com, utils::check_midi_format, Args};
-// use serial2::SerialPort;
 use crate::sequence_msg::SequenceEventFlag;
 use micromap::Set;
 use serial2_tokio::SerialPort;

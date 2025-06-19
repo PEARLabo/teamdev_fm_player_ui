@@ -25,7 +25,7 @@ pub async fn file_size(port: &mut SerialPort, buf: &[u8]) -> Result<(), String> 
     // シリアルポートにデータを書き込む
     port.write_all(&all_data)
         .await
-        .map_err(|e| format!("Failed to write to serial port: {}", e))?;
+        .map_err(|e| format!("Failed to write to serial port: {e}"))?;
     println!("File size sent!");
     Ok(())
 }
@@ -43,7 +43,7 @@ pub async fn receive_byte(port: &mut SerialPort) -> Result<u8, String> {
     match port.read_exact(&mut response).await {
         Ok(_) => Ok(response[0]),
         Err(e) => {
-            println!("Failed to read from serial port:\n  {:?}", e);
+            println!("Failed to read from serial port:\n  {e:?}");
             Err(e.to_string())
         }
     }
@@ -67,7 +67,7 @@ pub async fn send_midi_file(port: &mut SerialPort, buf: &[u8]) -> Result<(), Str
         println!("success to send  midi file");
         Ok(())
     } else {
-        println!("received: {:#01X}", msg_flag);
+        println!("received: {msg_flag:#01X}");
         unreachable!();
     }
 }
