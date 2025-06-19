@@ -4,7 +4,7 @@ fn convert_to_bpm(data: &[u8]) -> u32 {
     (60000000usize / usec_per_beat) as u32
 }
 
-#[derive(serde::Serialize, Clone)]
+// #[derive(serde::Serialize, Clone)]
 pub struct SequenceMsg {
     channel: u8,
     sq_event: SequenceEventFlag,
@@ -127,7 +127,8 @@ impl SequenceMsg {
         self.sq_event == SequenceEventFlag::Tempo
     }
 }
-#[derive(serde_repr::Serialize_repr, PartialEq, Clone)]
+// #[derive(serde_repr::Serialize_repr, PartialEq, Clone)]
+#[derive(PartialEq, Clone)]
 #[repr(u8)]
 pub enum SequenceEventFlag {
     KeyEvent,
@@ -172,7 +173,7 @@ impl SequenceEventFlag {
         }
     }
 }
-#[derive(serde_repr::Serialize_repr, Clone, Copy)]
+#[derive(Clone, Copy)]
 #[repr(u8)]
 pub enum ParamChangeFlag {
     Slot,

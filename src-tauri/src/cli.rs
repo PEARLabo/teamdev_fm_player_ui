@@ -52,9 +52,11 @@ pub async fn run(args: Args) {
     let mut expression: [u8; 6] = [0; 6];
     let mut keyboad_state: Vec<Set<u8, 8>> = (0..72).map(|_| Set::default()).collect::<Vec<_>>();
     let mut is_update_keyboad = true;
-    let mut log:VecDeque<String> = VecDeque::new();
+    let mut log: VecDeque<String> = VecDeque::new();
     let mut num = 0;
-    const FONT_COLOR: [&str;6] = ["\x1b[33m", "\x1b[36m", "\x1b[32m", "\x1b[35m", "\x1b[31m", "\x1b[34m",];
+    const FONT_COLOR: [&str; 6] = [
+        "\x1b[33m", "\x1b[36m", "\x1b[32m", "\x1b[35m", "\x1b[31m", "\x1b[34m",
+    ];
     print!("\x1b[1B");
     println!("  Ch  [Inst   ]  Key State   PitchBend  Expression");
     println!("  ------------------------------------------------");
