@@ -1,12 +1,33 @@
-use crate::{serial_com, utils::check_midi_format, Args};
 use crate::sequence_msg::SequenceEventFlag;
+use crate::utils::get_title;
+use crate::{Args, serial_com, utils::check_midi_format};
 use micromap::Set;
 use serial2_tokio::SerialPort;
 use std::collections::VecDeque;
 use std::fs::File;
-use std::io::Read;
+use std::io::{Read, Write, stdout};
 use tokio::io::AsyncBufReadExt;
+type Stdin = tokio::io::Lines<tokio::io::BufReader<tokio::io::Stdin>>;
+
+#[derive(Clone)]
+enum Error {
+    FileOpen(String),
+    Format(String),
+    FileNotExist(String),
+}
+impl Error {
+    fn to_msg(self) -> String {
+        match self {
+            Self::FileOpen(path) => format!("Failed to open file {path}."),
+            Self::Format(path) => format!("File format Error: {path} is not MIDI Format 0."),
+            Self::FileNotExist(path) => format!("File Not Exist: {path}"),
+        }
+    }
+}
+
 pub async fn run(args: Args) {
+    let stdin = tokio::io::stdin();
+    let mut input_lines = tokio::io::BufReader::new(stdin).lines();
     let mut port = if let Ok(port) = if let Some(port_name) = args.port_name {
         open_serial_port(port_name)
     } else if let Ok(port_info) = SerialPort::available_ports() {
@@ -19,25 +40,19 @@ pub async fn run(args: Args) {
         panic!("Could not open port");
     };
     serial_com::clear_buffer(&mut port);
-    if let Some(path) = args.input {
-        let mut file = File::open(path).unwrap();
-        let mut buf = Vec::new();
-        file.read_to_end(&mut buf).unwrap();
-        if check_midi_format(&buf) {
-            println!("Send File Size");
-            serial_com::send_midi_file(&mut port, &buf).await.unwrap();
-            print!("\x1b[2J");
-            print!("\x1b[1;1H");
-            println!("Title: {}", "えすけーぷ");
-        } else {
-            println!("Not a midi format");
-        }
+    // if let Some(path) = args.input {
+    //     send_file(path, &mut port).await
+    // } else {
+    //     open_file(&mut port, &mut input_lines).await;
+    // }
+    if let Some(title) = load_midi_and_send(&mut input_lines, &mut port, args.input).await {
+        init_display(title);
     } else {
-        println!("No input path");
+        return;
     }
+
+    // init_display();
     // return;
-    let stdin = tokio::io::stdin();
-    let mut input_lines = tokio::io::BufReader::new(stdin).lines();
     let mut inst_names: [String; 6] = [
         String::from("unknown"),
         String::from("unknown"),
@@ -56,13 +71,7 @@ pub async fn run(args: Args) {
     const FONT_COLOR: [&str; 6] = [
         "\x1b[33m", "\x1b[36m", "\x1b[32m", "\x1b[35m", "\x1b[31m", "\x1b[34m",
     ];
-    print!("\x1b[1B");
-    println!("  Ch  [Inst   ]  Key State   PitchBend  Expression");
-    println!("  ------------------------------------------------");
-    print!("\x1b[2A");
-    print!("\x1b[12B");
-    println!("Received Messages:");
-    print!("\x1b[13A");
+    // init_display();
     loop {
         tokio::select!(
           Ok(v) = serial_com::receive_byte(&mut port) => {
@@ -108,7 +117,7 @@ pub async fn run(args: Args) {
                     println!("  {}Ch{ch} [{:<7}]\x1b[39m: {} {:<8}   {:<3}",FONT_COLOR[ch as usize],inst_names[ch as usize],
                     if let Some(n) = key_state[ch as usize].as_ref() {
                     // if key_state[ch as usize].is_some() {
-                      format!("Key On  {:<3}",n)
+                      format!("Key On  {n:<3}")
                       // String::from("Key On     ")
                     } else {
                       String::from("Key Off    ")
@@ -125,12 +134,12 @@ pub async fn run(args: Args) {
                     }
                   } else if msg.is_tempo() {
                     let data = msg.get_data().unwrap();
-                    print!("\x1b[1A");
+                    print!("\x1b[1F");
                     println!("TEMPO: {}", unsafe {
                       *(data.as_ptr() as *const u32)
                     });
                   }
-                  log.push_front(format!("{:>5}: {}",num,msg));
+                  log.push_front(format!("{num:>5}: {msg}"));
                   num += 1;
                   if log.len() > 15 {
                     log.pop_back();
@@ -140,18 +149,109 @@ pub async fn run(args: Args) {
                   print!("\x1b[{}A",13+ log.len());
             }
           }
-          maybe_line = input_lines.next_line() => {
-            let line = maybe_line.unwrap().unwrap();
+          Ok(line) = input_lines.next_line() => {
+            let line = line.unwrap();
+            // println!("hogehpghe");
             if line == "q" {
-              println!("check point");
+              // println!("check point");
               serial_com::clear_buffer(&mut port);
               break;
+            } else if line == "o" {
+              if let Some(title) = load_midi_and_send(&mut input_lines, &mut port, None::<String>).await {
+                  init_display(title)
+              } else {
+                serial_com::clear_buffer(&mut port);
+                return;
+              }
             }
           }
         )
     }
 }
-
+fn init_display(title: impl AsRef<str>) {
+    print!("\x1b[2J");
+    print!("\x1b[1;1H");
+    println!("Title: {}", title.as_ref());
+    print!("\x1b[1B");
+    println!("  Ch  [Inst   ]  Key State   PitchBend  Expression");
+    println!("  ------------------------------------------------");
+    print!("\x1b[2A");
+    print!("\x1b[12B");
+    println!("Received Messages:");
+    print!("\x1b[13A");
+    stdout().flush().unwrap();
+}
+async fn send_file(
+    path: impl AsRef<std::path::Path>,
+    port: &mut SerialPort,
+) -> Result<String, Error> {
+    let path = path.as_ref();
+    let mut file = if let Ok(f) = File::open(path) {
+        f
+    } else {
+        return Err(Error::FileOpen(path.to_str().unwrap().to_string()));
+    };
+    let mut buf = Vec::new();
+    file.read_to_end(&mut buf).unwrap();
+    if check_midi_format(&buf) {
+        let title = if let Some(t) = get_title(&buf) {
+            t
+        } else {
+            path.file_name().unwrap().to_str().unwrap().to_string()
+        };
+        println!("Send File Size");
+        serial_com::send_midi_file(port, &buf).await.unwrap();
+        Ok(title)
+    } else {
+        Err(Error::Format(path.to_str().unwrap().to_string()))
+    }
+}
+// MIDIファイルを読みデータを送る (有効なファイルが入力されるまで聞く)
+async fn load_midi_and_send(
+    stdin: &mut Stdin,
+    port: &mut SerialPort,
+    path: Option<impl AsRef<str>>,
+) -> Option<String> {
+    let mut p = if let Some(p) = path {
+        p.as_ref().to_string()
+    } else {
+        file_dialog(stdin, None).await.unwrap_or(String::from(""))
+    };
+    let mut path = std::path::PathBuf::from(&p);
+    let mut e;
+    loop {
+        // control by input
+        if p.is_empty() {
+            continue;
+        } else {
+            if path.exists() {
+                let res = send_file(path, port).await;
+                if let Ok(title) = res {
+                    return Some(title);
+                } else {
+                    e = res.err().unwrap();
+                }
+            } else {
+                e = Error::FileNotExist(p.clone())
+            }
+            p = file_dialog(stdin, Some(e.to_msg()))
+                .await
+                .unwrap_or(String::from(""));
+            path = std::path::PathBuf::from(&p);
+        }
+    }
+}
+async fn file_dialog(input: &mut Stdin, msg: Option<String>) -> Option<String> {
+    println!("\x1b[2J");
+    print!("\x1b[5;20H============= Send File ============");
+    print!("\x1b[6;20H {}", msg.unwrap_or_default());
+    print!("\x1b[8;20H");
+    print!("======== PRESS ENTRE TO SEND =======");
+    print!("\x1b[7;20H file name > ");
+    stdout().flush().unwrap();
+    // while is_readable {
+    (input.next_line().await).unwrap_or_default()
+}
 fn open_serial_port(port: impl AsRef<str>) -> Result<SerialPort, String> {
     let baud_rate = 115200;
     let port_setting = SerialPort::open(port.as_ref(), baud_rate);
@@ -178,14 +278,14 @@ fn print_keyboad(state: &[Set<u8, 8>]) {
         } else {
             "\x1b[40m"
         };
-        upper += &format!("{} ", color);
+        upper += &format!("{color} ");
         if is_natural_tone {
             // 白鍵
             prev_state = color;
-            lower += &format!("{} ", color);
+            lower += &format!("{color} ");
         } else {
             // 黒鍵
-            lower += &format!("{} ", prev_state);
+            lower += &format!("{prev_state} ");
         }
     });
     upper += "\x1b[49m";

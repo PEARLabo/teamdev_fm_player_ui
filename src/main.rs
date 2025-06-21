@@ -61,4 +61,3 @@ fn main() {
             .block_on(cli::run(args))
     }
 }
-
