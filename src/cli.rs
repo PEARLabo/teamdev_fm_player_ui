@@ -7,6 +7,7 @@ use std::collections::VecDeque;
 use std::fs::File;
 use std::io::{Read, Write, stdout};
 use tokio::io::AsyncBufReadExt;
+
 type Stdin = tokio::io::Lines<tokio::io::BufReader<tokio::io::Stdin>>;
 
 #[derive(Clone)]
@@ -16,7 +17,7 @@ enum Error {
     FileNotExist(String),
 }
 impl Error {
-    fn to_msg(self) -> String {
+    fn to_msg(&self) -> String {
         match self {
             Self::FileOpen(path) => format!("Failed to open file {path}."),
             Self::Format(path) => format!("File format Error: {path} is not MIDI Format 0."),
@@ -40,19 +41,11 @@ pub async fn run(args: Args) {
         panic!("Could not open port");
     };
     serial_com::clear_buffer(&mut port);
-    // if let Some(path) = args.input {
-    //     send_file(path, &mut port).await
-    // } else {
-    //     open_file(&mut port, &mut input_lines).await;
-    // }
     if let Some(title) = load_midi_and_send(&mut input_lines, &mut port, args.input).await {
         init_display(title);
     } else {
         return;
     }
-
-    // init_display();
-    // return;
     let mut inst_names: [String; 6] = [
         String::from("unknown"),
         String::from("unknown"),
@@ -71,7 +64,6 @@ pub async fn run(args: Args) {
     const FONT_COLOR: [&str; 6] = [
         "\x1b[33m", "\x1b[36m", "\x1b[32m", "\x1b[35m", "\x1b[31m", "\x1b[34m",
     ];
-    // init_display();
     loop {
         tokio::select!(
           Ok(v) = serial_com::receive_byte(&mut port) => {
@@ -116,9 +108,7 @@ pub async fn run(args: Args) {
                     print!("\x1b[2K");
                     println!("  {}Ch{ch} [{:<7}]\x1b[39m: {} {:<8}   {:<3}",FONT_COLOR[ch as usize],inst_names[ch as usize],
                     if let Some(n) = key_state[ch as usize].as_ref() {
-                    // if key_state[ch as usize].is_some() {
                       format!("Key On  {n:<3}")
-                      // String::from("Key On     ")
                     } else {
                       String::from("Key Off    ")
                     },
@@ -151,9 +141,7 @@ pub async fn run(args: Args) {
           }
           Ok(line) = input_lines.next_line() => {
             let line = line.unwrap();
-            // println!("hogehpghe");
             if line == "q" {
-              // println!("check point");
               serial_com::clear_buffer(&mut port);
               break;
             } else if line == "o" {
@@ -249,7 +237,6 @@ async fn file_dialog(input: &mut Stdin, msg: Option<String>) -> Option<String> {
     print!("======== PRESS ENTRE TO SEND =======");
     print!("\x1b[7;20H file name > ");
     stdout().flush().unwrap();
-    // while is_readable {
     (input.next_line().await).unwrap_or_default()
 }
 fn open_serial_port(port: impl AsRef<str>) -> Result<SerialPort, String> {
