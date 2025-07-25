@@ -58,6 +58,11 @@ pub async fn send_midi_file(port: &mut SerialPort, buf: &[u8]) -> Result<(), Str
         file_data(port, buf).await;
     } else {
         println!("Communication partner is not accepting. received: {msg_flag:#01X}");
+        let  b1 = receive_byte(port).await.unwrap() & 0xf;
+        let  b2 = receive_byte(port).await.unwrap() & 0xf;
+        let  b3 = receive_byte(port).await.unwrap() & 0xf;
+        println!("SIZE= {b1:#01X}{b2:#01X}{b3:#01X}");
+
         return Err(String::from("Communication partner is not accepting."));
     }
     let msg_flag = receive_byte(port).await.unwrap() & 0xf;
