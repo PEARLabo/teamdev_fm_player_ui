@@ -53,10 +53,11 @@ pub async fn send_midi_file(port: &mut SerialPort, buf: &[u8]) -> Result<(), Str
     file_size(port, buf).await.unwrap();
     // Ymodemによるファイル転送(受信可能の場合)
     let msg_flag = receive_byte(port).await.unwrap() & 0xf;
+    println!("start sending file");
     if msg_flag == 0xe {
         file_data(port, buf).await;
     } else {
-        println!("Communication partner is not accepting.");
+        println!("Communication partner is not accepting. received: {msg_flag:#01X}");
         return Err(String::from("Communication partner is not accepting."));
     }
     let msg_flag = receive_byte(port).await.unwrap() & 0xf;
