@@ -21,7 +21,7 @@ pub async fn file_size(port: &mut SerialPort, buf: &[u8]) -> Result<(), String> 
     let f_size = buf.len().to_le_bytes();
     let bit4_header = 0x2F; //リトルエンディアンに対応させる
     let all_data: [u8; 4] = [bit4_header, f_size[0], f_size[1], f_size[2]];
-
+    println!("Sending: {all_data:?}");
     // シリアルポートにデータを書き込む
     port.write_all(&all_data)
         .await
