@@ -1,6 +1,7 @@
 mod char_code_lut;
 mod cli;
 
+mod midi;
 mod sequence_msg;
 mod serial_com;
 mod utils;

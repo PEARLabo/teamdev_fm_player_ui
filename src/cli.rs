@@ -181,7 +181,9 @@ async fn send_file(
     };
     let mut buf = Vec::new();
     file.read_to_end(&mut buf).unwrap();
-    if check_midi_format(&buf) {
+    let midi_info = crate::utils::validation_midi_file(&buf);
+    if let Ok(midi_info) = midi_info {
+        // TODO: midi_infoからタイトル情報を取得可能に (midi_infoは解析情報)
         let title = if let Some(t) = get_title(&buf) {
             t
         } else {
