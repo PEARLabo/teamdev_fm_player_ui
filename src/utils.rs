@@ -13,7 +13,13 @@ pub fn validation_midi_file(data: &[u8]) -> Result<MidiInfo, MidiError> {
     if !info.get_header().is_format0() {
         return Err(MidiError::Custom("not format0"));
     }
-    if info.get_events().iter().any(|event| event.get_ch() > 6) {
+    if info
+        .get_tracks()
+        .first()
+        .unwrap()
+        .iter()
+        .any(|event| event.get_ch() > 6)
+    {
         return Err(MidiError::Custom("has over ch6 event"));
     }
     Ok(info)
