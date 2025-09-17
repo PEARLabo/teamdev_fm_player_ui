@@ -240,7 +240,7 @@ async fn file_dialog(input: &mut Stdin, msg: Option<String>) -> Option<String> {
     print!("\x1b[5;20H============= Send File ============");
     print!("\x1b[6;20H {}", msg.unwrap_or_default());
     print!("\x1b[8;20H");
-    print!("======== PRESS ENTRE TO SEND =======");
+    print!("======== PRESS ENTER TO SEND =======");
     print!("\x1b[7;20H file name > ");
     stdout().flush().unwrap();
     (input.next_line().await).unwrap_or_default()
