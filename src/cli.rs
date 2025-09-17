@@ -11,6 +11,10 @@ use tokio::io::AsyncBufReadExt;
 
 type Stdin = tokio::io::Lines<tokio::io::BufReader<tokio::io::Stdin>>;
 
+// YM2203の場合
+const MAX_CHANNEL: u8 = 6;
+
+
 #[derive(Clone)]
 enum Error {
     FileOpen(String),
@@ -74,6 +78,9 @@ pub async fn run(args: Args) {
             if let Some(serial_com::Message::Sequence(msg)) = serial_com::receive_sequence_msg(v, &mut port).await {
                   if let Some(ch) = msg.get_channel() {
                     // パラメータ設定
+                    if ch > MAX_CHANNEL {
+                        continue;
+                    }
                     match  msg.get_event_name() {
                       SequenceEventFlag::ProgramChange => {
                         inst_names[ch as usize] = crate::char_code_lut::string_from_raw(msg.get_data().unwrap());
@@ -187,7 +194,8 @@ async fn send_file(
     let midi_info = crate::utils::validation_midi_file(&buf);
     if let Ok(midi_info) = midi_info {
         // TODO: midi_infoからタイトル情報を取得可能に (midi_infoは解析情報)
-        let title = if let Some(t) = get_title(&buf) {
+        // TODO: midi_infoのイベント情報にエベント情報を付与する(ステータスバイトが抜け落ちている)
+        let title = if let Some(t) = get_title(&midi_info) {
             t
         } else {
             path.file_name().unwrap().to_str().unwrap().to_string()
