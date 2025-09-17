@@ -11,10 +11,10 @@ pub fn check_midi_format(contents: &[u8]) -> bool {
 pub fn validation_midi_file(data: &[u8]) -> Result<MidiInfo, MidiError> {
     let info = MidiInfo::try_from(data)?;
     if !info.get_header().is_format0() {
-        return Err(MidiError::InvalidFileFormat);
+        return Err(MidiError::Custom("not format0"));
     }
-    if !info.get_events().iter().any(|event| event.get_ch() > 6) {
-        return Err(MidiError::InvalidFileFormat);
+    if info.get_events().iter().any(|event| event.get_ch() > 6) {
+        return Err(MidiError::Custom("has over ch6 event"));
     }
     Ok(info)
 }

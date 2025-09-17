@@ -1,3 +1,4 @@
+use crate::midi::MidiError;
 use crate::sequence_msg::SequenceEventFlag;
 use crate::utils::get_title;
 use crate::{Args, serial_com, utils::check_midi_format};
@@ -15,6 +16,7 @@ enum Error {
     FileOpen(String),
     Format(String),
     FileNotExist(String),
+    MidiError(MidiError),
 }
 impl Error {
     fn to_msg(&self) -> String {
@@ -22,10 +24,11 @@ impl Error {
             Self::FileOpen(path) => format!("Failed to open file {path}."),
             Self::Format(path) => format!("File format Error: {path} is not MIDI Format 0."),
             Self::FileNotExist(path) => format!("File Not Exist: {path}"),
+            Self::MidiError(e) => e.to_string(),
         }
     }
 }
-
+// dbg_mode: MIDIのI/O動作テスト
 pub async fn run(args: Args) {
     let stdin = tokio::io::stdin();
     let mut input_lines = tokio::io::BufReader::new(stdin).lines();
@@ -193,7 +196,8 @@ async fn send_file(
         serial_com::send_midi_file(port, &buf).await.unwrap();
         Ok(title)
     } else {
-        Err(Error::Format(path.to_str().unwrap().to_string()))
+        // Err(Error::Format(path.to_str().unwrap().to_string()))
+        Err(Error::MidiError(midi_info.unwrap_err()))
     }
 }
 // MIDIファイルを読みデータを送る (有効なファイルが入力されるまで聞く)
