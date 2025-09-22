@@ -1,45 +1,82 @@
-use crate::midi::MidiError;
-use crate::sequence_msg::SequenceEventFlag;
-use crate::utils::get_title;
-use crate::{Args, serial_com, utils::check_midi_format};
+use crossterm::{
+    ExecutableCommand, QueueableCommand,
+    cursor::*,
+    event::{self, EventStream, KeyboardEnhancementFlags, PushKeyboardEnhancementFlags},
+    execute,
+    style::{self, Color},
+    terminal::{self, Clear, ClearType},
+};
+use futures::StreamExt;
+//
+use crate::utils::u32_from_le;
+use crate::{Args, serial_com};
+use crate::{cli::dialog::interpolation_path, sequence_msg::SequenceEventFlag};
+use crate::{
+    cli::{dialog::update_file_path, structs::PlayingLog},
+    utils::get_title,
+};
 use micromap::Set;
 use serial2_tokio::SerialPort;
 use std::collections::VecDeque;
-use std::fs::File;
-use std::io::{Read, Write, stdout};
-use tokio::io::AsyncBufReadExt;
-
-type Stdin = tokio::io::Lines<tokio::io::BufReader<tokio::io::Stdin>>;
-
+use std::io::{Write, stdout};
+mod key_command;
+use key_command::KeyCommand;
+mod structs;
+use structs::{LogItem, TrackInfo};
+mod dialog;
+use dialog::file_dialog;
+mod keyboard;
+use keyboard::draw_keyboard;
+// type Stdin = tokio::io::Lines<tokio::io::BufReader<tokio::io::Stdin>>;
+const TABLE_TOP: u16 = 4;
 // YM2203の場合
 const MAX_CHANNEL: u8 = 6;
-
-
-#[derive(Clone)]
-enum Error {
-    FileOpen(String),
-    Format(String),
-    FileNotExist(String),
-    MidiError(MidiError),
+const MoveTop: MoveTo = MoveTo(0, 0);
+static CH_COLOR: &[style::Color; MAX_CHANNEL as usize] = &[
+    Color::Red,
+    Color::Green,
+    Color::Yellow,
+    Color::Blue,
+    Color::Magenta,
+    Color::Cyan,
+];
+enum EventInfo {
+    None,
+    // Updating tempo
+    Tempo(u32),
+    // Updating ChInfo / Is a keyboard update required?
+    ChInfo((u8, bool)),
+    UpdateAll,
+    Title,
 }
-impl Error {
-    fn to_msg(&self) -> String {
-        match self {
-            Self::FileOpen(path) => format!("Failed to open file {path}."),
-            Self::Format(path) => format!("File format Error: {path} is not MIDI Format 0."),
-            Self::FileNotExist(path) => format!("File Not Exist: {path}"),
-            Self::MidiError(e) => e.to_string(),
-        }
+
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+enum UiState {
+    #[default]
+    Monitor,
+    FileDialog,
+}
+
+struct RawModeGuard;
+impl Drop for RawModeGuard {
+    fn drop(&mut self) {
+        terminal::disable_raw_mode().unwrap();
     }
 }
-// dbg_mode: MIDIのI/O動作テスト
-pub async fn run(args: Args) {
-    let stdin = tokio::io::stdin();
-    let mut input_lines = tokio::io::BufReader::new(stdin).lines();
+
+pub async fn run(args: Args) -> std::io::Result<()> {
+    terminal::enable_raw_mode()?;
+    let _raw_mode_guard = RawModeGuard;
+    let mut stdout = std::io::stdout();
+    execute!(
+        stdout,
+        PushKeyboardEnhancementFlags(KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES)
+    )?;
+    // Init SerialPort
     let mut port = if let Ok(port) = if let Some(port_name) = args.port_name {
-        open_serial_port(port_name)
+        crate::utils::open_serial_port(port_name)
     } else if let Ok(port_info) = SerialPort::available_ports() {
-        open_serial_port(port_info[args.port].to_str().unwrap())
+        crate::utils::open_serial_port(port_info[args.port].to_str().unwrap())
     } else {
         panic!("No ports");
     } {
@@ -48,253 +85,351 @@ pub async fn run(args: Args) {
         panic!("Could not open port");
     };
     serial_com::clear_buffer(&mut port);
-    if let Some(title) = load_midi_and_send(&mut input_lines, &mut port, args.input).await {
-        init_display(title);
-    } else {
-        return;
-    }
-    let mut inst_names: [String; 6] = [
-        String::from("unknown"),
-        String::from("unknown"),
-        String::from("unknown"),
-        String::from("unknown"),
-        String::from("unknown"),
-        String::from("unknown"),
-    ];
-    let mut key_state: [Option<u8>; 6] = [None, None, None, None, None, None];
-    let mut pitch_bend: [i32; 6] = [0; 6];
-    let mut expression: [u8; 6] = [0; 6];
-    let mut keyboad_state: Vec<Set<u8, 8>> = (0..72).map(|_| Set::default()).collect::<Vec<_>>();
-    let mut is_update_keyboad = true;
-    let mut log: VecDeque<String> = VecDeque::new();
-    let mut num = 0;
-    const FONT_COLOR: [&str; 6] = [
-        "\x1b[33m", "\x1b[36m", "\x1b[32m", "\x1b[35m", "\x1b[31m", "\x1b[34m",
-    ];
-    loop {
-        tokio::select!(
-          Ok(v) = serial_com::receive_byte(&mut port) => {
-            // Sequencerとの独自プロトコルの通信
-            if let Some(serial_com::Message::Sequence(msg)) = serial_com::receive_sequence_msg(v, &mut port).await {
-                  if let Some(ch) = msg.get_channel() {
-                    // パラメータ設定
-                    if ch > MAX_CHANNEL {
-                        continue;
-                    }
-                    match  msg.get_event_name() {
-                      SequenceEventFlag::ProgramChange => {
-                        inst_names[ch as usize] = crate::char_code_lut::string_from_raw(msg.get_data().unwrap());
-                      }
-                      SequenceEventFlag::KeyEvent => {
-                        let data = msg.get_data().unwrap();
-                        let note = data[0] as usize;
-                        if data[1] == 0 {
-                          key_state[ch as usize] = None;
-                          if (24..96).contains(&note) {
-                            keyboad_state[note - 24].remove(&ch);
-                            is_update_keyboad = true;
-                          }
+    // play information
+    let mut track_info = vec![TrackInfo::default(); MAX_CHANNEL as usize];
+    let mut state = vec![Set::default(); 72];
+    let mut title = String::new();
+    let mut tempo = 60;
+    let mut logs: PlayingLog = PlayingLog::default();
+    // UI Data
+    let mut event_stream = EventStream::new();
+    let mut dialog_msg = None;
+    // Validation and send MIDI File
+    // ファイルダイアログの機能を分離する
+    let (mut ui_state, mut maybe_title) = try_send_midi(&mut port, args.input).await;
 
-                        } else {
-                          key_state[ch as usize] = Some(data[0]);
-                          if (24..96).contains(&note) {
-                            keyboad_state[note - 24].insert(ch);
-                            is_update_keyboad = true;
-                          }
+    if let Ok(t) = maybe_title {
+        title = t;
+    } else {
+        let _ = dialog_msg.insert(maybe_title.unwrap_err());
+    }
+    // Display Initialization
+    match ui_state {
+        UiState::Monitor => {
+            draw_display(&title, tempo, &track_info, &state, &logs)?;
+        }
+        UiState::FileDialog => {
+            file_dialog(None)?;
+        }
+    }
+    stdout.flush()?;
+    // Data
+    let mut input_chars = String::new();
+    let mut msg_event = EventInfo::None;
+    let mut is_fired: Option<KeyCommand> = None;
+    let mut is_error_msg_update = true;
+    let mut cursor_pos = 0;
+    // Main Loop
+    loop {
+        // let mut key_event_buffer: VecDeque<char> = VecDeque::new();
+        tokio::select! {
+            Ok(v) = serial_com::receive_byte(&mut port) => {
+                msg_event = sequencer_msg_rcv(
+                    v,
+                    &mut track_info,
+                    &mut logs,
+                    &mut state,
+                    &mut port,
+                ).await;
+            }
+            Some(Ok(key))  = event_stream.next() => {
+                if let event::Event::Key(key_event) = key {
+                    if dbg!(key_event).kind == event::KeyEventKind::Press {
+                        // exit command
+                        if key_event.code == event::KeyCode::Char('c') && key_event.modifiers == event::KeyModifiers::CONTROL {
+                            break;
                         }
-                      }
-                      SequenceEventFlag::Expression => {
-                        let data = msg.get_data().unwrap();
-                        expression[ch as usize] = data[0];
-                      }
-                      SequenceEventFlag::PitchBend => {
-                        let data = msg.get_data().unwrap();
-                        pitch_bend[ch as usize] =((data[0] as i32) | ((data[1] as i32)<< 8)) - 8192;
-                      }
-                      _=>{}
+                        // normal key events
+                        match key_event.code {
+                            event::KeyCode::Enter => {
+                                let  _ = dbg!(is_fired.insert(KeyCommand::from(dbg!(input_chars.as_str()))));
+                                input_chars.clear();
+                                cursor_pos = 0;
+                            }
+                            event::KeyCode::Esc => {
+                                is_fired = Some(KeyCommand::GoMonitor);
+                            }
+                            event::KeyCode::Tab => {
+                                is_fired = Some(KeyCommand::InterPolation);
+                            }
+                            event::KeyCode::Char(c) => {
+                                // key_event_buffer.push_back(c);
+                                if cursor_pos == input_chars.len() {
+                                    input_chars.push(c);
+                                } else {
+                                    input_chars.insert(cursor_pos, c);
+                                }
+                                cursor_pos += 1;
+                                // input_chars.push(c);
+                                dbg!(&input_chars);
+                            }
+                            event::KeyCode::Backspace => {
+                                if cursor_pos > 0 {
+                                    cursor_pos -= 1;
+                                    input_chars.remove(cursor_pos);
+                                }
+                            }
+                            event::KeyCode::Delete => {
+                                if cursor_pos < input_chars.len() {
+                                    input_chars.remove(cursor_pos);
+                                }
+                            }
+                            event::KeyCode::Left => {
+                                if cursor_pos > 0 {
+                                    cursor_pos -= 1;
+                                    execute!(stdout, MoveLeft(1)).unwrap();
+                                }
+                            }
+                            event::KeyCode::Right => {
+                                if cursor_pos < input_chars.len() {
+                                    cursor_pos += 1;
+                                    execute!(stdout, MoveRight(1)).unwrap();
+                                }
+                            }
+
+                            _ => {}
+                        }
                     }
-                    // 表示
-                    print!("\x1b[{}B",ch+2);
-                    print!("\x1b[2K");
-                    println!("  {}Ch{ch} [{:<7}]\x1b[39m: {} {:<8}   {:<3}",FONT_COLOR[ch as usize],inst_names[ch as usize],
-                    if let Some(n) = key_state[ch as usize].as_ref() {
-                      format!("Key On  {n:<3}")
+                }
+            }
+        }
+        // 状態遷移 / データ操作
+        if let Some(key_event) = &is_fired {
+            match key_event {
+                KeyCommand::GoMonitor => {
+                    ui_state = UiState::Monitor;
+                    msg_event = EventInfo::UpdateAll;
+                    eprintln!("change to monitor");
+                }
+                // 入力に対する補間処理
+                KeyCommand::InterPolation => {
+                    input_chars = interpolation_path(input_chars.as_str());
+                }
+                KeyCommand::DialogOpen => {
+                    ui_state = UiState::FileDialog;
+                    is_error_msg_update = true;
+                }
+                KeyCommand::Quit => {
+                    break;
+                }
+                KeyCommand::Other(input) => {
+                    if ui_state == UiState::FileDialog {
+                        (ui_state, maybe_title) = try_send_midi(&mut port, Some(input)).await;
+                        if let Ok(t) = maybe_title {
+                            title = t;
+                            msg_event = EventInfo::UpdateAll;
+                            dialog_msg = None;
+                            ui_state = UiState::Monitor;
+                        } else {
+                            let _ = dialog_msg.insert(maybe_title.unwrap_err());
+                            is_error_msg_update = true;
+                        }
                     } else {
-                      String::from("Key Off    ")
-                    },
-                    pitch_bend[ch as usize],
-                    expression[ch as usize]
-                  );
-                    print!("\x1b[{}A",ch+3);
-                    if is_update_keyboad {
-                      print!("\x1b[9B");
-                      print_keyboad(&keyboad_state);
-                      print!("\x1b[11A");
-                      is_update_keyboad = false;
+                        eprintln!("fired other");
+                        input_chars.clear();
                     }
-                  } else if msg.is_tempo() {
-                    let data = msg.get_data().unwrap();
-                    print!("\x1b[1F");
-                    println!("TEMPO: {}", unsafe {
-                      *(data.as_ptr() as *const u32)
-                    });
-                  }
-                  log.push_front(format!("{num:>5}: {msg}"));
-                  num += 1;
-                  if log.len() > 15 {
-                    log.pop_back();
-                  }
-                  print!("\x1b[13B\x1b[0J");
-                  log.iter().for_each(|s| println!("{s}"));
-                  print!("\x1b[{}A",13+ log.len());
+                }
             }
-          }
-          Ok(line) = input_lines.next_line() => {
-            let line = line.unwrap();
-            if line == "q" {
-              serial_com::clear_buffer(&mut port);
-              break;
-            } else if line == "o" {
-              if let Some(title) = load_midi_and_send(&mut input_lines, &mut port, None::<String>).await {
-                  init_display(title)
-              } else {
-                serial_com::clear_buffer(&mut port);
-                return;
-              }
+        }
+        is_fired = None;
+
+        // 表示更新
+        match ui_state {
+            UiState::Monitor => {
+                match msg_event {
+                    EventInfo::None => {}
+                    EventInfo::Tempo(data) => {
+                        tempo = data;
+                        draw_tempo(tempo)?;
+                    }
+                    EventInfo::ChInfo((ch, is_update_keyboard)) => {
+                        // let track = track_info.get_mut(ch as usize).unwrap();
+                        draw_table_at(track_info.as_slice(), ch as usize)?;
+                        if is_update_keyboard {
+                            draw_keyboard(&state)?;
+                        }
+                    }
+                    EventInfo::Title | EventInfo::UpdateAll => {
+                        draw_display(title.as_str(), tempo, &track_info, &state, &logs)?;
+                    }
+                }
+                draw_logs(&logs)?;
+                stdout.flush()?;
             }
-          }
-        )
+            UiState::FileDialog => {
+                if is_error_msg_update {
+                    file_dialog(dialog_msg.clone())?;
+                    is_error_msg_update = false;
+                }
+                update_file_path(&mut input_chars, cursor_pos)?;
+                stdout.flush()?;
+            }
+        }
     }
+    // post processing
+    stdout.queue(MoveTop)?.execute(Clear(ClearType::All))?;
+    Ok(())
 }
-fn init_display(title: impl AsRef<str>) {
-    print!("\x1b[2J");
-    print!("\x1b[1;1H");
-    println!("Title: {}", title.as_ref());
-    print!("\x1b[1B");
-    println!("  Ch  [Inst   ]  Key State   PitchBend  Expression");
-    println!("  ------------------------------------------------");
-    print!("\x1b[2A");
-    print!("\x1b[12B");
-    println!("Received Messages:");
-    print!("\x1b[13A");
-    stdout().flush().unwrap();
-}
-async fn send_file(
-    path: impl AsRef<std::path::Path>,
-    port: &mut SerialPort,
-) -> Result<String, Error> {
-    let path = path.as_ref();
-    let mut file = if let Ok(f) = File::open(path) {
-        f
-    } else {
-        return Err(Error::FileOpen(path.to_str().unwrap().to_string()));
-    };
-    let mut buf = Vec::new();
-    file.read_to_end(&mut buf).unwrap();
-    let midi_info = crate::utils::validation_midi_file(&buf);
-    if let Ok(midi_info) = midi_info {
-        // TODO: midi_infoからタイトル情報を取得可能に (midi_infoは解析情報)
-        // TODO: midi_infoのイベント情報にエベント情報を付与する(ステータスバイトが抜け落ちている)
-        let title = if let Some(t) = get_title(&midi_info) {
-            t
-        } else {
-            path.file_name().unwrap().to_str().unwrap().to_string()
-        };
-        println!("Send File Size");
-        serial_com::send_midi_file(port, &buf).await.unwrap();
-        Ok(title)
-    } else {
-        // Err(Error::Format(path.to_str().unwrap().to_string()))
-        Err(Error::MidiError(midi_info.unwrap_err()))
-    }
-}
-// MIDIファイルを読みデータを送る (有効なファイルが入力されるまで聞く)
-async fn load_midi_and_send(
-    stdin: &mut Stdin,
+
+async fn try_send_midi(
     port: &mut SerialPort,
     path: Option<impl AsRef<str>>,
-) -> Option<String> {
-    let mut p = if let Some(p) = path {
-        p.as_ref().to_string()
-    } else {
-        file_dialog(stdin, None).await.unwrap_or(String::from(""))
-    };
-    let mut path = std::path::PathBuf::from(&p);
-    let mut e;
-    loop {
-        // control by input
-        if p.is_empty() {
-            continue;
-        } else {
-            if path.exists() {
-                let res = send_file(path, port).await;
-                if let Ok(title) = res {
-                    return Some(title);
+) -> (UiState, Result<String, String>) {
+    let maybe_info = crate::file_ctrl::file_check(path.as_ref());
+    if let Ok(maybe_info) = maybe_info {
+        if let Some((info, raw_data)) = maybe_info {
+            serial_com::send_midi_file(port, &raw_data).await.unwrap();
+            (
+                UiState::Monitor,
+                Ok(if let Some(t) = get_title(&info) {
+                    t
                 } else {
-                    e = res.err().unwrap();
-                }
-            } else {
-                e = Error::FileNotExist(p.clone())
+                    path.unwrap().as_ref().to_string()
+                }),
+            )
+        } else {
+            (UiState::FileDialog, Err(String::new()))
+        }
+    } else {
+        (UiState::FileDialog, Err(maybe_info.err().unwrap().to_msg()))
+    }
+}
+
+async fn sequencer_msg_rcv(
+    first_byte: u8,
+    track_info: &mut [TrackInfo],
+    log: &mut PlayingLog,
+    keyboard_state: &mut [Set<u8, 8>],
+    port: &mut SerialPort,
+) -> EventInfo {
+    let mut is_update_keyboard = false;
+    // let mut ch_update: Option<u8> = None;
+    if let Some(serial_com::Message::Sequence(msg)) =
+        serial_com::receive_sequence_msg(first_byte, port).await
+    {
+        log.add(msg.to_string());
+        if let Some(ch) = msg.get_channel() {
+            // パラメータ設定
+            if ch > MAX_CHANNEL {
+                return EventInfo::None;
             }
-            p = file_dialog(stdin, Some(e.to_msg()))
-                .await
-                .unwrap_or(String::from(""));
-            path = std::path::PathBuf::from(&p);
+            let track = track_info.get_mut(ch as usize).unwrap();
+            // ch_update = Some(ch);
+            match msg.get_event_name() {
+                SequenceEventFlag::ProgramChange => {
+                    track.set_inst(crate::char_code_lut::string_from_raw(
+                        msg.get_data().unwrap(),
+                    ));
+                }
+                SequenceEventFlag::KeyEvent => {
+                    let data = msg.get_data().unwrap();
+                    let note = data[0] as usize;
+                    if data[1] == 0 {
+                        track.set_key_state(None);
+                        if (24..96).contains(&note) {
+                            keyboard_state[note - 24].remove(&ch);
+                            is_update_keyboard = true;
+                        }
+                    } else {
+                        track.set_key_state(Some(data[0]));
+                        if (24..96).contains(&note) {
+                            keyboard_state[note - 24].insert(ch);
+                            is_update_keyboard = true;
+                        }
+                    }
+                }
+                SequenceEventFlag::Expression => {
+                    let data = msg.get_data().unwrap();
+                    track.set_expression(data[0]);
+                }
+                SequenceEventFlag::PitchBend => {
+                    let data = msg.get_data().unwrap();
+                    track.set_pitch_bend(((data[0] as i32) | ((data[1] as i32) << 8)) - 8192);
+                }
+                _ => {}
+            }
+            EventInfo::ChInfo((ch, is_update_keyboard))
+        } else if msg.is_tempo() {
+            EventInfo::Tempo(u32_from_le(msg.get_data().unwrap()))
+        } else {
+            EventInfo::None
         }
+    } else {
+        // TODO: Error実装を追加
+        EventInfo::None
     }
 }
-async fn file_dialog(input: &mut Stdin, msg: Option<String>) -> Option<String> {
-    println!("\x1b[2J");
-    print!("\x1b[5;20H============= Send File ============");
-    print!("\x1b[6;20H {}", msg.unwrap_or_default());
-    print!("\x1b[8;20H");
-    print!("======== PRESS ENTER TO SEND =======");
-    print!("\x1b[7;20H file name > ");
-    stdout().flush().unwrap();
-    (input.next_line().await).unwrap_or_default()
-}
-fn open_serial_port(port: impl AsRef<str>) -> Result<SerialPort, String> {
-    let baud_rate = 115200;
-    let port_setting = SerialPort::open(port.as_ref(), baud_rate);
-    if port_setting.is_err() {
-        return Err("failed to open serial port".to_string());
+
+fn draw_display(
+    title: impl AsRef<str>,
+    tempo: u32,
+    track_info: &[TrackInfo],
+    state: &[Set<u8, 8>],
+    logs: &PlayingLog,
+) -> std::io::Result<()> {
+    let mut stdout = stdout();
+    stdout
+        .queue(Clear(ClearType::All))?
+        .queue(MoveTo(0, 0))?
+        .queue(style::Print(format!("Title: {}", title.as_ref())))?
+        .queue(MoveTo(0, 1))?
+        .queue(style::Print(format!("TEMPO: {}", tempo)))?
+        .queue(MoveTo(0, 2))?
+        .queue(style::Print(
+            "  Ch  [Inst   ]  Key State   PitchBend  Expression",
+        ))?
+        .queue(MoveTo(0, 3))?
+        .queue(style::Print(
+            "  ------------------------------------------------",
+        ))?
+        .queue(MoveTo(0, MAX_CHANNEL as u16 + TABLE_TOP + 3))?
+        .queue(style::Print("Received Messages:"))?;
+    for ch in 0..track_info.len() {
+        draw_table_at(track_info, ch)?;
     }
-
-    Ok(port_setting.unwrap())
+    draw_logs(logs)?;
+    draw_keyboard(state)?;
+    Ok(())
 }
 
-fn print_keyboad(state: &[Set<u8, 8>]) {
-    let mut prev_state = "\x1b[47m";
-    let mut upper = String::new();
-    let mut lower = String::new();
-    const COLOR_LUT: [&str; 6] = [
-        "\x1b[43m", "\x1b[46m", "\x1b[42m", "\x1b[45m", "\x1b[41m", "\x1b[44m",
-    ];
-    state.iter().enumerate().for_each(|(n, s)| {
-        let is_natural_tone = is_natural_note(n as u8);
-        let color = if let Some(&ch) = s.iter().next() {
-            COLOR_LUT[ch as usize]
-        } else if is_natural_tone {
-            "\x1b[47m"
-        } else {
-            "\x1b[40m"
-        };
-        upper += &format!("{color} ");
-        if is_natural_tone {
-            // 白鍵
-            prev_state = color;
-            lower += &format!("{color} ");
-        } else {
-            // 黒鍵
-            lower += &format!("{prev_state} ");
-        }
+fn draw_tempo(tempo: u32) -> std::io::Result<()> {
+    let mut stdout = stdout();
+    stdout
+        .queue(MoveTo(0, 1))?
+        .queue(Clear(ClearType::CurrentLine))?
+        .queue(style::Print(format!("TEMPO: {}", tempo)))?;
+    Ok(())
+}
+
+fn draw_table_at(track_info: &[TrackInfo], ch: usize) -> std::io::Result<()> {
+    let info = &track_info[ch];
+    let mut stdout = stdout();
+    stdout
+        .queue(MoveTo(0, TABLE_TOP + ch as u16))?
+        .queue(Clear(ClearType::CurrentLine))?
+        .queue(style::SetForegroundColor(CH_COLOR[ch]))?
+        .queue(style::Print(format!("  Ch{ch} [{}]", info.get_inst())))?
+        .queue(style::ResetColor)?
+        // // .queue(MoveToColumn(4))?
+        // .queue(style::Print(info.get_inst()))?
+        .queue(MoveToColumn(17))?
+        .queue(style::Print(info.get_key_state()))?
+        .queue(MoveToColumn(29))?
+        .queue(style::Print(info.get_pitch_bend()))?
+        .queue(MoveToColumn(40))?
+        .queue(style::Print(info.get_expression()))?;
+    // .flush()
+    Ok(())
+}
+
+fn draw_logs(logs: &PlayingLog) -> std::io::Result<()> {
+    let mut stdout = stdout();
+    let s = logs.get_logs().iter().fold(String::new(), |s, log| {
+        s + format!("{:8} - {}\n", log.get_id(), log.get_msg()).as_str()
     });
-    upper += "\x1b[49m";
-    lower += "\x1b[49m";
-    println!("{upper}");
-    println!("{lower}");
-}
-fn is_natural_note(n: u8) -> bool {
-    let n = n % 12;
-    n == 0 || n == 2 || n == 4 || n == 5 || n == 7 || n == 9 || n == 11
+    stdout
+        .queue(MoveTo(0, MAX_CHANNEL as u16 + TABLE_TOP + 4))?
+        .queue(Clear(ClearType::FromCursorDown))?
+        .queue(style::Print(s))?;
+    Ok(())
 }

@@ -1,11 +1,11 @@
 mod char_code_lut;
 mod cli;
-
 mod midi;
 mod sequence_msg;
 mod serial_com;
 mod utils;
 use clap::Parser;
+mod file_ctrl;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -60,5 +60,6 @@ fn main() {
             .build()
             .unwrap()
             .block_on(cli::run(args))
+            .unwrap();
     }
 }

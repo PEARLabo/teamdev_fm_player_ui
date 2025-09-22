@@ -16,3 +16,6 @@ ymodem-send-rs = { git = "https://github.com/PEARLabo/ymodem-send-rs", features=
 clap = { version = "4.5.40", features = ["derive"] }
 serial2-tokio = "0.1.15"
 micromap = "0.1.0"
+crossterm = { version = "0.29.0", features = ["event-stream"] }
+futures = "0.3.31"
+futures-core = "0.3.31"
