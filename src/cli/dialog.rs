@@ -31,8 +31,7 @@ pub fn update_file_path(path: impl AsRef<str>, cursor_pos: usize) -> std::io::Re
     stdout
         .queue(MoveTo(0, 4))?
         .queue(Clear(ClearType::CurrentLine))?
-        .queue(style::Print(format!("file name > {}", path.as_ref())))?
-        .queue(MoveToColumn(cursor_pos as u16 + 12))?;
+        .queue(style::Print(format!("file name > {}", path.as_ref())))?;
 
     Ok(())
 }
@@ -40,7 +39,7 @@ pub fn draw_suggest(entries: &[DirItem]) -> std::io::Result<()> {
     const MAX_LENGTH: usize = 80;
     let mut stdout = std::io::stdout();
     let mut lines = Vec::new();
-    let mut tmp = String::new();
+    let mut tmp = String::with_capacity(80);
 
     for entry in entries {
         if tmp.len() > MAX_LENGTH {
@@ -48,6 +47,10 @@ pub fn draw_suggest(entries: &[DirItem]) -> std::io::Result<()> {
             tmp = String::new();
         }
         tmp += entry.get_file_name().unwrap();
+        if entry.path().is_dir() {
+            tmp += "/";
+        }
+        tmp += " ";
     }
     if !tmp.is_empty() {
         lines.push(tmp);

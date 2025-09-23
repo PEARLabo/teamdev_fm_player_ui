@@ -1,6 +1,6 @@
 use crossterm::{
     ExecutableCommand, QueueableCommand,
-    cursor::{MoveLeft, MoveRight, MoveTo},
+    cursor::{MoveLeft, MoveRight, MoveTo, MoveToColumn},
     event::{self, EventStream, KeyboardEnhancementFlags, PushKeyboardEnhancementFlags},
     execute,
     style::{self, Color},
@@ -19,7 +19,7 @@ use crate::{
     },
     sequence_msg::SequenceEventFlag,
     serial_com,
-    utils::{DirItem, get_title, interpolation_path, u32_from_le},
+    utils::{DirItem, generate_suggestion, get_title, u32_from_le},
 };
 
 mod dialog;
@@ -229,8 +229,9 @@ async fn handle_command(
                 *msg_event = EventInfo::UpdateAll;
             }
             KeyCommand::InterPolation => {
-                let (interpolated, ent_list) = interpolation_path(&ui_model.input_chars);
+                let (interpolated, ent_list) = generate_suggestion(&ui_model.input_chars);
                 ui_model.input_chars = interpolated;
+                ui_model.cursor_pos = ui_model.input_chars.len();
                 if ui_model.before_key_command == KeyCommand::InterPolation {
                     if ent_list.is_none() {
                         ui_model.fired_command = Some(KeyCommand::None);
@@ -309,6 +310,7 @@ fn update_view(
             if let Some(entries) = &ui_model.dir_entries {
                 draw_suggest(entries)?;
             }
+            stdout.queue(MoveTo(ui_model.cursor_pos as u16 + 12, 4))?;
         }
     }
     stdout.flush()

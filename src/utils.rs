@@ -1,6 +1,7 @@
 use std::{
-    fs::{DirEntry, ReadDir},
+    fs::DirEntry,
     path::{Path, PathBuf},
+    str::FromStr,
 };
 
 use serial2_tokio::SerialPort;
@@ -64,6 +65,7 @@ pub fn get_serial_port_list() -> Option<Vec<String>> {
         None
     }
 }
+#[derive(Debug)]
 pub struct DirItem {
     path: PathBuf,
 }
@@ -84,10 +86,18 @@ impl From<DirEntry> for DirItem {
     }
 }
 
-pub fn interpolation_path(input: impl AsRef<str>) -> (String, Option<Vec<DirItem>>) {
+pub fn generate_suggestion(input: impl AsRef<str>) -> (String, Option<Vec<DirItem>>) {
     let input_str = input.as_ref();
-    let path = Path::new(input_str);
-
+    let path = if input_str.is_empty() {
+        PathBuf::from_str("./").unwrap()
+    } else if !(input_str.starts_with("./")
+        || input_str.starts_with("../")
+        || input_str.starts_with("/"))
+    {
+        Path::new("./").join(input_str)
+    } else {
+        PathBuf::from_str(input_str).unwrap()
+    };
     let (dir, prefix) = if path.is_dir() {
         (path.to_path_buf(), None)
     } else if let (Some(parent), Some(name)) =
@@ -104,9 +114,10 @@ pub fn interpolation_path(input: impl AsRef<str>) -> (String, Option<Vec<DirItem
             .map(DirItem::from)
             .collect::<Vec<_>>()
     } else {
+        eprintln!("no files...");
         return (input_str.to_string(), None);
     };
-
+    dbg!(&entries);
     let filtered_entries: Vec<DirItem> = if let Some(prefix) = prefix {
         entries
             .into_iter()
@@ -123,84 +134,11 @@ pub fn interpolation_path(input: impl AsRef<str>) -> (String, Option<Vec<DirItem
         0 => (input_str.to_string(), None),
         1 => {
             let item = filtered_entries.into_iter().next().unwrap();
+            let is_dir = item.path().is_dir();
             item.as_str()
-                .map(|p_str| (p_str.to_string(), None))
+                .map(|p_str| (p_str.to_string() + if is_dir { "/" } else { "" }, None))
                 .unwrap_or_else(|| (input_str.to_string(), None))
         }
         _ => (input_str.to_string(), Some(filtered_entries)),
     }
 }
-
-// pub fn interpolation_path(input: impl AsRef<str>) -> (String, Option<Vec<DirItem>>) {
-//     let input = input.as_ref();
-//     // parse path
-//     let path = Path::new(input);
-//     let dir = if path.is_dir() {
-//         path.to_path_buf()
-//     } else {
-//         path.parent().unwrap().to_path_buf()
-//     };
-//     let entry = std::fs::read_dir(dir);
-//     if entry.is_err() {
-//         return (input.to_string(), None);
-//     }
-//     let entry = entry
-//         .unwrap()
-//         .map(|e| DirItem::from(e.unwrap()))
-//         .collect::<Vec<DirItem>>();
-//     // 補間対象なし
-//     if entry.is_empty() {
-//         return (input.to_string(), None);
-//     }
-
-//     if path.is_dir() {
-//         if entry.len() == 1 {
-//             (
-//                 entry.first().unwrap().path().to_str().unwrap().to_string(),
-//                 None,
-//             )
-//         } else {
-//             (input.to_string(), Some(entry))
-//         }
-//     } else if let Some(name) = path.file_name() {
-//         let name = name.to_str().unwrap();
-//         if entry.len() == 1 {
-//             let entry = entry.first().unwrap();
-//             if entry
-//                 .path()
-//                 .file_name()
-//                 .unwrap()
-//                 .to_str()
-//                 .unwrap()
-//                 .starts_with(name)
-//             {
-//                 (entry.path().to_str().unwrap().to_string(), None)
-//             } else {
-//                 (input.to_string(), None)
-//             }
-//         } else {
-//             let mut finds = entry
-//                 .into_iter()
-//                 .filter(|e| {
-//                     e.path()
-//                         .file_name()
-//                         .unwrap()
-//                         .to_str()
-//                         .unwrap()
-//                         .starts_with(name)
-//                 })
-//                 .collect::<Vec<DirItem>>();
-
-//             if finds.len() == 1 {
-//                 (
-//                     finds.first().unwrap().path().to_str().unwrap().to_string(),
-//                     None,
-//                 )
-//             } else {
-//                 (input.to_string(), Some(finds))
-//             }
-//         }
-//     } else {
-//         unreachable!("unexpected: {:?}", path);
-//     }
-// }
