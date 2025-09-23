@@ -21,21 +21,21 @@ struct Args {
     port_name: Option<String>,
 }
 
-struct ToFrontMsg {
-    msg: String,
-    id: Option<u16>,
-}
+// struct ToFrontMsg {
+//     msg: String,
+//     id: Option<u16>,
+// }
 
-struct ErrorMessage {
-    error: String,
-}
+// struct ErrorMessage {
+//     error: String,
+// }
 
 // ファイル情報を格納する構造体
 // #[derive(serde::Serialize)]
-struct FileInfo {
-    size: usize,
-    is_midi: bool,
-}
+// struct FileInfo {
+//     size: usize,
+//     is_midi: bool,
+// }
 
 // アプリケーションのエントリーポイント
 fn main() {

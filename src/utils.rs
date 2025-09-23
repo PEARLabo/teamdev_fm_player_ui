@@ -112,7 +112,7 @@ pub fn interpolation_path(input: impl AsRef<str>) -> (String, Option<Vec<DirItem
             .into_iter()
             .filter(|item| {
                 item.get_file_name()
-                    .map_or(false, |name| name.starts_with(prefix))
+                    .is_some_and(|name| name.starts_with(prefix))
             })
             .collect()
     } else {

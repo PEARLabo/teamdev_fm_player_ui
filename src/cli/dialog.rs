@@ -7,14 +7,19 @@ use crossterm::{
 
 use crate::utils::DirItem;
 
-pub fn file_dialog(msg: Option<String>) -> std::io::Result<()> {
+pub fn file_dialog(msg: Option<impl AsRef<str>>) -> std::io::Result<()> {
     let mut stdout = std::io::stdout();
+    let e_message = if let Some(msg) = msg {
+        msg.as_ref().to_string()
+    } else {
+        String::new()
+    };
     stdout
         .queue(Clear(crossterm::terminal::ClearType::All))?
         .queue(MoveTo(0, 2))?
         .queue(style::Print("============= Send File ============="))?
         .queue(MoveTo(0, 3))?
-        .queue(style::Print(msg.unwrap_or_default()))?
+        .queue(style::Print(e_message))?
         .queue(MoveTo(0, 5))?
         .queue(style::Print("======== PRESS ENTER TO SEND ========"))?
         .queue(MoveTo(0, 4))?
@@ -44,7 +49,7 @@ pub fn draw_suggest(entries: &[DirItem]) -> std::io::Result<()> {
         }
         tmp += entry.get_file_name().unwrap();
     }
-    if tmp.len() > 0 {
+    if !tmp.is_empty() {
         lines.push(tmp);
     }
     let mut n = 0;
@@ -53,7 +58,7 @@ pub fn draw_suggest(entries: &[DirItem]) -> std::io::Result<()> {
         .queue(Clear(ClearType::FromCursorDown))?;
     lines.into_iter().for_each(|str| {
         unsafe {
-            stdout
+            let _ = stdout
                 .queue(MoveTo(0, n + 5))
                 .unwrap_unchecked()
                 .queue(style::Print(str));

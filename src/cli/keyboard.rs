@@ -7,10 +7,10 @@ use crossterm::{
 };
 use micromap::Set;
 
-use crate::cli::CH_COLOR;
+use crate::cli::view::CH_COLOR;
 
 pub fn draw_keyboard(state: &[Set<u8, 8>]) -> std::io::Result<()> {
-    const KEYBOARD_TOP: u16 = crate::cli::TABLE_TOP + crate::cli::MAX_CHANNEL as u16 + 1;
+    const KEYBOARD_TOP: u16 = crate::cli::view::TABLE_TOP + crate::cli::MAX_CHANNEL as u16 + 1;
     let mut stdout = stdout();
     let mut prev_state = Color::White;
     // let

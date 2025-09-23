@@ -1,13 +1,6 @@
 use std::{fs::File, io::Read};
 
-// use crossterm::{QueueableCommand, cursor::MoveTo, style, terminal::Clear};
-use serial2_tokio::SerialPort;
-
-use crate::{
-    midi::{MidiError, MidiInfo},
-    serial_com,
-    utils::get_title,
-};
+use crate::midi::{MidiError, MidiInfo};
 #[derive(Clone)]
 pub enum Error {
     FileOpen(String),
