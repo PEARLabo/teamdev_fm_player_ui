@@ -8,9 +8,9 @@ use crossterm::{
 };
 use futures::StreamExt;
 //
-use crate::utils::u32_from_le;
+use crate::utils::{interpolation_path, u32_from_le};
 use crate::{Args, serial_com};
-use crate::{cli::dialog::interpolation_path, sequence_msg::SequenceEventFlag};
+use crate::{cli::dialog::draw_suggest, sequence_msg::SequenceEventFlag, utils::DirItem};
 use crate::{
     cli::{dialog::update_file_path, structs::PlayingLog},
     utils::get_title,
@@ -119,6 +119,8 @@ pub async fn run(args: Args) -> std::io::Result<()> {
     let mut is_fired: Option<KeyCommand> = None;
     let mut is_error_msg_update = true;
     let mut cursor_pos = 0;
+    let mut before_keyCommand = KeyCommand::Other(String::new());
+    let mut dir_entries: Option<Vec<DirItem>> = None;
     // Main Loop
     loop {
         // let mut key_event_buffer: VecDeque<char> = VecDeque::new();
@@ -203,7 +205,15 @@ pub async fn run(args: Args) -> std::io::Result<()> {
                 }
                 // 入力に対する補間処理
                 KeyCommand::InterPolation => {
-                    input_chars = interpolation_path(input_chars.as_str());
+                    let (interpolated, ent_list) = interpolation_path(input_chars.as_str());
+                    input_chars = interpolated;
+                    if before_keyCommand == KeyCommand::InterPolation {
+                        if let Some(entries) = ent_list {
+                            dir_entries = Some(entries);
+                        } else {
+                            is_fired = Some(KeyCommand::None);
+                        }
+                    }
                 }
                 KeyCommand::DialogOpen => {
                     ui_state = UiState::FileDialog;
@@ -229,8 +239,10 @@ pub async fn run(args: Args) -> std::io::Result<()> {
                         input_chars.clear();
                     }
                 }
+                KeyCommand::None => {}
             }
         }
+        before_keyCommand = is_fired.unwrap_or(KeyCommand::None);
         is_fired = None;
 
         // 表示更新
@@ -262,6 +274,9 @@ pub async fn run(args: Args) -> std::io::Result<()> {
                     is_error_msg_update = false;
                 }
                 update_file_path(&mut input_chars, cursor_pos)?;
+                if let Some(entries) = dir_entries.as_ref() {
+                    draw_suggest(entries)?;
+                }
                 stdout.flush()?;
             }
         }

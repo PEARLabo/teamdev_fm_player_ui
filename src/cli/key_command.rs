@@ -1,5 +1,6 @@
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum KeyCommand {
+    None,
     // o + enter
     DialogOpen,
     // esc
