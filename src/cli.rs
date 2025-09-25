@@ -17,6 +17,7 @@ use crate::{
         dialog::{draw_suggest, file_dialog, update_file_path},
         structs::PlayingLog,
     },
+    midi::MidiConfig,
     sequence_msg::SequenceEventFlag,
     serial_com,
     utils::{DirItem, generate_suggestion, get_title, u32_from_le},
@@ -40,6 +41,7 @@ struct AppState {
     title: String,
     tempo: u32,
     logs: PlayingLog,
+    midi_config: MidiConfig,
 }
 
 struct UiModel {
@@ -104,9 +106,14 @@ pub async fn run(args: Args) -> std::io::Result<()> {
         title: String::new(),
         tempo: 60,
         logs: PlayingLog::default(),
+        midi_config: MidiConfig {
+            sysex_convert: args.sysex_convert,
+            sysex_ignore: args.sysex_ignore,
+        },
     };
     let mut event_stream = EventStream::new();
-    let (ui_state, maybe_title) = try_send_midi(&mut port, args.input.as_ref()).await?;
+    let (ui_state, maybe_title) =
+        try_send_midi(&mut port, args.input.as_ref(), &app_state.midi_config).await?;
 
     let mut ui_model = UiModel {
         state: ui_state,
@@ -246,7 +253,8 @@ async fn handle_command(
             KeyCommand::Quit => return Ok(true),
             KeyCommand::Other(ref input) => {
                 if ui_model.state == UiState::FileDialog {
-                    let (new_ui_state, maybe_title) = try_send_midi(port, Some(input)).await?;
+                    let (new_ui_state, maybe_title) =
+                        try_send_midi(port, Some(input), &app_state.midi_config).await?;
                     ui_model.state = new_ui_state;
                     match maybe_title {
                         Ok(t) => {
@@ -319,13 +327,14 @@ fn update_view(
 async fn try_send_midi(
     port: &mut SerialPort,
     path: Option<impl AsRef<str>>,
+    midi_convert_config: &MidiConfig,
 ) -> std::io::Result<(UiState, Result<String, String>)> {
     let path = match path {
         Some(p) => p,
         None => return Ok((UiState::FileDialog, Err(String::new()))),
     };
 
-    match crate::file_ctrl::file_check(Some(path.as_ref())) {
+    match crate::file_ctrl::file_check(Some(path.as_ref()), midi_convert_config) {
         Ok(Some((info, raw_data))) => {
             let res = serial_com::send_midi_file(port, &raw_data).await;
             if let Err(e) = res {

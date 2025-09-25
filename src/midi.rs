@@ -1,3 +1,8 @@
+use std::{
+    collections::{HashMap, VecDeque},
+    io::Write,
+};
+
 use crate::utils::u32_from;
 const fn to_u16(h: u8, l: u8) -> u16 {
     ((h as u16) << 8) | (l as u16)
@@ -35,6 +40,14 @@ impl std::fmt::Display for MidiError {
         }
     }
 }
+#[derive(Debug, Default)]
+pub struct MidiConfig {
+    // SysExの形式をDominoフォーマットへ変更する
+    pub sysex_convert: bool,
+    // SysExメッセージを除去する
+    pub sysex_ignore: bool,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Format {
     Format0,
@@ -66,6 +79,90 @@ impl MidiInfo {
     pub fn get_tracks(&self) -> &[Vec<MidiEvent>] {
         &self.tracks
     }
+    pub fn construct(&self, _config: &MidiConfig) -> Vec<u8> {
+        let header = self.header.to_binary();
+        let track = self
+            .tracks
+            .iter()
+            .flat_map(|events| {
+                // 5はマジックナンバー(Geminiの答えるイベントの平均バイト数)
+                let mut data: Vec<u8> = Vec::with_capacity(events.len() * 5 + 8);
+                data.extend([0x4d, 0x54, 0x72, 0x6b]);
+                let track_body = events
+                    .iter()
+                    .flat_map(|event| event.to_binary())
+                    .collect::<Vec<u8>>();
+                let len = track_body.len();
+                data.extend([
+                    (len >> 24) as u8,
+                    (len >> 16) as u8,
+                    (len >> 8) as u8,
+                    len as u8,
+                ]);
+                data.extend(track_body);
+                data
+            })
+            .collect();
+        let data = [header, track].concat();
+        // DEBUG OUT
+        // {
+        //     let file = std::fs::File::create("converted.mid").unwrap();
+        //     let mut writer = std::io::BufWriter::new(file);
+        //     writer.write_all(&data).unwrap();
+        //     writer.flush().unwrap();
+        // }
+        data
+    }
+    pub fn convert_to_format0(&self) -> Self {
+        let header = MidiHeader {
+            format: Format::Format0,
+            time_unit: self.header.time_unit,
+            tracks: 1,
+        };
+        let mut track = Vec::new();
+        let mut tick = 0;
+        let mut event_queues = self
+            .get_tracks()
+            .iter()
+            .map(|events| VecDeque::from(events.to_vec()))
+            .collect::<Vec<_>>();
+        let mut next_ticks = (0..self.tracks.len())
+            .map(|i| (i, event_queues[i].front().as_ref().unwrap().delta_time))
+            .collect::<HashMap<usize, usize>>();
+        let is_all_empty =
+            |list: &[VecDeque<MidiEvent>]| -> bool { list.iter().all(|queue| queue.is_empty()) };
+        while !is_all_empty(&event_queues) {
+            let (idx, delta_time) = {
+                let (i, d) = next_ticks
+                    .iter()
+                    .min_by_key(|&(_, delta_time)| delta_time)
+                    .unwrap();
+                (*i, *d)
+            };
+            // イベントの登録
+            let mut event = event_queues[dbg!(idx)].pop_front().unwrap();
+
+            event.delta_time = delta_time;
+            tick += delta_time;
+            if !event.is_end_of_track() {
+                track.push(event);
+            }
+            // delta timeの更新
+            next_ticks.iter_mut().for_each(|(_, d)| {
+                *d = d.saturating_sub(delta_time);
+            });
+            // 探索対処言うから削除 / 次の待ち時間を登録
+            if event_queues[idx].is_empty() {
+                next_ticks.remove(&idx);
+            } else {
+                next_ticks.insert(idx, event_queues[idx].front().unwrap().delta_time);
+            }
+        }
+        Self {
+            header,
+            tracks: vec![track],
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -78,19 +175,49 @@ impl MidiHeader {
     pub fn is_format0(&self) -> bool {
         self.format == Format::Format0
     }
+    fn to_binary(&self) -> Vec<u8> {
+        let mut data = Vec::with_capacity(14);
+        data.extend([0x4D, 0x54, 0x68, 0x64]);
+        data.extend([0x00, 0x00, 0x00, 0x06]);
+        data.extend([0x00, self.format as u8]);
+        data.extend([(self.tracks >> 8) as u8, self.tracks as u8]);
+        data.extend([(self.time_unit >> 8) as u8, self.time_unit as u8]);
+        data
+    }
+
+    pub(crate) fn format(&self) -> Format {
+        self.format
+    }
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MidiEvent {
     delta_time: usize,
     ch: u8,
+    status_byte: u8,
     data: Vec<u8>,
 }
+
 impl MidiEvent {
     pub fn get_ch(&self) -> u8 {
         self.ch
     }
     pub fn get_data(&self) -> &Vec<u8> {
         &self.data
+    }
+    pub fn to_binary(&self) -> Vec<u8> {
+        let mut data = Vec::with_capacity(self.data.len() + 5);
+        data.extend(convert_variable_value(self.delta_time));
+        data.push(if self.status_byte & 0xf0 == 0xf0 {
+            self.status_byte
+        } else {
+            self.status_byte | self.ch
+        });
+        data.extend_from_slice(&self.data);
+        data
+    }
+
+    fn is_end_of_track(&self) -> bool {
+        self.status_byte == 0xff && self.data[0] == 0x2f && self.data[1] == 0x00
     }
 }
 impl TryFrom<&[u8]> for MidiHeader {
@@ -146,11 +273,9 @@ fn parse_track(raw_events: &[u8]) -> Result<Vec<MidiEvent>, MidiError> {
         let (delta_time, len) = get_variable_value(&raw_events[i..])?;
         i += len;
         let ch = raw_events[i] & 0x0f;
-        let event = raw_events[i] & 0xf0;
+        let status_byte = raw_events[i] & 0xf0;
         // this switch process is generated by Gemini
-        // NOTE: イベント情報が欠落しているので、参照する際は、各イベントの情報を追加すること
-        // 0xC0や0xA0などが落ちている。
-        match event {
+        match status_byte {
             0x80 | 0x90 | 0xA0 | 0xB0 | 0xE0 => {
                 before_status = raw_events[i];
                 let mut event_data = vec![0; 2];
@@ -160,6 +285,7 @@ fn parse_track(raw_events: &[u8]) -> Result<Vec<MidiEvent>, MidiError> {
                 events.push(MidiEvent {
                     delta_time,
                     ch,
+                    status_byte,
                     data: event_data,
                 });
             }
@@ -171,11 +297,13 @@ fn parse_track(raw_events: &[u8]) -> Result<Vec<MidiEvent>, MidiError> {
                 events.push(MidiEvent {
                     delta_time,
                     ch,
+                    status_byte,
                     data: event_data,
                 });
             }
             0xf0 => {
                 before_status = 0;
+                let status_byte = raw_events[i];
                 match raw_events[i] {
                     0xf0 | 0xf7 => {
                         let mut event_data = Vec::new();
@@ -187,6 +315,7 @@ fn parse_track(raw_events: &[u8]) -> Result<Vec<MidiEvent>, MidiError> {
                         events.push(MidiEvent {
                             delta_time,
                             ch: 0,
+                            status_byte,
                             data: event_data,
                         });
                         i += 1; // 0xf7をスキップ
@@ -195,15 +324,16 @@ fn parse_track(raw_events: &[u8]) -> Result<Vec<MidiEvent>, MidiError> {
                         // Meta Event
                         let meta_type = raw_events[i + 1];
                         let (meta_len, len_bytes) = get_variable_value(&raw_events[i + 2..])?;
-                        let mut event_data = vec![0; meta_len];
-                        event_data.copy_from_slice(
-                            &raw_events[i + 2 + len_bytes..i + 2 + len_bytes + meta_len],
-                        );
+                        let mut event_data = Vec::with_capacity(2 + meta_len + len_bytes);
+                        event_data.push(meta_type);
+                        event_data
+                            .extend_from_slice(&raw_events[i + 2..(i + 2 + len_bytes + meta_len)]);
                         i += 2 + len_bytes + meta_len;
                         events.push(MidiEvent {
                             delta_time,
                             // Non Channel
                             ch: 0,
+                            status_byte,
                             data: event_data,
                         });
                     }
@@ -224,6 +354,7 @@ fn parse_track(raw_events: &[u8]) -> Result<Vec<MidiEvent>, MidiError> {
                         events.push(MidiEvent {
                             delta_time,
                             ch,
+                            status_byte: event,
                             data: event_data,
                         });
                     }
@@ -234,6 +365,7 @@ fn parse_track(raw_events: &[u8]) -> Result<Vec<MidiEvent>, MidiError> {
                         events.push(MidiEvent {
                             delta_time,
                             ch,
+                            status_byte: event,
                             data: event_data,
                         });
                     }
@@ -275,4 +407,30 @@ fn get_variable_value(data: &[u8]) -> Result<(usize, usize), MidiError> {
         }
     }
     Ok((value, len))
+}
+fn convert_variable_value(value: usize) -> Vec<u8> {
+    let mut data = Vec::new();
+    let mut v = value;
+    let mut flag = 0;
+    loop {
+        let byte = v & 0x7F;
+        v >>= 7;
+        data.push(byte as u8 | flag);
+        flag = 0x80;
+        if v == 0 {
+            break;
+        }
+    }
+    data.reverse();
+    data
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_variable_value() {
+        assert_eq!(vec![1], convert_variable_value(1));
+        assert_eq!(vec![0x7f], convert_variable_value(0x7f));
+        assert_eq!(vec![0x81, 0x00], convert_variable_value(0x80));
+    }
 }

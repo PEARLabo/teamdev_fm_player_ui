@@ -30,17 +30,26 @@ pub fn u32_from_le(data: &[u8]) -> u32 {
 
 pub fn validation_midi_file(data: &[u8]) -> Result<MidiInfo, MidiError> {
     let info = MidiInfo::try_from(data)?;
-    if !info.get_header().is_format0() {
+    if info.get_header().format() == crate::midi::Format::Format2 {
         return Err(MidiError::Custom(
-            "Unsupported MIDI format detected (must be Format 0).",
+            "Unsupported MIDI format detected (must be Format 0 or 1).",
         ));
     }
+    // if info
+    //     .get_tracks()
+    //     .first()
+    //     .unwrap()
+    //     .iter()
+    //     .any(|event| event.get_ch() > 6)
+    // {
+    //     return Err(MidiError::Custom(
+    //         "Unsupported MIDI channel detected (must be 1-6).",
+    //     ));
+    // }
     if info
         .get_tracks()
-        .first()
-        .unwrap()
         .iter()
-        .any(|event| event.get_ch() > 6)
+        .any(|events| events.iter().any(|event| event.get_ch() > 6))
     {
         return Err(MidiError::Custom(
             "Unsupported MIDI channel detected (must be 1-6).",

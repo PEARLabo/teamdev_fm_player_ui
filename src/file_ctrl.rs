@@ -23,7 +23,10 @@ impl Error {
  *  Return MidiInfo and raw data if a valid file path is provided.
  *  return error when file is not exist
  */
-pub fn file_check(path: Option<impl AsRef<str>>) -> Result<Option<(MidiInfo, Vec<u8>)>, Error> {
+pub fn file_check(
+    path: Option<impl AsRef<str>>,
+    midi_convert_config: &crate::midi::MidiConfig,
+) -> Result<Option<(MidiInfo, Vec<u8>)>, Error> {
     if let Some(path) = path {
         let path = path.as_ref();
         let mut file = if let Ok(f) = File::open(path) {
@@ -35,7 +38,13 @@ pub fn file_check(path: Option<impl AsRef<str>>) -> Result<Option<(MidiInfo, Vec
         file.read_to_end(&mut buf).unwrap();
         let midi_info = crate::utils::validation_midi_file(&buf);
         if let Ok(midi_info) = midi_info {
-            Ok(Some((midi_info, buf)))
+            let info = if midi_info.get_header().format() == crate::midi::Format::Format1 {
+                midi_info.convert_to_format0()
+            } else {
+                midi_info
+            };
+            let buf = info.construct(midi_convert_config);
+            Ok(Some((info, buf)))
         } else {
             Err(Error::MidiError(midi_info.unwrap_err()))
         }

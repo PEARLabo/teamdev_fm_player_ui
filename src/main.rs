@@ -9,8 +9,6 @@ mod file_ctrl;
 
 #[derive(Parser, Debug)]
 struct Args {
-    // #[arg(long)]
-    // disable_gui: bool,
     #[arg(short, long)]
     input: Option<String>,
     #[arg(short, long)]
@@ -19,23 +17,13 @@ struct Args {
     port: usize,
     #[arg(long)]
     port_name: Option<String>,
+    // Convert To Domino Export Style
+    #[arg(long)]
+    sysex_convert: bool,
+    // Remove SysExEvents
+    #[arg(long)]
+    sysex_ignore: bool,
 }
-
-// struct ToFrontMsg {
-//     msg: String,
-//     id: Option<u16>,
-// }
-
-// struct ErrorMessage {
-//     error: String,
-// }
-
-// ファイル情報を格納する構造体
-// #[derive(serde::Serialize)]
-// struct FileInfo {
-//     size: usize,
-//     is_midi: bool,
-// }
 
 // アプリケーションのエントリーポイント
 fn main() {
