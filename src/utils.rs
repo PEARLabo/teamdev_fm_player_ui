@@ -140,8 +140,11 @@ pub fn generate_suggestion(input: impl AsRef<str>) -> (UpdateResult<String>, Opt
     } else {
         PathBuf::from_str(input_str).unwrap()
     };
+    // 1. ディレクトリとプレフィクスに分離
+    // e.g. `./hoge/fuga` -> `./hoge`, `fuga`
     let (dir, prefix) = if input_str.ends_with(".") {
-        // `.`スタートのファイル名がうまく取れないので、特別扱い
+        // ./.を'./'と'.'に分離する
+        // Rustが'./.'をカレントディレクトリと読んでしまう
         let mut dir = path.parent().unwrap_or(Path::new("."));
         if dir.to_str().unwrap().is_empty() {
             dir = Path::new(".");
@@ -156,26 +159,19 @@ pub fn generate_suggestion(input: impl AsRef<str>) -> (UpdateResult<String>, Opt
         if input_str.ends_with("/") {
             (path.to_path_buf(), None)
         } else if let Some(parent) = path.parent() {
-            // 入力と完全一致ディレクトリがある場合で、そのほかの　ファイル名も存在する場合
-            // ディレクトリ列挙になるのを防ぐ
+            // 入力がディレクトリと完全一致時にほかの候補があるか確認する
+            // e.g ./.git -> ./.git/ or ./.gitconfig
             let name = path.file_name().and_then(|s| s.to_str());
             let entries = if let Ok(entries) = read_dir(parent) {
+                let name_prefix = name.unwrap_or("");
                 entries
-                    .filter(|item| {
-                        item.as_ref()
-                            .unwrap()
-                            .path()
-                            .file_name()
-                            .unwrap()
-                            .to_str()
-                            .unwrap()
-                            .starts_with(name.unwrap())
-                    })
+                    .filter_map(Result::ok) // Convert iterator of Results to iterator of DirEntry
+                    .filter(|entry| entry.file_name().to_string_lossy().starts_with(name_prefix))
                     .count()
             } else {
                 0
             };
-            // 部分一致のファイルor ディレクトリが存在するときは親ディレクトリを対象に
+            // 部分一致のファイル or ディレクトリが存在するときは親ディレクトリを対象に
             if entries > 1 {
                 (parent.to_path_buf(), name)
             } else {
@@ -191,8 +187,8 @@ pub fn generate_suggestion(input: impl AsRef<str>) -> (UpdateResult<String>, Opt
     } else {
         return (UpdateResult::not_updated(input_str.to_string()), None);
     };
-
-    let entries = if let Ok(read_dir) = std::fs::read_dir(dbg!(&dir)) {
+    // 2. ディレクトリからリストを取得
+    let entries = if let Ok(read_dir) = std::fs::read_dir(&dir) {
         read_dir
             .filter_map(Result::ok)
             .map(DirItem::from)
@@ -201,7 +197,7 @@ pub fn generate_suggestion(input: impl AsRef<str>) -> (UpdateResult<String>, Opt
         eprintln!("no files...");
         return (UpdateResult::not_updated(input_str.to_string()), None);
     };
-    dbg!(&entries);
+    // 3. ファイル名でフィルタリング
     let filtered_entries: Vec<DirItem> = if let Some(prefix) = prefix {
         entries
             .into_iter()
@@ -213,7 +209,7 @@ pub fn generate_suggestion(input: impl AsRef<str>) -> (UpdateResult<String>, Opt
     } else {
         entries
     };
-
+    // 4. 候補のリストと、補間結果を返す
     match filtered_entries.len() {
         0 => (UpdateResult::not_updated(input_str.to_string()), None),
         1 => {
@@ -228,25 +224,26 @@ pub fn generate_suggestion(input: impl AsRef<str>) -> (UpdateResult<String>, Opt
                 })
                 .unwrap_or_else(|| (UpdateResult::not_updated(input_str.to_string()), None))
         }
-        _ => {
-            if let Some(common_fname) = get_common_filename_prefix(&filtered_entries) {
-                if !common_fname.is_empty() && Some(common_fname.as_str()) != prefix {
-                    let mut path = dir.to_path_buf();
-                    path.push(common_fname);
-                    return (
-                        UpdateResult::updated(path.to_string_lossy().to_string()),
-                        Some(filtered_entries),
-                    );
-                }
+        _ => match get_common_filename_prefix(&filtered_entries) {
+            // 全候補における完全一致部分までを補完する
+            Some(common) if !common.is_empty() && Some(common.as_str()) != prefix => {
+                let path = dir.join(common);
+                (
+                    UpdateResult::updated(path.to_string_lossy().to_string()),
+                    Some(filtered_entries),
+                )
             }
-            (
+            _ => (
                 UpdateResult::not_updated(input_str.to_string()),
                 Some(filtered_entries),
-            )
-        }
+            ),
+        },
     }
 }
-
+// ファイルリストでファイル名の先頭からの一致部分を返す
+// e.g
+//   list: teamdev_fm_player_ui/ teamdev_fm_sequencer/
+//   output: teamdev_fm_
 pub fn get_common_filename_prefix(items: &[DirItem]) -> Option<String> {
     let mut names = items.iter().map(|item| item.get_file_name());
 
@@ -274,36 +271,3 @@ pub fn get_common_filename_prefix(items: &[DirItem]) -> Option<String> {
         Some(final_prefix)
     }
 }
-
-// pub fn get_common_filename_prefix(items: &[DirItem]) -> Option<String> {
-//     let mut names = items.iter().map(|item| item.get_file_name());
-//     let mut prefix = if let Some(Some(first)) = names.next() {
-//         first.to_string()
-//     } else {
-//         return None;
-//     };
-
-//     for name in names {
-//         if let Some(name) = name {
-//             let common_len = prefix
-//                 .chars()
-//                 .zip(name.chars())
-//                 .take_while(|(pc, nc)| pc == nc)
-//                 .count();
-//             prefix.truncate(
-//                 prefix
-//                     .char_indices()
-//                     .nth(common_len)
-//                     .map_or(prefix.len(), |(idx, _)| idx),
-//             );
-//         } else {
-//             return None;
-//         }
-//     }
-
-//     if prefix.is_empty() {
-//         None
-//     } else {
-//         Some(prefix)
-//     }
-// }
