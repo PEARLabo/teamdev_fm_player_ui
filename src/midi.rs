@@ -43,7 +43,7 @@ impl std::fmt::Display for MidiError {
 #[derive(Debug, Default)]
 pub struct MidiConfig {
     // SysExの形式をDominoフォーマットへ変更する
-    pub sysex_convert: bool,
+    pub ignore_text: bool,
     // SysExメッセージを除去する
     pub sysex_ignore: bool,
 }
@@ -79,7 +79,7 @@ impl MidiInfo {
     pub fn get_tracks(&self) -> &[Vec<MidiEvent>] {
         &self.tracks
     }
-    pub fn construct(&self, _config: &MidiConfig) -> Vec<u8> {
+    pub fn construct(&self, config: &MidiConfig) -> Vec<u8> {
         let header = self.header.to_binary();
         let track = self
             .tracks
@@ -90,6 +90,15 @@ impl MidiInfo {
                 data.extend([0x4d, 0x54, 0x72, 0x6b]);
                 let track_body = events
                     .iter()
+                    .filter_map(|event| {
+                        if config.sysex_ignore && event.is_sysex() {
+                            None
+                        } else if config.ignore_text && event.is_meta() && event.data()[0] < 0x0A {
+                            None
+                        } else {
+                            Some(event.clone())
+                        }
+                    })
                     .flat_map(|event| event.to_binary())
                     .collect::<Vec<u8>>();
                 let len = track_body.len();
@@ -172,9 +181,6 @@ pub struct MidiHeader {
     tracks: u16,
 }
 impl MidiHeader {
-    pub fn is_format0(&self) -> bool {
-        self.format == Format::Format0
-    }
     fn to_binary(&self) -> Vec<u8> {
         let mut data = Vec::with_capacity(14);
         data.extend([0x4D, 0x54, 0x68, 0x64]);
@@ -198,10 +204,10 @@ pub struct MidiEvent {
 }
 
 impl MidiEvent {
-    pub fn get_ch(&self) -> u8 {
+    pub fn ch(&self) -> u8 {
         self.ch
     }
-    pub fn get_data(&self) -> &Vec<u8> {
+    pub fn data(&self) -> &[u8] {
         &self.data
     }
     pub fn to_binary(&self) -> Vec<u8> {
@@ -219,7 +225,27 @@ impl MidiEvent {
     fn is_end_of_track(&self) -> bool {
         self.status_byte == 0xff && self.data[0] == 0x2f && self.data[1] == 0x00
     }
+
+    pub fn status_byte(&self) -> u8 {
+        self.status_byte
+    }
+    pub fn new_with(&self, data: &[u8]) -> Self {
+        Self {
+            delta_time: self.delta_time,
+            ch: self.ch,
+            status_byte: self.status_byte,
+            data: data.to_vec(),
+        }
+    }
+    fn is_sysex(&self) -> bool {
+        self.status_byte == 0xf0 || self.status_byte == 0xf7
+    }
+
+    fn is_meta(&self) -> bool {
+        self.status_byte == 0xff
+    }
 }
+
 impl TryFrom<&[u8]> for MidiHeader {
     type Error = MidiError;
     fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
@@ -305,13 +331,21 @@ fn parse_track(raw_events: &[u8]) -> Result<Vec<MidiEvent>, MidiError> {
                 before_status = 0;
                 let status_byte = raw_events[i];
                 match raw_events[i] {
-                    0xf0 | 0xf7 => {
+                    0xf7 => {
+                        let mut event_data = Vec::new();
+                        i += 1;
+                        let (meta_len, len_bytes) = get_variable_value(&raw_events[i + 2..])?;
+                        event_data.extend_from_slice(&raw_events[i..(i + len_bytes + meta_len)]);
+                        i += len_bytes + meta_len;
+                    }
+                    0xf0 => {
                         let mut event_data = Vec::new();
                         i += 1;
                         while raw_events[i] != 0xf7 {
                             event_data.push(raw_events[i]);
                             i += 1;
                         }
+                        event_data.push(0xf7);
                         events.push(MidiEvent {
                             delta_time,
                             ch: 0,
@@ -371,7 +405,6 @@ fn parse_track(raw_events: &[u8]) -> Result<Vec<MidiEvent>, MidiError> {
                     }
                     _ => return Err(MidiError::UnknownEventFormat(before_status)),
                 }
-                // }
             }
             e => {
                 eprintln!("{:?} - delta_time:{} - ch: {:#x}", events, delta_time, ch);

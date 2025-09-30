@@ -17,17 +17,17 @@ struct Args {
     port: usize,
     #[arg(long)]
     port_name: Option<String>,
-    // Convert To Domino Export Style
+    // ignore text message
     #[arg(long)]
-    sysex_convert: bool,
+    ignore_text: bool,
     // Remove SysExEvents
     #[arg(long)]
-    sysex_ignore: bool,
+    ignore_sysex: bool,
 }
 
 // アプリケーションのエントリーポイント
 fn main() {
-    const BAUD_RATE: u32 = 115200;
+    const _BAUD_RATE: u32 = 115200;
     let args = Args::parse();
     if args.list {
         // Print the list of available ports

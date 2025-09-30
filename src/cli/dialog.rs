@@ -1,6 +1,6 @@
 use crossterm::{
     QueueableCommand,
-    cursor::{MoveTo, MoveToColumn},
+    cursor::MoveTo,
     style,
     terminal::{Clear, ClearType},
 };
@@ -26,7 +26,7 @@ pub fn file_dialog(msg: Option<impl AsRef<str>>) -> std::io::Result<()> {
         .queue(style::Print("file name > "))
         .map(|_| ())
 }
-pub fn update_file_path(path: impl AsRef<str>, cursor_pos: usize) -> std::io::Result<()> {
+pub fn update_file_path(path: impl AsRef<str>) -> std::io::Result<()> {
     let mut stdout = std::io::stdout();
     stdout
         .queue(MoveTo(0, 4))?

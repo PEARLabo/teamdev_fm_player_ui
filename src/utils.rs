@@ -1,5 +1,6 @@
 use std::{
     fs::DirEntry,
+    io::BufRead,
     path::{Path, PathBuf},
     str::FromStr,
 };
@@ -35,21 +36,10 @@ pub fn validation_midi_file(data: &[u8]) -> Result<MidiInfo, MidiError> {
             "Unsupported MIDI format detected (must be Format 0 or 1).",
         ));
     }
-    // if info
-    //     .get_tracks()
-    //     .first()
-    //     .unwrap()
-    //     .iter()
-    //     .any(|event| event.get_ch() > 6)
-    // {
-    //     return Err(MidiError::Custom(
-    //         "Unsupported MIDI channel detected (must be 1-6).",
-    //     ));
-    // }
     if info
         .get_tracks()
         .iter()
-        .any(|events| events.iter().any(|event| event.get_ch() > 6))
+        .any(|events| events.iter().any(|event| event.ch() > 6))
     {
         return Err(MidiError::Custom(
             "Unsupported MIDI channel detected (must be 1-6).",
@@ -58,8 +48,24 @@ pub fn validation_midi_file(data: &[u8]) -> Result<MidiInfo, MidiError> {
     Ok(info)
 }
 // MIDIファイルからタイトル情報を取得する
-pub fn get_title(data: &MidiInfo) -> Option<String> {
-    // Note: not implemented
+pub fn get_title(info: &MidiInfo) -> Option<String> {
+    // Conductor or track 1
+    let track = info.get_tracks().first().unwrap();
+    for event in track {
+        if event.status_byte() == 0xff {
+            let data = event.data();
+            if data[0] == 0x03 && data[1] != 0 {
+                let mut i = 1;
+                while data[i] & 0x80 != 0 {
+                    i += 1;
+                }
+                i += 1;
+                return Some(String::from_utf8_lossy(&data[i..]).to_string());
+            } else {
+                break;
+            }
+        }
+    }
     None
 }
 pub fn get_serial_port_list() -> Option<Vec<String>> {

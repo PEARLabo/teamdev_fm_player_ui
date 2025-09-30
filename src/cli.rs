@@ -1,9 +1,8 @@
 use crossterm::{
     ExecutableCommand, QueueableCommand,
-    cursor::{MoveLeft, MoveRight, MoveTo, MoveToColumn},
+    cursor::{MoveLeft, MoveRight, MoveTo},
     event::{self, EventStream, KeyboardEnhancementFlags, PushKeyboardEnhancementFlags},
     execute,
-    style::{self, Color},
     terminal::{self, Clear, ClearType},
 };
 use futures::StreamExt;
@@ -33,7 +32,7 @@ use key_command::KeyCommand;
 use structs::TrackInfo;
 
 const MAX_CHANNEL: u8 = 6;
-const MOVETOP: MoveTo = MoveTo(0, 0);
+const MOVE_TOP: MoveTo = MoveTo(0, 0);
 
 struct AppState {
     track_info: Vec<TrackInfo>,
@@ -107,8 +106,8 @@ pub async fn run(args: Args) -> std::io::Result<()> {
         tempo: 60,
         logs: PlayingLog::default(),
         midi_config: MidiConfig {
-            sysex_convert: args.sysex_convert,
-            sysex_ignore: args.sysex_ignore,
+            ignore_text: args.ignore_text,
+            sysex_ignore: args.ignore_sysex,
         },
     };
     let mut event_stream = EventStream::new();
@@ -164,7 +163,7 @@ pub async fn run(args: Args) -> std::io::Result<()> {
         msg_event = EventInfo::None;
     }
 
-    stdout.queue(MOVETOP)?.execute(Clear(ClearType::All))?;
+    stdout.queue(MOVE_TOP)?.execute(Clear(ClearType::All))?;
     Ok(())
 }
 
@@ -314,7 +313,7 @@ fn update_view(
                 file_dialog(ui_model.dialog_msg.as_ref())?;
                 ui_model.is_error_msg_update = false;
             }
-            update_file_path(&mut ui_model.input_chars, ui_model.cursor_pos)?;
+            update_file_path(&mut ui_model.input_chars)?;
             if let Some(entries) = &ui_model.dir_entries {
                 draw_suggest(entries)?;
             }
@@ -369,7 +368,7 @@ async fn sequencer_msg_rcv(
         let track = &mut app_state.track_info[ch as usize];
         let mut is_update_keyboard = false;
 
-        match msg.get_event_name() {
+        match msg.event() {
             SequenceEventFlag::ProgramChange => {
                 if let Some(data) = msg.get_data() {
                     track.set_inst(crate::char_code_lut::string_from_raw(data));

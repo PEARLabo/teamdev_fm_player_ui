@@ -7,7 +7,7 @@ use crossterm::{
     terminal::{Clear, ClearType},
 };
 use micromap::Set;
-use std::io::{Write, stdout};
+use std::io::stdout;
 
 pub const TABLE_TOP: u16 = 4;
 // YM2203の場合

@@ -21,10 +21,7 @@ impl<'a> From<&'a [u8]> for SequenceMsg {
             let data = if event_flag == SequenceEventFlag::Tempo {
                 // Convert u32 to u8x4
                 let bpm = convert_to_bpm(&data[2..]);
-                unsafe {
-                    let ptr = ((&bpm) as *const u32) as *const u8;
-                    std::slice::from_raw_parts(ptr, 4).to_vec()
-                }
+                bpm.to_le_bytes().to_vec()
             } else {
                 data[2..].to_vec()
             };
@@ -35,6 +32,7 @@ impl<'a> From<&'a [u8]> for SequenceMsg {
 
 impl std::fmt::Display for SequenceMsg {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        const PITCH_BEND_CENTER: i32 = 8192;
         let data = self.get_data().unwrap_or(&[0; 1]);
         match self.sq_event {
             SequenceEventFlag::KeyEvent => {
@@ -47,9 +45,8 @@ impl std::fmt::Display for SequenceMsg {
                 }
             }
             SequenceEventFlag::Tempo => {
-                write!(f, "Tempo: {} BPM", unsafe {
-                    *(data.as_ptr() as *const u32)
-                })
+                let bpm = u32::from_le_bytes(data.try_into().unwrap_or([0; 4]));
+                write!(f, "Tempo: {} BPM", bpm)
             }
             SequenceEventFlag::End => write!(f, "End"),
             SequenceEventFlag::Nop => write!(f, "Ch{:2}: NOP", self.channel),
@@ -74,11 +71,12 @@ impl std::fmt::Display for SequenceMsg {
                 write!(f, "Ch{:2}: Expression     {}", self.channel, data[0])
             }
             SequenceEventFlag::PitchBend => {
+                let raw_value = (data[0] as i32) | ((data[1] as i32) << 8);
                 write!(
                     f,
                     "Ch{:2}: Pitch Bend      {}",
                     self.channel,
-                    ((data[0] as i32) | ((data[1] as i32) << 8)) - 8192
+                    raw_value - PITCH_BEND_CENTER
                 )
             }
 
@@ -105,13 +103,9 @@ impl SequenceMsg {
         }
     }
     pub fn get_data(&self) -> Option<&[u8]> {
-        if let Some(data) = &self.data {
-            Some(data.as_slice())
-        } else {
-            None
-        }
+        self.data.as_deref()
     }
-    pub fn get_event_name(&self) -> SequenceEventFlag {
+    pub fn event(&self) -> SequenceEventFlag {
         self.sq_event.clone()
     }
     pub fn get_channel(&self) -> Option<u8> {
