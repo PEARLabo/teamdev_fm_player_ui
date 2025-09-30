@@ -236,7 +236,7 @@ async fn handle_command(
             }
             KeyCommand::InterPolation => {
                 let (interpolated, ent_list) = generate_suggestion(&ui_model.input_chars);
-                ui_model.input_chars = interpolated;
+                ui_model.input_chars = interpolated.get_content().clone();
                 ui_model.cursor_pos = ui_model.input_chars.len();
                 if ui_model.before_key_command == KeyCommand::InterPolation {
                     if ent_list.is_none() {
