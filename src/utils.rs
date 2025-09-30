@@ -229,36 +229,31 @@ pub fn generate_suggestion(input: impl AsRef<str>) -> (UpdateResult<String>, Opt
                 .unwrap_or_else(|| (UpdateResult::not_updated(input_str.to_string()), None))
         }
         _ => {
-            let common_fname = get_common_filename_prefix(&filtered_entries);
-            if let Some(common_fname) = dbg!(common_fname) {
-                (
-                    UpdateResult::updated(format!("{}/{}", dir.to_str().unwrap(), common_fname)),
-                    Some(filtered_entries),
-                )
-            } else {
-                (
-                    UpdateResult::not_updated(input_str.to_string()),
-                    Some(filtered_entries),
-                )
+            if let Some(common_fname) = get_common_filename_prefix(&filtered_entries) {
+                if !common_fname.is_empty() && Some(common_fname.as_str()) != prefix {
+                    let mut path = dir.to_path_buf();
+                    path.push(common_fname);
+                    return (
+                        UpdateResult::updated(path.to_string_lossy().to_string()),
+                        Some(filtered_entries),
+                    );
+                }
             }
+            (
+                UpdateResult::not_updated(input_str.to_string()),
+                Some(filtered_entries),
+            )
         }
     }
 }
 
 pub fn get_common_filename_prefix(items: &[DirItem]) -> Option<String> {
-    if items.is_empty() {
-        return None;
-    }
+    let mut names = items.iter().map(|item| item.get_file_name());
 
-    let names: Vec<Option<&str>> = items.iter().map(|item| item.get_file_name()).collect();
-    if names.iter().any(|name| name.is_none()) {
-        return None;
-    }
-    let names: Vec<&str> = names.into_iter().map(|name| name.unwrap()).collect();
+    let first = names.next().flatten()?.to_string();
 
-    let mut prefix = String::from(names[0]);
-
-    for name in names.iter().skip(1) {
+    let final_prefix = names.try_fold(first, |mut prefix, name| {
+        let name = name?;
         let common_len = prefix
             .chars()
             .zip(name.chars())
@@ -270,11 +265,45 @@ pub fn get_common_filename_prefix(items: &[DirItem]) -> Option<String> {
                 .nth(common_len)
                 .map_or(prefix.len(), |(idx, _)| idx),
         );
-    }
+        Some(prefix)
+    })?;
 
-    if prefix.is_empty() {
+    if final_prefix.is_empty() {
         None
     } else {
-        Some(prefix)
+        Some(final_prefix)
     }
 }
+
+// pub fn get_common_filename_prefix(items: &[DirItem]) -> Option<String> {
+//     let mut names = items.iter().map(|item| item.get_file_name());
+//     let mut prefix = if let Some(Some(first)) = names.next() {
+//         first.to_string()
+//     } else {
+//         return None;
+//     };
+
+//     for name in names {
+//         if let Some(name) = name {
+//             let common_len = prefix
+//                 .chars()
+//                 .zip(name.chars())
+//                 .take_while(|(pc, nc)| pc == nc)
+//                 .count();
+//             prefix.truncate(
+//                 prefix
+//                     .char_indices()
+//                     .nth(common_len)
+//                     .map_or(prefix.len(), |(idx, _)| idx),
+//             );
+//         } else {
+//             return None;
+//         }
+//     }
+
+//     if prefix.is_empty() {
+//         None
+//     } else {
+//         Some(prefix)
+//     }
+// }
