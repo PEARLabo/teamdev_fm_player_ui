@@ -11,7 +11,7 @@ edition = "2024"
 
 [dependencies]
 
-tokio = { version = "1.45.1", default-features = false,features = ["rt","rt-multi-thread","io-util", "sync", "macros", "io-std"] }
+tokio = { version = "1.45.1", default-features = false, features = ["rt", "rt-multi-thread", "io-util", "sync", "macros", "io-std", "time"] }
 ymodem-send-rs = { git = "https://github.com/PEARLabo/ymodem-send-rs", features= ["async"] }# ymodemリブ
 clap = { version = "4.5.40", features = ["derive"] }
 serial2-tokio = "0.1.15"

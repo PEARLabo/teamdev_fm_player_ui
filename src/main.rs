@@ -23,6 +23,10 @@ struct Args {
     // Remove SysExEvents
     #[arg(long)]
     ignore_sysex: bool,
+    #[arg(long)]
+    ym2608: bool,
+    #[arg(long, default_value_t = 115200)]
+    baud_rate: u32,
 }
 
 // アプリケーションのエントリーポイント

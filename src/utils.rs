@@ -9,9 +9,16 @@ use std::{
 use serial2_tokio::SerialPort;
 
 use crate::midi::{MidiError, MidiInfo};
+#[derive(Debug, Default)]
+pub struct ValidationConf {
+    // enable Ch7, Ch8, Ch9 and Ch10 (FM and Rhythm)
+    // adpcm ch is unsupported
+    pub ym2608: bool,
+    // more options ...
+}
 
-pub fn open_serial_port(port: impl AsRef<str>) -> Result<SerialPort, String> {
-    let baud_rate = 115200;
+pub fn open_serial_port(port: impl AsRef<str>, baud_rate: u32) -> Result<SerialPort, String> {
+    // let  = 115200;
     let port_setting = SerialPort::open(port.as_ref(), baud_rate);
     if port_setting.is_err() {
         return Err("failed to open serial port".to_string());
@@ -30,47 +37,51 @@ pub fn u32_from_le(data: &[u8]) -> u32 {
     (data[0] as u32) | (data[1] as u32) << 8 | (data[2] as u32) << 16 | (data[3] as u32) << 24
 }
 
-pub fn validation_midi_file(data: &[u8]) -> Result<MidiInfo, MidiError> {
+pub fn validation_midi_file(data: &[u8], conf: &ValidationConf) -> Result<MidiInfo, MidiError> {
+    let max_ch = if conf.ym2608 { 10 } else { 6 };
     let info = MidiInfo::try_from(data)?;
     if info.get_header().format() == crate::midi::Format::Format2 {
-        return Err(MidiError::Custom(
+        return Err(MidiError::Custom(String::from(
             "Unsupported MIDI format detected (must be Format 0 or 1).",
-        ));
+        )));
     }
     if info
         .get_tracks()
         .iter()
-        .any(|events| events.iter().any(|event| event.ch() > 6))
+        .any(|events| events.iter().any(|event| event.ch() > max_ch))
     {
-        return Err(MidiError::Custom(
-            "Unsupported MIDI channel detected (must be 1-6).",
-        ));
+        return Err(MidiError::Custom(format!(
+            "Unsupported MIDI channel detected (must be 1-{max_ch})."
+        )));
     }
     Ok(info)
 }
 // MIDIファイルからタイトル情報を取得する
 pub fn get_title(info: &MidiInfo) -> Option<String> {
-    return None;
     // Note: トラック名を取得してしまうので、一度無効化
     // 曲タイトルとトラック名を区別することができれば...
-    // Conductor or track 1
-    let track = info.get_tracks().first().unwrap();
-    for event in track {
-        if event.status_byte() == 0xff {
-            let data = event.data();
-            if data[0] == 0x03 && data[1] != 0 {
-                let mut i = 1;
-                while data[i] & 0x80 != 0 {
+    if false {
+        // Conductor or track 1
+        let track = info.get_tracks().first().unwrap();
+        for event in track {
+            if event.status_byte() == 0xff {
+                let data = event.data();
+                if data[0] == 0x03 && data[1] != 0 {
+                    let mut i = 1;
+                    while data[i] & 0x80 != 0 {
+                        i += 1;
+                    }
                     i += 1;
+                    return Some(String::from_utf8_lossy(&data[i..]).to_string());
+                } else {
+                    break;
                 }
-                i += 1;
-                return Some(String::from_utf8_lossy(&data[i..]).to_string());
-            } else {
-                break;
             }
         }
+        None
+    } else {
+        None
     }
-    None
 }
 pub fn get_serial_port_list() -> Option<Vec<String>> {
     if let Ok(ports_info) = SerialPort::available_ports() {

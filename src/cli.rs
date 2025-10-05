@@ -1,20 +1,24 @@
 use crossterm::{
     ExecutableCommand, QueueableCommand,
     cursor::{MoveLeft, MoveRight, MoveTo},
-    event::{self, EventStream, KeyboardEnhancementFlags, PushKeyboardEnhancementFlags},
+    event::{self, Event, EventStream, KeyboardEnhancementFlags, PushKeyboardEnhancementFlags},
     execute,
     terminal::{self, Clear, ClearType},
 };
 use futures::StreamExt;
 use micromap::Set;
 use serial2_tokio::SerialPort;
-use std::io::{Write, stdout};
+use std::{
+    io::{Write, stdout},
+    sync::atomic::AtomicU8,
+};
 
 use crate::{
     Args,
     cli::{
         dialog::{draw_suggest, file_dialog, update_file_path},
         structs::PlayingLog,
+        view::Rhythm,
     },
     midi::MidiConfig,
     sequence_msg::SequenceEventFlag,
@@ -31,16 +35,40 @@ mod view;
 use key_command::KeyCommand;
 use structs::TrackInfo;
 
-const MAX_CHANNEL: u8 = 6;
+// const MAX_CHANNEL: u8 = 6;
 const MOVE_TOP: MoveTo = MoveTo(0, 0);
+const MAX_CHANNELS_YM2608: u8 = 10;
+const WAIT_TIME_FOR_RHYTHM: u64 = 100;
 
+pub static MAX_CHANNEL: AtomicU8 = AtomicU8::new(6);
 struct AppState {
     track_info: Vec<TrackInfo>,
     keyboard_state: Vec<Set<u8, 8>>,
+    percussion_state: [u8; 6],
     title: String,
     tempo: u32,
     logs: PlayingLog,
     midi_config: MidiConfig,
+    validation_conf: crate::utils::ValidationConf,
+    ym2608: bool,
+}
+impl Default for AppState {
+    fn default() -> Self {
+        Self {
+            track_info: vec![
+                TrackInfo::default();
+                MAX_CHANNEL.load(std::sync::atomic::Ordering::Relaxed) as usize
+            ],
+            keyboard_state: vec![Set::default(); 72],
+            percussion_state: [0; 6],
+            title: String::new(),
+            tempo: 60,
+            logs: PlayingLog::default(),
+            midi_config: MidiConfig::default(),
+            validation_conf: crate::utils::ValidationConf::default(),
+            ym2608: false,
+        }
+    }
 }
 
 struct UiModel {
@@ -59,6 +87,7 @@ enum EventInfo {
     Tempo(u32),
     ChInfo((u8, bool)),
     UpdateAll,
+    RhythmNoteOff(u8),
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
@@ -72,7 +101,7 @@ struct RawModeGuard;
 impl Drop for RawModeGuard {
     fn drop(&mut self) {
         if let Err(e) = terminal::disable_raw_mode() {
-            eprintln!("Failed to disable raw mode: {}", e);
+            eprintln!("Failed to disable raw mode: {e}");
         }
     }
 }
@@ -80,12 +109,16 @@ impl Drop for RawModeGuard {
 pub async fn run(args: Args) -> std::io::Result<()> {
     terminal::enable_raw_mode()?;
     let _raw_mode_guard = RawModeGuard;
+    if args.ym2608 {
+        MAX_CHANNEL.store(MAX_CHANNELS_YM2608, std::sync::atomic::Ordering::Relaxed);
+        dbg!(MAX_CHANNEL.load(std::sync::atomic::Ordering::Relaxed));
+    }
     let mut stdout = stdout();
     execute!(
         stdout,
         PushKeyboardEnhancementFlags(KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES)
     )?;
-
+    // SerialPort Initialization
     let port_name = match args.port_name {
         Some(name) => name,
         None => SerialPort::available_ports()
@@ -96,23 +129,28 @@ pub async fn run(args: Args) -> std::io::Result<()> {
             .unwrap()
             .to_string(),
     };
-    let mut port = crate::utils::open_serial_port(&port_name).unwrap();
+    let mut port = crate::utils::open_serial_port(&port_name, args.baud_rate).unwrap();
     serial_com::clear_buffer(&mut port);
-
+    // App Initialization
     let mut app_state = AppState {
-        track_info: vec![TrackInfo::default(); MAX_CHANNEL as usize],
-        keyboard_state: vec![Set::default(); 72],
-        title: String::new(),
-        tempo: 60,
-        logs: PlayingLog::default(),
         midi_config: MidiConfig {
             ignore_text: args.ignore_text,
             sysex_ignore: args.ignore_sysex,
         },
+        validation_conf: crate::utils::ValidationConf {
+            ym2608: args.ym2608,
+        },
+        ym2608: args.ym2608,
+        ..Default::default()
     };
     let mut event_stream = EventStream::new();
-    let (ui_state, maybe_title) =
-        try_send_midi(&mut port, args.input.as_ref(), &app_state.midi_config).await?;
+    let (ui_state, maybe_title) = try_send_midi(
+        &mut port,
+        args.input.as_ref(),
+        &app_state.midi_config,
+        &app_state.validation_conf,
+    )
+    .await?;
 
     let mut ui_model = UiModel {
         state: ui_state,
@@ -136,17 +174,23 @@ pub async fn run(args: Args) -> std::io::Result<()> {
     )?;
 
     let mut msg_event = EventInfo::None;
-
+    let (tx, mut rx) = tokio::sync::mpsc::channel::<EventInfo>(1);
+    // UI Main Loop
     loop {
         tokio::select! {
             Ok(v) = serial_com::receive_byte(&mut port) => {
-                msg_event = sequencer_msg_rcv(v, &mut app_state, &mut port).await?;
+                msg_event = sequencer_msg_rcv(v, &mut app_state, &mut port, tx.clone()).await?;
             }
             Some(Ok(key)) = event_stream.next() => {
-                if let event::Event::Key(key_event) = key {
-                    if handle_keyboard_event(key_event, &mut ui_model, &mut stdout)? {
+                if let event::Event::Key(key_event) = key
+                    && handle_keyboard_event(key_event, &mut ui_model, &mut stdout)? {
                         break;
                     }
+            }
+            Some(e) = rx.recv() => {
+                msg_event = e;
+                if let EventInfo::RhythmNoteOff(r) = msg_event {
+                    app_state.percussion_state[r as usize] = app_state.percussion_state[r as usize].saturating_sub(1);
                 }
             }
         }
@@ -252,8 +296,13 @@ async fn handle_command(
             KeyCommand::Quit => return Ok(true),
             KeyCommand::Other(ref input) => {
                 if ui_model.state == UiState::FileDialog {
-                    let (new_ui_state, maybe_title) =
-                        try_send_midi(port, Some(input), &app_state.midi_config).await?;
+                    let (new_ui_state, maybe_title) = try_send_midi(
+                        port,
+                        Some(input),
+                        &app_state.midi_config,
+                        &app_state.validation_conf,
+                    )
+                    .await?;
                     ui_model.state = new_ui_state;
                     match maybe_title {
                         Ok(t) => {
@@ -291,19 +340,20 @@ fn update_view(
                 EventInfo::None => {}
                 EventInfo::Tempo(_) => view::draw_tempo(app_state.tempo)?,
                 EventInfo::ChInfo((ch, is_update_keyboard)) => {
-                    view::draw_table_at(&app_state.track_info, *ch as usize)?;
+                    view::draw_table_at(&app_state.track_info, *ch as usize, app_state.ym2608)?;
                     if *is_update_keyboard {
-                        keyboard::draw_keyboard(&app_state.keyboard_state)?;
+                        if *ch < 9 {
+                            keyboard::draw_keyboard(&app_state.keyboard_state)?;
+                        } else {
+                            keyboard::draw_rhythm(&app_state.percussion_state)?;
+                        }
                     }
                 }
                 EventInfo::UpdateAll => {
-                    view::draw_display(
-                        &app_state.title,
-                        app_state.tempo,
-                        &app_state.track_info,
-                        &app_state.keyboard_state,
-                        &app_state.logs,
-                    )?;
+                    view::draw_display(app_state)?;
+                }
+                EventInfo::RhythmNoteOff(_) => {
+                    keyboard::draw_rhythm(&app_state.percussion_state)?;
                 }
             }
             view::draw_logs(&app_state.logs)?;
@@ -327,13 +377,14 @@ async fn try_send_midi(
     port: &mut SerialPort,
     path: Option<impl AsRef<str>>,
     midi_convert_config: &MidiConfig,
+    validation_conf: &crate::utils::ValidationConf,
 ) -> std::io::Result<(UiState, Result<String, String>)> {
     let path = match path {
         Some(p) => p,
         None => return Ok((UiState::FileDialog, Err(String::new()))),
     };
 
-    match crate::file_ctrl::file_check(Some(path.as_ref()), midi_convert_config) {
+    match crate::file_ctrl::file_check(Some(path.as_ref()), midi_convert_config, validation_conf) {
         Ok(Some((info, raw_data))) => {
             let res = serial_com::send_midi_file(port, &raw_data).await;
             if let Err(e) = res {
@@ -352,6 +403,7 @@ async fn sequencer_msg_rcv(
     first_byte: u8,
     app_state: &mut AppState,
     port: &mut SerialPort,
+    tx_clone: tokio::sync::mpsc::Sender<EventInfo>,
 ) -> std::result::Result<EventInfo, std::io::Error> {
     let msg = match serial_com::receive_sequence_msg(first_byte, port).await {
         Some(serial_com::Message::Sequence(msg)) => msg,
@@ -362,7 +414,7 @@ async fn sequencer_msg_rcv(
     app_state.logs.add(msg.to_string());
 
     if let Some(ch) = msg.get_channel() {
-        if ch >= MAX_CHANNEL {
+        if ch >= MAX_CHANNEL.load(std::sync::atomic::Ordering::Relaxed) {
             return Ok(EventInfo::None);
         }
         let track = &mut app_state.track_info[ch as usize];
@@ -371,23 +423,43 @@ async fn sequencer_msg_rcv(
         match msg.event() {
             SequenceEventFlag::ProgramChange => {
                 if let Some(data) = msg.get_data() {
-                    track.set_inst(crate::char_code_lut::string_from_raw(data));
+                    let name = crate::char_code_lut::string_from_raw(data);
+                    eprintln!("Ch: {ch}, inst: {name}");
+                    track.set_inst(name);
                 }
             }
             SequenceEventFlag::KeyEvent => {
                 if let Some(data) = msg.get_data() {
                     let note = data[0] as usize;
-                    if data[1] == 0 {
-                        track.set_key_state(None);
-                        if (24..96).contains(&note) {
-                            app_state.keyboard_state[note - 24].remove(&ch);
+                    track.set_key_state(if data[1] == 0 { None } else { Some(data[0]) });
+                    // otherwise percussion
+                    if ch < 9 {
+                        if data[1] == 0 {
+                            if (24..96).contains(&note) {
+                                app_state.keyboard_state[note - 24].remove(&ch);
+                                is_update_keyboard = true;
+                            }
+                        } else if (24..96).contains(&note) {
+                            app_state.keyboard_state[note - 24].insert(ch);
                             is_update_keyboard = true;
                         }
                     } else {
-                        track.set_key_state(Some(data[0]));
-                        if (24..96).contains(&note) {
-                            app_state.keyboard_state[note - 24].insert(ch);
+                        // change state for PERCUSSION
+                        if let Ok(r) = Rhythm::try_from(note as u8)
+                            && data[1] != 0
+                        {
+                            app_state.percussion_state[r as usize] += 1;
                             is_update_keyboard = true;
+                            // ノートオフのイベント遅延発火
+                            // リズムは単発遅延発火可能にする
+                            tokio::spawn(async move {
+                                tokio::time::sleep(std::time::Duration::from_millis(
+                                    WAIT_TIME_FOR_RHYTHM,
+                                ))
+                                .await;
+                                // メインループにノートオフイベントを送信
+                                let _ = tx_clone.send(EventInfo::RhythmNoteOff(r as u8)).await;
+                            });
                         }
                     }
                 }
@@ -401,6 +473,16 @@ async fn sequencer_msg_rcv(
                 if let Some(data) = msg.get_data() {
                     track.set_pitch_bend(((data[0] as i32) | ((data[1] as i32) << 8)) - 8192);
                 }
+            }
+            SequenceEventFlag::PanPot => {
+                if let Some(data) = msg.get_data() {
+                    track.set_pan_pot(data[0]);
+                }
+            }
+            SequenceEventFlag::EventResetAllControllers => {
+                app_state.track_info.iter_mut().for_each(|t| {
+                    t.clear();
+                });
             }
             _ => {}
         }

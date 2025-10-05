@@ -131,7 +131,7 @@ pub async fn receive_sequence_msg(
         let str = std::str::from_utf8(&buf).unwrap().to_string();
         return Some(Message::from(str));
     } else if msg_flag != 1 {
-        println!("receive: {:#02x}", msg_flag);
+        println!("receive: {msg_flag:#02x}");
         return None;
     }
 

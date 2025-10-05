@@ -7,7 +7,7 @@ use crate::utils::u32_from;
 const fn to_u16(h: u8, l: u8) -> u16 {
     ((h as u16) << 8) | (l as u16)
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum MidiError {
     InvalidFileFormat(u8), // 0: HEADER / 1: Track
     InvalidHeader,
@@ -15,7 +15,7 @@ pub enum MidiError {
     LengthError,
     UnknownEventFormat(u8),
     UnknownEvent(u8),
-    Custom(&'static str),
+    Custom(String),
 }
 impl std::fmt::Display for MidiError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -34,8 +34,8 @@ impl std::fmt::Display for MidiError {
             Self::InvalidHeader => write!(f, "Invalid Header"),
             Self::UnknownFormat => write!(f, "Unknown Format"),
             Self::LengthError => write!(f, "Length Error"),
-            Self::UnknownEventFormat(e) => write!(f, "Unknown Event Format: {:#x}", e),
-            Self::UnknownEvent(e) => write!(f, "Unknown Event: {:#x}", e),
+            Self::UnknownEventFormat(e) => write!(f, "Unknown Event Format: {e:#x}"),
+            Self::UnknownEvent(e) => write!(f, "Unknown Event: {e:#x}"),
             Self::Custom(s) => write!(f, "{s}"),
         }
     }
@@ -92,8 +92,10 @@ impl MidiInfo {
                     .iter()
                     .filter_map(|event| {
                         if config.sysex_ignore && event.is_sysex() {
+                            // Deleting SysEx
                             None
                         } else if config.ignore_text && event.is_meta() && event.data()[0] < 0x0A {
+                            // Deleting text messages
                             None
                         } else {
                             Some(event.clone())
@@ -407,7 +409,7 @@ fn parse_track(raw_events: &[u8]) -> Result<Vec<MidiEvent>, MidiError> {
                 }
             }
             e => {
-                eprintln!("{:?} - delta_time:{} - ch: {:#x}", events, delta_time, ch);
+                eprintln!("{events:?} - delta_time:{delta_time} - ch: {ch:#x}");
                 return Err(MidiError::UnknownEvent(e));
             }
         }

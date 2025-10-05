@@ -46,7 +46,7 @@ impl std::fmt::Display for SequenceMsg {
             }
             SequenceEventFlag::Tempo => {
                 let bpm = u32::from_le_bytes(data.try_into().unwrap_or([0; 4]));
-                write!(f, "Tempo: {} BPM", bpm)
+                write!(f, "Tempo: {bpm} BPM")
             }
             SequenceEventFlag::End => write!(f, "End"),
             SequenceEventFlag::Nop => write!(f, "Ch{:2}: NOP", self.channel),
@@ -78,6 +78,9 @@ impl std::fmt::Display for SequenceMsg {
                     self.channel,
                     raw_value - PITCH_BEND_CENTER
                 )
+            }
+            SequenceEventFlag::PanPot => {
+                write!(f, "Ch{:2}: Pan Pot        {}", self.channel, data[0])
             }
 
             _ => write!(f, ""),
@@ -132,7 +135,13 @@ pub enum SequenceEventFlag {
     Param,
     ProgramChange,
     Expression,
+    EventResetAllControllers,
+    EventAllSoundOff,
+    EventAllNoteOff,
+    EventLegato,
+    EventNoteOffset,
     PitchBend,
+    PanPot,
     Other, // これhあ値不定。イベント追加で変動
 }
 
@@ -147,26 +156,17 @@ impl From<u8> for SequenceEventFlag {
             5 => Self::ProgramChange,
             6 => Self::Expression,
             7 => Self::PitchBend,
+            9 => Self::EventResetAllControllers,
+            10 => Self::EventAllSoundOff,
+            11 => Self::EventAllNoteOff,
+            12 => Self::EventLegato,
+            13 => Self::EventNoteOffset,
+            14 => Self::PanPot,
             _ => Self::Other,
         }
     }
 }
 
-impl SequenceEventFlag {
-    pub fn into_u8(self) -> u8 {
-        match self {
-            Self::KeyEvent => 0,
-            Self::Tempo => 1,
-            Self::End => 2,
-            Self::Nop => 3,
-            Self::Param => 4,
-            Self::ProgramChange => 5,
-            Self::Expression => 6,
-            Self::PitchBend => 7,
-            _ => 0xff,
-        }
-    }
-}
 #[derive(Clone, Copy)]
 #[repr(u8)]
 pub enum ParamChangeFlag {
@@ -207,21 +207,6 @@ impl From<u8> for ParamChangeFlag {
             6 => Self::SlRr,
             7 => Self::FbCon,
             _ => Self::Other,
-        }
-    }
-}
-impl ParamChangeFlag {
-    pub fn into_u8(self) -> u8 {
-        match self {
-            Self::Slot => 0,
-            Self::DtMul => 1,
-            Self::Tl => 2,
-            Self::KsAr => 3,
-            Self::Dr => 4,
-            Self::Sr => 5,
-            Self::SlRr => 6,
-            Self::FbCon => 7,
-            _ => 0xff,
         }
     }
 }

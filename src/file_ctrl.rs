@@ -26,6 +26,7 @@ impl Error {
 pub fn file_check(
     path: Option<impl AsRef<str>>,
     midi_convert_config: &crate::midi::MidiConfig,
+    conf: &crate::utils::ValidationConf,
 ) -> Result<Option<(MidiInfo, Vec<u8>)>, Error> {
     if let Some(path) = path {
         let path = path.as_ref();
@@ -36,7 +37,7 @@ pub fn file_check(
         }?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf).unwrap();
-        let midi_info = crate::utils::validation_midi_file(&buf);
+        let midi_info = crate::utils::validation_midi_file(&buf, conf);
         if let Ok(midi_info) = midi_info {
             let info = if midi_info.get_header().format() == crate::midi::Format::Format1 {
                 midi_info.convert_to_format0()
