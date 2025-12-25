@@ -1,7 +1,7 @@
 use crossterm::{
     ExecutableCommand, QueueableCommand,
     cursor::{MoveLeft, MoveRight, MoveTo},
-    event::{self, Event, EventStream, KeyboardEnhancementFlags, PushKeyboardEnhancementFlags},
+    event::{self, EventStream, KeyboardEnhancementFlags, PushKeyboardEnhancementFlags},
     execute,
     terminal::{self, Clear, ClearType},
 };
@@ -12,6 +12,7 @@ use std::{
     io::{Write, stdout},
     sync::atomic::AtomicU8,
 };
+use tokio::net::unix::SocketAddr;
 
 use crate::{
     Args,
@@ -20,10 +21,11 @@ use crate::{
         structs::PlayingLog,
         view::Rhythm,
     },
+    io::AsyncIO,
     midi::MidiConfig,
     sequence_msg::SequenceEventFlag,
     serial_com,
-    utils::{DirItem, generate_suggestion, get_title, u32_from_le},
+    utils::{DirItem, generate_suggestion, get_title, get_udp_addrinfo, u32_from_le},
 };
 
 mod dialog;
@@ -119,18 +121,30 @@ pub async fn run(args: Args) -> std::io::Result<()> {
         PushKeyboardEnhancementFlags(KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES)
     )?;
     // SerialPort Initialization
-    let port_name = match args.port_name {
-        Some(name) => name,
-        None => SerialPort::available_ports()
-            .map_err(|e| std::io::Error::other(e.to_string()))?
-            .get(args.port)
-            .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::NotFound, "Invalid port index"))?
-            .to_str()
-            .unwrap()
-            .to_string(),
+    let port_info = if let Some(addr) =
+        get_udp_addrinfo((args.tx_addr, args.tx_port), (args.rx_addr, args.rx_port))
+    {
+        crate::io::IoKind::Udp((dbg!(addr.tx_addr), addr.rx_addr))
+    } else {
+        let port_name = match args.port_name {
+            Some(name) => name,
+            None => SerialPort::available_ports()
+                .map_err(|e| std::io::Error::other(e.to_string()))?
+                .get(args.port)
+                .ok_or_else(|| {
+                    std::io::Error::new(std::io::ErrorKind::NotFound, "Invalid port index")
+                })?
+                .to_str()
+                .unwrap()
+                .to_string(),
+        };
+        crate::io::IoKind::Serial((port_name, args.baud_rate))
     };
-    let mut port = crate::utils::open_serial_port(&port_name, args.baud_rate).unwrap();
-    serial_com::clear_buffer(&mut port);
+
+    let mut port = AsyncIO::open(port_info).await.unwrap();
+
+    // serial_com::clear_buffer(&mut port);
+    port.clear_buffer();
     // App Initialization
     let mut app_state = AppState {
         midi_config: MidiConfig {
@@ -269,7 +283,7 @@ fn handle_keyboard_event(
 async fn handle_command(
     ui_model: &mut UiModel,
     app_state: &mut AppState,
-    port: &mut SerialPort,
+    port: &mut AsyncIO,
     msg_event: &mut EventInfo,
 ) -> std::io::Result<bool> {
     if let Some(key_event) = ui_model.fired_command.clone() {
@@ -374,7 +388,7 @@ fn update_view(
 }
 
 async fn try_send_midi(
-    port: &mut SerialPort,
+    port: &mut AsyncIO,
     path: Option<impl AsRef<str>>,
     midi_convert_config: &MidiConfig,
     validation_conf: &crate::utils::ValidationConf,
@@ -402,7 +416,7 @@ async fn try_send_midi(
 async fn sequencer_msg_rcv(
     first_byte: u8,
     app_state: &mut AppState,
-    port: &mut SerialPort,
+    port: &mut AsyncIO,
     tx_clone: tokio::sync::mpsc::Sender<EventInfo>,
 ) -> std::result::Result<EventInfo, std::io::Error> {
     let msg = match serial_com::receive_sequence_msg(first_byte, port).await {

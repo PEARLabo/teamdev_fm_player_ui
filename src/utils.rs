@@ -282,3 +282,30 @@ pub fn get_common_filename_prefix(items: &[DirItem]) -> Option<String> {
         Some(final_prefix)
     }
 }
+
+// (IP Addr, Port)
+type SocketAddrInfo = (Option<String>, Option<String>);
+pub struct SocketInfo {
+    pub tx_addr: String,
+    pub rx_addr: String,
+}
+// 受信アドレス/ポート情報は自動生成可能
+// 送信アドレス/ポートは必須
+pub fn get_udp_addrinfo(tx_info: SocketAddrInfo, rx_info: SocketAddrInfo) -> Option<SocketInfo> {
+    if let Some(tx_port) = tx_info.0.as_ref().and(tx_info.1) {
+        let tx_addr = tx_info.0.unwrap() + ":" + &tx_port;
+        // RX Addrのデフォルトは0.0.0.0
+        let rx_addr = rx_info.0.unwrap_or(String::from("0.0.0.0"));
+        // Portの指定がなければ、tx portの次
+        Some(SocketInfo {
+            tx_addr,
+            rx_addr: rx_addr
+                + ":"
+                + &rx_info
+                    .1
+                    .unwrap_or((tx_port.parse::<usize>().unwrap() + 1).to_string()),
+        })
+    } else {
+        None
+    }
+}

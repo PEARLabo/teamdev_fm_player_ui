@@ -1,7 +1,4 @@
-use std::{
-    collections::{HashMap, VecDeque},
-    io::Write,
-};
+use std::collections::{HashMap, VecDeque};
 
 use crate::utils::u32_from;
 const fn to_u16(h: u8, l: u8) -> u16 {

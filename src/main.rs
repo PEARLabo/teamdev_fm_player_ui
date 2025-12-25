@@ -6,6 +6,7 @@ mod serial_com;
 mod utils;
 use clap::Parser;
 mod file_ctrl;
+mod io;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -27,6 +28,14 @@ struct Args {
     ym2608: bool,
     #[arg(long, default_value_t = 115200)]
     baud_rate: u32,
+    #[arg(long)]
+    tx_addr: Option<String>,
+    #[arg(long)]
+    tx_port: Option<String>,
+    #[arg(long)]
+    rx_addr: Option<String>,
+    #[arg(long)]
+    rx_port: Option<String>,
 }
 
 // アプリケーションのエントリーポイント

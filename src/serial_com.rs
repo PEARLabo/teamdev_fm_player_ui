@@ -1,5 +1,5 @@
+use crate::io::AsyncIO;
 use crate::sequence_msg::{SequenceEventFlag, SequenceMsg};
-use serial2_tokio::SerialPort;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use ymodem_send_rs::{YmodemAsyncSend, YmodemSender};
 pub enum Message {
@@ -17,7 +17,7 @@ impl From<String> for Message {
         Message::Printf(value)
     }
 }
-pub async fn file_size(port: &mut SerialPort, buf: &[u8]) -> Result<(), String> {
+pub async fn file_size(port: &mut AsyncIO, buf: &[u8]) -> Result<(), String> {
     let f_size = buf.len().to_le_bytes();
     let bit4_header = 0x2F; //リトルエンディアンに対応させる
     let all_data: [u8; 4] = [bit4_header, f_size[0], f_size[1], f_size[2]];
@@ -30,7 +30,7 @@ pub async fn file_size(port: &mut SerialPort, buf: &[u8]) -> Result<(), String> 
     Ok(())
 }
 
-pub async fn file_data(port: &mut SerialPort, data: &[u8]) {
+pub async fn file_data(port: &mut AsyncIO, data: &[u8]) {
     println!("Start Send MIDI FIle by Ymodem");
     let fname = "example.mid";
     let sender = YmodemSender::new(fname, data);
@@ -38,7 +38,7 @@ pub async fn file_data(port: &mut SerialPort, data: &[u8]) {
     println!("Maybe File sent!");
 }
 // Receive only one byte
-pub async fn receive_byte(port: &mut SerialPort) -> Result<u8, String> {
+pub async fn receive_byte(port: &mut AsyncIO) -> Result<u8, String> {
     let mut response = [0; 1];
     match port.read_exact(&mut response).await {
         Ok(_) => Ok(response[0]),
@@ -49,8 +49,9 @@ pub async fn receive_byte(port: &mut SerialPort) -> Result<u8, String> {
     }
 }
 
-pub async fn send_midi_file(port: &mut SerialPort, buf: &[u8]) -> Result<(), String> {
+pub async fn send_midi_file(port: &mut AsyncIO, buf: &[u8]) -> Result<(), String> {
     file_size(port, buf).await.unwrap();
+    println!("waiting ack 0x0E");
     // Ymodemによるファイル転送(受信可能の場合)
     let msg_flag = receive_byte(port).await.unwrap() & 0xf;
     println!("start sending file");
@@ -78,10 +79,7 @@ pub async fn send_midi_file(port: &mut SerialPort, buf: &[u8]) -> Result<(), Str
     }
 }
 
-pub async fn receive_sequence_msg(
-    first_byte: u8,
-    port: &mut serial2_tokio::SerialPort,
-) -> Option<Message> {
+pub async fn receive_sequence_msg(first_byte: u8, port: &mut AsyncIO) -> Option<Message> {
     if first_byte == 0x0 {
         // println!("Loader start wait.");
         return Some(Message::Message("Loader start wait.".to_string()));
@@ -138,14 +136,15 @@ pub async fn receive_sequence_msg(
     Some(Message::from(SequenceMsg::from(buf.as_slice())))
 }
 
-pub fn clear_buffer(port: &mut SerialPort) {
-    port.discard_input_buffer().unwrap();
-    port.discard_output_buffer().unwrap();
+pub fn clear_buffer(port: &mut AsyncIO) {
+    // port.discard_input_buffer().unwrap();
+    // port.discard_output_buffer().unwrap();
+    port.clear_buffer();
 }
-async fn send_text(port: &mut SerialPort, text: &str) {
+async fn send_text(port: &mut AsyncIO, text: &str) {
     port.write_all(text.as_bytes()).await.unwrap()
 }
-pub async fn send_raw_text_file(port: &mut SerialPort, fname: impl AsRef<std::path::Path>) {
+pub async fn send_raw_text_file(port: &mut AsyncIO, fname: impl AsRef<std::path::Path>) {
     let file = std::fs::read_to_string(fname).unwrap();
     send_text(port, &file).await;
 }
